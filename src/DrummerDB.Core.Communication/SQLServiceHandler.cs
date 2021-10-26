@@ -1,0 +1,77 @@
+﻿using System.Diagnostics;
+using System;
+using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using Drummersoft.DrummerDB.Core.QueryTransaction;
+using Drummersoft.DrummerDB.Core.Structures;
+
+namespace Drummersoft.DrummerDB.Core.Communication
+{
+    /// <summary>
+    /// Provides network actions for handling SQL statements to be executed against the database system. For more information, see INetworkManager.md
+    /// </summary>
+    internal class SQLServiceHandler
+    {
+        #region Private Fields
+        private IAuthenticationManager _auth;
+        private IDbManager _db;
+        private QueryManager _query;
+        #endregion
+
+        #region Public Properties
+        #endregion
+
+        #region Constructors
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Writes method call to <see cref="Debug.WriteLine(string?)"/>
+        /// </summary>
+        public void HandleTest()
+        {
+            Debug.WriteLine("SQL Service Handler Handles Test");
+        }
+
+        internal bool UserHasRights(string userName, string pw)
+        {
+            return _auth.ValidateLogin(userName, pw);
+        }
+
+        internal bool IsValidQuery(string sqlStatement, string userName, string pw, out string errorMessage)
+        {
+            return _query.IsStatementValid(sqlStatement, out errorMessage);
+        }
+
+        internal bool IsValidQuery(string sqlStatement, string userName, string pw, string databaseName, out string errorMessage)
+        {
+            return _query.IsStatementValid(sqlStatement, databaseName, out errorMessage);
+        }
+
+        internal Resultset ExecuteQuery(string sqlStatement, string userName, string pw, string dbName, Guid userSessionId)
+        {
+            return _query.ExecuteValidatedStatement(sqlStatement, dbName, userName, pw, userSessionId);
+        }
+
+        public void SetAuthentication(IAuthenticationManager authentication)
+        {
+            _auth = authentication;
+        }
+
+        public void SetQueryManager(IQueryManager query)
+        {
+            _query = query as QueryManager;
+        }
+
+        public void SetDbManager(IDbManager db)
+        {
+            _db = db;
+        }
+        #endregion
+
+        #region Private Methods
+        #endregion
+
+    }
+}

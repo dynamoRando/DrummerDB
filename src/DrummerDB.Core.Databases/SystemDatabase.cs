@@ -1,0 +1,549 @@
+﻿using Drummersoft.DrummerDB.Core.Cryptography.Interface;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.IdentityAccess.Structures;
+using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Memory.Interface;
+using Drummersoft.DrummerDB.Core.Storage.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.LoginTable.Columns;
+using Microsoft.Extensions.Logging;
+using Drummersoft.DrummerDB.Core.Structures.Version;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
+using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
+
+namespace Drummersoft.DrummerDB.Core.Databases
+{
+    /// <summary>
+    /// A system database used internally by a Process
+    /// </summary>
+    internal class SystemDatabase : IDatabase
+    {
+        #region Private Fields
+        // managers
+        private ICacheManager _cache;
+        private ICryptoManager _crypt;
+        private IStorageManager _storage;
+        private ITransactionEntryManager _xEntryManager;
+        private List<Table> _systemTables;
+
+        // internal objects
+        DatabaseMetadata _metadata;
+        int _version;
+        Guid _dbId;
+        private Table _systemLogins;
+        private Table _systemLoginRoles;
+        private Table _systemRoles;
+        private Table _systemRolePermissions;
+        private Table _databaseSchemas;
+        private Table _databaseSchemaPermissions;
+        private Table _databaseTableDatabases;
+        private ILogger _logger;
+        #endregion
+
+        #region Public Properties
+        public string Name { get; set; }
+        public int Version { get; set; }
+        public Guid Id => _dbId;
+        #endregion
+
+        #region Constructors
+        public SystemDatabase(ICacheManager cache, ICryptoManager crypt, int version, Guid dbId, ITransactionEntryManager xEntryManager)
+        {
+            _cache = cache;
+            _crypt = crypt;
+            _version = version;
+            _dbId = dbId;
+            _xEntryManager = xEntryManager;
+
+            _systemTables = new List<Table>();
+
+            SetupTables();
+        }
+
+        public SystemDatabase(DatabaseMetadata metadata)
+        {
+            _metadata = metadata;
+            Name = metadata.Name;
+            Version = metadata.Version;
+            _dbId = metadata.Id;
+            _crypt = metadata.CryptoManager;
+            _cache = metadata.CacheManager;
+            _storage = metadata.StorageManager;
+            _xEntryManager = metadata.TransactionEntryManager;
+
+            _systemTables = new List<Table>();
+
+            SetupTables();
+        }
+
+        public SystemDatabase(DatabaseMetadata metadata, ILogger logger) : this(metadata)
+        {
+            _logger = logger;
+        }
+
+        #endregion
+
+        #region Public Methods
+        public bool HasTable(string tableName)
+        {
+            if (tableName.Contains('.'))
+            {
+                var values = tableName.Split('.');
+                string schema = values[0];
+                string name = values[1];
+
+                return _systemTables.Any(table =>
+                string.Equals(table.Name, name, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(table.Schema().Schema.SchemaName, schema, StringComparison.OrdinalIgnoreCase)
+                );
+
+            }
+            else
+            {
+                return _systemTables.Any(table => string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        public Table GetTable(int tableId)
+        {
+            return _systemTables.Where(table => table.Address.TableId == tableId).FirstOrDefault();
+        }
+
+        public Table GetTable(string tableName)
+        {
+            if (tableName.Contains('.'))
+            {
+                var values = tableName.Split('.');
+                string schema = values[0];
+                string name = values[1];
+
+                return _systemTables.Where(table =>
+                string.Equals(table.Name, name, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(table.Schema().Schema.SchemaName, schema, StringComparison.OrdinalIgnoreCase)).FirstOrDefault()
+               ;
+
+            }
+            else
+            {
+                return _systemTables.Where(table => string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            }
+        }
+
+        public bool HasLogin(string userName)
+        {
+            var valueUserName = new RowValue();
+            valueUserName.SetColumn(_systemLogins.GetColumn(login.UserName));
+            valueUserName.SetValue(userName);
+
+            return _systemLogins.HasValue(valueUserName);
+        }
+
+        public bool HasLogin(string userName, Guid userId)
+        {
+            var values = new List<RowValue>();
+
+            var valueUserName = RowValueMaker.Create(_systemLogins, login.UserName, userName);
+            values.Add(valueUserName);
+
+            var valueUserId = RowValueMaker.Create(_systemLogins, login.UserGUID, userId.ToString());
+            values.Add(valueUserId);
+
+            return _systemLogins.HasAllValues(values);
+        }
+
+        /// <summary>
+        /// Adds the login to the System database (for the Process)
+        /// </summary>
+        /// <param name="userName">Name of the user.</param>
+        /// <param name="pwInput">The pw input.</param>
+        /// <param name="userGUID">The user unique identifier.</param>
+        /// <param name="isAdminLogin">If the login is a system admin</param>
+        /// <returns><c>true</c> if successful, otherwise <c>false</c></returns>
+        /// <remarks><seealso cref="DbMetaSystemDataPages.CreateUser(string, string)"/></remarks>
+        public bool AddLogin(string userName, string pwInput, Guid userGUID, bool isAdminLogin)
+        {
+            int iterations = _crypt.GetRandomNumber();
+            int length = _crypt.GetByteLength();
+
+            var pwByte = Encoding.ASCII.GetBytes(pwInput);
+
+            var salt = _crypt.GenerateSalt(length);
+            var hash = _crypt.GenerateHash(pwByte, salt, iterations, length);
+
+            var row = _systemLogins.GetNewLocalRow();
+            row.SetValue(login.UserName, userName);
+            row.SetValue(login.UserGUID, Guid.NewGuid().ToString());
+            row.SetValue(login.Salt, salt);
+            row.SetValue(login.ByteLength, length.ToString());
+            row.SetValue(login.Hash, hash);
+            row.SetValue(login.IsBanned, "false");
+            row.SetValue(login.Workfactor, iterations.ToString());
+            _systemLogins.TryAddRow(row);
+
+            if (_logger is not null)
+            {
+                _logger.LogInformation($"User {userName} login created in database {_metadata.Name}");
+            }
+
+            return true;
+        }
+
+        public bool ValidateLogin(string userName, string pwInput)
+        {
+            bool result = false;
+
+            var pwByte = Encoding.ASCII.GetBytes(pwInput);
+
+            var valueUserName = RowValueMaker.Create(_systemLogins, login.UserName, userName);
+
+            var rows = _systemLogins.FindRowsWithValue(valueUserName);
+
+            if (rows.Count > 1)
+            {
+                throw new InvalidOperationException($"Muliple logins found for user {userName}");
+            }
+
+            foreach (var row in rows)
+            {
+                byte[] hash = row.GetValueInByte(login.Hash);
+                byte[] salt = row.GetValueInByte(login.Salt);
+                int iWorkFactor =
+                    Convert.ToInt32(row.GetValueInString(login.Workfactor));
+                int iByteLength =
+                    Convert.ToInt32(row.GetValueInString(login.ByteLength));
+
+                byte[] computedHash = _crypt.GenerateHash(pwByte, salt, iWorkFactor, iByteLength);
+
+                if (hash.SequenceEqual(computedHash))
+                {
+                    result = true;
+                }
+            }
+
+            return result;
+        }
+
+        public void AssignUserToDefaultSystemAdmin(string userName)
+        {
+            if (HasLogin(userName))
+            {
+                string name = SystemDatabaseConstants100.SystemLoginConstants.SystemRoles.Names.SystemAdmin;
+                var permissions = new List<SystemPermission>();
+                permissions.Add(SystemPermission.FullAccess);
+                permissions.Add(SystemPermission.CreateDatabase);
+                SystemRole admin = new SystemRole(name, permissions);
+                AddUserToSystemRole(admin, userName);
+            }
+            else
+            {
+                throw new InvalidOperationException($"{userName} was not found as a login");
+            }
+        }
+
+        public bool IsUserInSystemRole(string userName)
+        {
+            var searchItem = RowValueMaker.Create(_systemLoginRoles, SystemDatabaseConstants100.Tables.LoginRolesTable.Columns.UserName, userName);
+            return _systemLoginRoles.HasValue(searchItem);
+        }
+
+        public bool UserHasSystemPermission(string userName, SystemPermission permission)
+        {
+            var searchUserName = RowValueMaker.Create(_systemLoginRoles, SystemDatabaseConstants100.Tables.LoginRolesTable.Columns.UserName, userName);
+            List<IRow> rolesForUser = _systemLoginRoles.FindRowsWithValue(searchUserName);
+
+            foreach (var role in rolesForUser)
+            {
+                string roleName = role.GetValueInString(SystemDatabaseConstants100.Tables.LoginRolesTable.Columns.RoleName);
+
+                RowValue searchRoleName = RowValueMaker.Create(_systemRolePermissions, SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleName,
+                    roleName);
+
+                List<IRow> permissions = _systemRolePermissions.FindRowsWithValue(searchRoleName);
+                foreach (var item in permissions)
+                {
+                    string permissionString = item.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.SystemPermission);
+                    int permissionInt = Convert.ToInt32(permissionString);
+                    SystemPermission storedPermission = (SystemPermission)permissionInt;
+                    if (storedPermission == permission || storedPermission == SystemPermission.FullAccess)
+                    {
+                        return true;
+                    }
+                }
+
+            }
+
+            return false;
+        }
+
+        public void LogOpenTransaction(Guid databaseId, TransactionEntry transaction)
+        {
+            _storage.LogOpenTransaction(databaseId, transaction);
+        }
+
+        public void LogCloseTransaction(Guid databaseId, TransactionEntry transaction)
+        {
+            _storage.LogCloseTransaction(databaseId, transaction);
+        }
+
+        public void RemoveOpenTransaction(Guid databaseId, TransactionEntry transaction)
+        {
+            _storage.RemoveOpenTransaction(databaseId, transaction);
+        }
+
+        public void LoadDbTableWithDbNames(string[] dbNames)
+        {
+            foreach (var name in dbNames)
+            {
+                var dbName = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, name);
+                var records = _databaseTableDatabases.FindRowsWithValue(dbName);
+
+                if (records.Count == 0)
+                {
+                    var record = _databaseTableDatabases.GetNewLocalRow();
+                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, name);
+
+                    _databaseTableDatabases.TryAddRow(record);
+                }
+            }
+        }
+
+        public void AddNewDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, dbName);
+            var records = _databaseTableDatabases.FindRowsWithValue(dbNameSearch);
+
+            if (records.Count == 0)
+            {
+                var record = _databaseTableDatabases.GetNewLocalRow();
+                record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, dbName);
+
+                _databaseTableDatabases.TryAddRow(record, transaction, transactionMode);
+            }
+        }
+
+        public void RemoveDbNameFromDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, dbName);
+            var records = _databaseTableDatabases.FindRowsWithValue(dbNameSearch);
+
+            if (records.Count > 0)
+            {
+                foreach (var record in records)
+                {
+                    _databaseTableDatabases.TryDeleteRow(record, transaction, transactionMode);
+                }
+            }
+        }
+        #endregion
+
+        #region Private Methods
+        private void SetupTables()
+        {
+            SetupSystemLoginsTable();
+            SetupSystemLoginsRolesTable();
+            SetupSystemRolesTable();
+            SetupSystemRolePermisionsTable();
+            AddDefaultRolesAndPermissionsToTable();
+            SetupSchemas();
+            SetupDatabaseTable();
+        }
+
+        private void SetupDatabaseTable()
+        {
+            _databaseTableDatabases = new Table(DatabaseTableDatabses.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_databaseTableDatabases);
+        }
+
+        private void SetupSchemas()
+        {
+            _databaseSchemas = new Table(DatabaseSchemas.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _databaseSchemaPermissions = new Table(DatabaseSchemaPermissions.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_databaseSchemas);
+            _systemTables.Add(_databaseSchemaPermissions);
+
+            // check to see if default schemas exist, if not, add them
+            var dboSchema = RowValueMaker.Create(_databaseSchemas, DatabaseSchemas.Columns.SchemaName, Constants.DBO_SCHEMA);
+            if (!_databaseSchemas.HasValue(dboSchema))
+            {
+                var row = _databaseSchemas.GetNewLocalRow();
+                row.SetValue(DatabaseSchemas.Columns.SchemaName, Constants.DBO_SCHEMA);
+                row.SetValue(DatabaseSchemas.Columns.SchemaGUID, Constants.DBO_SCHEMA_GUID);
+                row.SetValueAsNullForColumn(DatabaseSchemas.Columns.ContractGUID);
+                _databaseSchemas.TryAddRow(row);
+            }
+
+            var sysSchema = RowValueMaker.Create(_databaseSchemas, DatabaseSchemas.Columns.SchemaName, Constants.SYS_SCHEMA);
+            if (!_databaseSchemas.HasValue(sysSchema))
+            {
+                var row = _databaseSchemas.GetNewLocalRow();
+                row.SetValue(DatabaseSchemas.Columns.SchemaName, Constants.SYS_SCHEMA);
+                row.SetValue(DatabaseSchemas.Columns.SchemaGUID, Constants.SYS_SCHEMA_GUID);
+                row.SetValueAsNullForColumn(DatabaseSchemas.Columns.ContractGUID);
+                _databaseSchemas.TryAddRow(row);
+            }
+
+            // auto grant any role with full access permission to dbo and sys schemas
+            var fullAccess = RowValueMaker.Create(_systemRolePermissions, SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.SystemPermission,
+                Convert.ToString((int)SystemPermission.FullAccess));
+            var hasRows = _systemRolePermissions.FindRowsWithValue(fullAccess);
+
+            if (hasRows.Count > 0)
+            {
+                foreach (var row in hasRows)
+                {
+                    // find the users in the role that has full access and grant those users full rights to the dbo and sys schemas
+                    var findUsers = RowValueMaker.Create(_systemLoginRoles,
+                        SystemDatabaseConstants100.Tables.LoginRolesTable.Columns.RoleName, row.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleName));
+
+                    var users = _systemLoginRoles.FindRowsWithValue(findUsers);
+                    if (users.Count > 0)
+                    {
+                        foreach (var user in users)
+                        {
+                            var record = _databaseSchemaPermissions.GetNewLocalRow();
+
+                            record.SetValue(DatabaseSchemaPermissions.Columns.UserName, user.GetValueInByte(LoginRolesTable.Columns.UserName));
+                            record.SetValue(DatabaseSchemaPermissions.Columns.UserGUID, user.GetValueInByte(LoginRolesTable.Columns.UserGUID));
+                            record.SetValue(DatabaseSchemaPermissions.Columns.SchemaGUID, Constants.DBO_SCHEMA_GUID);
+                            record.SetValue(DatabaseSchemaPermissions.Columns.DbPermission, Convert.ToString((int)DbPermission.FullAccess));
+                            record.SetValue(DatabaseSchemaPermissions.Columns.SchemaGUID, Constants.SYS_SCHEMA_GUID);
+                            record.SetValue(DatabaseSchemaPermissions.Columns.DbPermission, Convert.ToString((int)DbPermission.FullAccess));
+
+                            _databaseSchemaPermissions.TryAddRow(record);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void AddUserToSystemRole(SystemRole role, string userName)
+        {
+            if (HasSystemRole(role))
+            {
+                Guid roleGuid = Guid.Empty;
+                string roleName = string.Empty;
+
+                RowValue searchForRole = RowValueMaker.Create(_systemRoles, SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName, role.Name);
+                var roles = _systemRoles.FindRowsWithValue(searchForRole);
+
+                foreach (var x in roles)
+                {
+                    roleName = x.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName);
+                    if (roleName == role.Name)
+                    {
+                        string roleGuidString = x.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleGUID);
+                        roleGuid = Guid.Parse(roleGuidString);
+                    }
+                }
+
+                Row row = _systemLoginRoles.GetNewLocalRow();
+                row.SetValue(LoginRolesTable.Columns.RoleName, role.Name);
+                row.SetValue(LoginRolesTable.Columns.RoleGUID, roleGuid.ToString());
+                row.SetValue(LoginRolesTable.Columns.UserName, userName);
+                row.SetValue(LoginRolesTable.Columns.UserGUID, Guid.Empty.ToString()); // this is lazy
+                _systemLoginRoles.TryAddRow(row);
+
+                foreach (var permission in role.Permisisons)
+                {
+                    var permissionToCheck =
+                        RowValueMaker.Create(_systemRolePermissions, SystemRolesPermissions.Columns.SystemPermission, Convert.ToString((int)permission));
+
+                    var permissionRecords = _systemRolePermissions.FindRowsWithValue(permissionToCheck);
+
+                    if (permissionRecords.Count == 0)
+                    {
+                        var permissionToAdd = _systemRolePermissions.GetNewLocalRow();
+                        permissionToAdd.SetValue(SystemRolesPermissions.Columns.RoleName, roleName);
+                        permissionToAdd.SetValue(SystemRolesPermissions.Columns.RoleGUID, roleGuid.ToString());
+                        permissionToAdd.SetValue(SystemRolesPermissions.Columns.SystemPermission, Convert.ToString((int)permission));
+                        _systemRolePermissions.TryAddRow(permissionToAdd);
+                    }
+                }
+
+                if (_logger is not null)
+                {
+                    _logger.LogInformation($"User {userName} added to system role {role.Name}");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException($"{role.Name} is not a defined system role");
+            }
+        }
+
+        private void SetupSystemLoginsTable()
+        {
+            _systemLogins = new Table(SystemDatabaseConstants100.Tables.LoginTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_systemLogins);
+        }
+
+        private void SetupSystemLoginsRolesTable()
+        {
+            _systemLoginRoles = new Table(SystemDatabaseConstants100.Tables.LoginRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_systemLoginRoles);
+        }
+
+        private void SetupSystemRolesTable()
+        {
+            _systemRoles = new Table(SystemDatabaseConstants100.Tables.SystemRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_systemRoles);
+
+        }
+
+        private void SetupSystemRolePermisionsTable()
+        {
+            _systemRolePermissions = new Table(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_systemRolePermissions);
+        }
+
+        private void AddDefaultRolesAndPermissionsToTable()
+        {
+            var systemAdmin = RowValueMaker.Create(_systemRoles, SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName,
+                SystemDatabaseConstants100.SystemLoginConstants.SystemRoles.Names.SystemAdmin);
+
+            if (!_systemRoles.HasValue(systemAdmin))
+            {
+                Row role = _systemRoles.GetNewLocalRow();
+
+                var guid = Guid.NewGuid();
+
+                role.SetValue(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName,
+                    SystemDatabaseConstants100.SystemLoginConstants.SystemRoles.Names.SystemAdmin);
+                role.SetValue(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleGUID, guid.ToString());
+                _systemRoles.TryAddRow(role);
+
+                Row permission = _systemRolePermissions.GetNewLocalRow();
+                permission.SetValue(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleName,
+                    SystemDatabaseConstants100.SystemLoginConstants.SystemRoles.Names.SystemAdmin);
+                permission.SetValue(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleGUID, guid.ToString());
+                permission.SetValue(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.SystemPermission,
+                    Convert.ToInt32(SystemPermission.FullAccess).ToString());
+
+                _systemRolePermissions.TryAddRow(permission);
+            }
+
+        }
+
+        private bool HasSystemRole(SystemRole role)
+        {
+            RowValue searchItem = RowValueMaker.Create(_systemRoles, SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName,
+                role.Name);
+            return _systemRoles.HasValue(searchItem);
+        }
+        #endregion
+
+    }
+}

@@ -1,0 +1,36 @@
+syntax = "proto3";
+import "Drum.proto";
+option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication.SQLService";
+package DrummerSQLService;
+
+// A service for handling SQL statements
+service SQLService {
+	// A basic test method for determinine if the service is responding
+	rpc IsOnline(Drum.TestRequest) returns (Drum.TestReply);
+	// Executes a requested SQL query. Requires authentication.
+	rpc ExecuteSQLQuery (SQLQueryRequest) returns (SQLQueryReply);  
+}
+
+// A SQL Query Request
+message SQLQueryRequest {
+  Drum.AuthRequest authentication = 1;
+  string databaseName = 2;
+  string sqlStatement = 3;
+  string userSessionId = 4;
+}
+
+// a message representing the results of a SQL query
+message SQLResultset {
+	bool isError = 1;
+	string resultMessage = 2;
+	uint64 numberOfRowsAffected = 3;
+	repeated Drum.Row rows = 4;
+	string executionErrorMessage = 5;
+}
+
+// A SQL Query Reply
+message SQLQueryReply {
+	Drum.AuthResult authenticationResult = 1;
+	uint64 totalResultsets = 2;
+	repeated SQLResultset results = 3;
+}

@@ -1,0 +1,15 @@
+﻿using Drummersoft.DrummerDB.Core.Databases.Remote.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
+using System;
+
+namespace Drummersoft.DrummerDB.Core.Tests.Mocks
+{
+    internal class MockRemoteDataManager : IRemoteDataManager
+    {
+        public IRow GetRowFromParticipant(IParticipant participant, SQLAddress address)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

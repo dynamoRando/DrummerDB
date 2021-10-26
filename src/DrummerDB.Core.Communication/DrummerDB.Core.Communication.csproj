@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>Drummersoft.DrummerDB.Core.Communication</AssemblyName>
+    <RootNamespace>Drummersoft.DrummerDB.Core.Communication</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DrummerDB.Common.Communication\DrummerDB.Common.Communication.csproj" />
+    <ProjectReference Include="..\DrummerDB.Core.Databases\DrummerDB.Core.Databases.csproj" />
+    <ProjectReference Include="..\DrummerDB.Core.IdentityAccess\DrummerDB.Core.IdentityAccess.csproj" />
+    <ProjectReference Include="..\DrummerDB.Core.QueryTransaction\DrummerDB.Core.QueryTransaction.csproj" />
+    <ProjectReference Include="..\DrummerDB.Core.Structures\DrummerDB.Core.Structures.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Drummersoft.DrummerDB.Core.Tests</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Drummersoft.DrummerDB.Core.Systems</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+</Project>

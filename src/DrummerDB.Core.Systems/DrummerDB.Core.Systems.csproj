@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>Drummersoft.DrummerDB.Core.Systems</AssemblyName>
+    <RootNamespace>Drummersoft.DrummerDB.Core.Systems</RootNamespace>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Drummersoft.DrummerDB.Core.Tests</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Drummersoft.DrummerDB.Client.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\DrummerDB.Core.Communication\DrummerDB.Core.Communication.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.Cryptography\DrummerDB.Core.Cryptography.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.Databases\DrummerDB.Core.Databases.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.Diagnostics\DrummerDB.Core.Diagnostics.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.IdentityAccess\DrummerDB.Core.IdentityAccess.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.Memory\DrummerDB.Core.Memory.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.QueryTransaction\DrummerDB.Core.QueryTransaction.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.Storage\DrummerDB.Core.Storage.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.Structures\DrummerDB.Core.Structures.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="admin.setup">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="appsettings.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+</Project>

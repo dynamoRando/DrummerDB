@@ -1,0 +1,155 @@
+syntax = "proto3";
+import "Drum.proto";
+option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication.DatabaseService";
+package DrummerDatabaseService;
+
+// A service for working directly with database objects
+service DatabaseService {
+	// A basic test method for determinine if the service is responding
+	rpc IsOnline(Drum.TestRequest) returns (Drum.TestReply);
+	// Checks to see if login is valid
+	rpc IsLoginValid(Drum.AuthRequest) returns (Drum.AuthResult);
+	rpc CreateUserDatabase(CreateDatabaseRequest) returns (CreateDatabaseResult);
+	rpc CreatePartialDatabase(CreateDatabaseRequest) returns (CreateDatabaseResult);
+	rpc RemoveUserDatabase(RemoveDatabaseRequest) returns (RemoveDatabaseResult);
+	rpc CreateTableInDatabase(CreateTableRequest) returns (CreateTableResult);
+	rpc InsertRowIntoTable(InsertRowRequest) returns (InsertRowResult);
+	rpc UpdateRowInTable(UpdateRowInTableRequest) returns (UpdateRowInTableResult);
+	rpc GetRowsFromTable(GetRowsFromTableRequest) returns (GetRowsFromTableResult);
+	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
+}
+
+// A message for creating a user database
+message CreateDatabaseRequest {
+	Drum.AuthRequest authentication = 1;
+	string databaseName = 2;
+}
+
+// A message describing the results of a CreateDatabaseRequest
+message CreateDatabaseResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string resultMessage = 4;
+	string databaseId = 5;
+}
+
+// A message for removing a user database
+message RemoveDatabaseRequest {
+	Drum.AuthRequest authentication = 1;
+	string databaseName = 2;
+	string databaseId = 3;
+}
+
+// A message describing the results of a RemoveDatabaseRequest
+message RemoveDatabaseResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string resultMessage = 4;
+	string databaseId = 5;
+}
+
+// a message for creating a table in a database
+message CreateTableRequest {
+	// The user requesting the table creation
+	Drum.AuthRequest authentication = 1;
+	// The database in which to create the table
+	string databaseName = 2;
+	// The database GUID in which to create the table
+	string databaseGUID = 3;
+	// The name of the table to create
+	string tableName = 4;
+	// a list of columns for the table
+	repeated Drum.ColumnSchema columns = 5;
+}
+
+// a message for describing the result of a CreateTableRequest
+message CreateTableResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string resultMessage = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	string tableId = 7;
+}
+
+// a message for inserting a row into a table in a database
+message InsertRowRequest {
+	Drum.AuthRequest authentication = 1;
+	string databaseName = 2;
+	string databaseId = 3;
+	string tableName = 4;
+	string tableId = 5;
+	repeated Drum.RowValue values = 6;
+}
+
+// a message for describing the result of a InsertRowRequest
+message InsertRowResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string resultMessage = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	string tableId = 7;
+	uint32 rowId = 8;
+}
+
+message UpdateRowInTableRequest{
+	Drum.AuthRequest authentication = 1;
+	string databaseName = 2;
+	string databaseId = 3;
+	string tableName = 4;
+	string tableId = 5;
+	uint32 whereRowId = 6;
+	Drum.RowValue whereValues = 7; // WHERE columnName = value
+	Drum.RowValue updateValues = 8; // SET columnName = value
+}
+
+message UpdateRowInTableResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	string tableName = 5;
+	string tableId = 6;
+	uint32 numberOfRowsAffected = 7;
+	string resultMessage = 8;
+}
+
+message GetRowsFromTableRequest {
+	Drum.AuthRequest authentication = 1;
+	string databaseName = 2;
+	string databaseId = 3;
+	string tableName = 4;
+	string tableId = 5;
+	string columnNames = 6;
+	repeated Drum.RowValue rowsWithValue = 7; // WHERE columnName = value
+	string operation = 8; // AND, OR, EQUAL, GREATER THAN, LESS THAN, ETC.
+}
+
+message GetRowsFromTableResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	string tableName = 5;
+	string tableId = 6;
+	uint32 numberOfRowsAffected = 7;
+	string resultMessage = 8;
+	repeated Drum.Row rows = 9;
+}
+
+message GetRowFromPartialDatabaseRequest {
+	Drum.AuthRequest authentication = 1;
+	Drum.RowParticipantAddress rowAddress = 2;
+}
+
+message GetRowFromPartialDatabaseResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string resultMessage = 3;
+	Drum.Row row = 4;
+}

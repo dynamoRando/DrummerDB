@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Drummersoft.$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace>Drummersoft.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Cryptography\DrummerDB.Core.Cryptography.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Databases.Remote\DrummerDB.Core.Databases.Remote.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Databases\DrummerDB.Core.Databases.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.IdentityAccess\DrummerDB.Core.IdentityAccess.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Memory\DrummerDB.Core.Memory.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Storage\DrummerDB.Core.Storage.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Structures\DrummerDB.Core.Structures.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+		<_Parameter1>Drummersoft.DrummerDB.Core.Tests</_Parameter1>
+	</AssemblyAttribute>
+	</ItemGroup>
+
+</Project>

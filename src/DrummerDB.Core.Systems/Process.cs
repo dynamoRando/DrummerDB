@@ -1,0 +1,298 @@
+﻿using Drummersoft.DrummerDB.Core.Communication;
+using Drummersoft.DrummerDB.Core.Communication.Interface;
+using Drummersoft.DrummerDB.Core.Cryptography;
+using Drummersoft.DrummerDB.Core.Cryptography.Interface;
+using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.IdentityAccess;
+using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
+using Drummersoft.DrummerDB.Core.Memory;
+using Drummersoft.DrummerDB.Core.Memory.Interface;
+using Drummersoft.DrummerDB.Core.QueryTransaction;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using Drummersoft.DrummerDB.Core.Storage;
+using Drummersoft.DrummerDB.Core.Storage.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
+using System;
+using System.Linq;
+using System.IO;
+using System.Reflection;
+using System.Diagnostics;
+
+namespace Drummersoft.DrummerDB.Core.Systems
+{
+    /// <summary>
+    /// An instance of DrummerDB
+    /// </summary>
+    public sealed class Process
+    {
+        #region Private Fields
+        private Settings _settings;
+        private DbManager _dbManager;
+        private ICacheManager _cache;
+        private IStorageManager _storage;
+        private INetworkManager _network;
+        private IQueryManager _queries;
+        private IAuthenticationManager _auth;
+        private ICryptoManager _crypt;
+        private ITransactionEntryManager _xEntryManager;
+
+        // test variables
+        private string _storageFolder;
+        private bool _loadSystemDatabases = true;
+        private bool _loadUserDatabases = true;
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// The settings for this process
+        /// </summary>
+        internal Settings Settings => _settings;
+
+        // the following should only be used for Testing purposes, not called from any external assembly.
+        // this is testing for all up integration
+        internal DbManager DbManager => _dbManager;
+        internal CryptoManager CryptoManager => _crypt as CryptoManager;
+        internal StorageManager StorageManager => _storage as StorageManager;
+        internal CacheManager CacheManager => _cache as CacheManager;
+        internal AuthenticationManager AuthenticationManager => _auth as AuthenticationManager;
+        #endregion
+
+        #region Constructors
+        public Process()
+        {
+            // default consturctor
+        }
+
+        /// <summary>
+        /// Constructs a Process with the specified storage folder path. This is used for testing purposes only and will override the default setting in <see cref="Settings.DatabaseFolder"/>
+        /// </summary>
+        /// <param name="storageFolderPath">The path to the appropriate storage folder</param>
+        public Process(string storageFolderPath)
+        {
+            _storageFolder = storageFolderPath;
+        }
+
+        /// <summary>
+        /// Constructs a Process with the specified storage folder path and loads system databases. This is used for testing purposes only and will override the default setting in <see cref="Settings.DatabaseFolder"/>
+        /// </summary>
+        /// <param name="storageFolderPath">the path to the appropriate storage folder</param>
+        /// <param name="loadSystemDatabases">Default false. Determines if on startup we should load the system databases</param>
+        public Process(string storageFolderPath, bool loadSystemDatabases)
+        {
+            _storageFolder = storageFolderPath;
+            _loadSystemDatabases = loadSystemDatabases;
+        }
+
+        /// <summary>
+        /// Constructs a Process with the specified storage folder path and loads system databases. This is used for testing purposes only and will override the default setting in <see cref="Settings.DatabaseFolder"/>
+        /// </summary>
+        /// <param name="loadSystemDatabases">Default false. Determines if on startup we should load the system databases</param>
+        /// <param name="loadUserDatabases">Default false. Determines if on startup we should load the user databases</param>
+        public Process(bool loadSystemDatabases, bool loadUserDatabases)
+        {
+            _loadSystemDatabases = loadSystemDatabases;
+            _loadUserDatabases = loadUserDatabases;
+        }
+
+        /// <summary>
+        /// Constructs a Process with the specified storage folder path and loads system databases and user databases. 
+        /// This is used for testing purposes only and will override the default setting in <see cref="Settings.DatabaseFolder"/>
+        /// </summary>
+        /// <param name="storageFolderPath">the path to the appropriate storage folder</param>
+        /// <param name="loadSystemDatabases">Default false. Determines if on startup we should load the system databases</param>
+        /// <param name="loadUserDatabases">Default false. Determines if on startup we should load the user databases</param>
+        public Process(string storageFolderPath, bool loadSystemDatabases, bool loadUserDatabases) : this(loadSystemDatabases, loadUserDatabases)
+        {
+            _storageFolder = storageFolderPath;
+        }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Starts the drummerDB instance. Loads databases, brings online networking, etc.
+        /// </summary>
+        public void Start()
+        {
+            LoadConfiguration();
+            SetupCrypt();
+            SetupStorage();
+            SetupMemory();
+            SetupTransactionEntryManager();
+            SetupDatabases();
+            SetupNetwork();
+            SetupAuth();
+            SetupQueries();
+            LoadDatabases();
+            CheckForAdminSetup();
+        }
+
+        public void Stop()
+        {
+            _network.StopServerForSQLService();
+            _network.StopServerForDatabaseService();
+            _network.StopServerForInfoService();
+        }
+
+        public void StartSQLServer(int overrideSettingsPortNumber, bool overrideSettingsUseHttps)
+        {
+            _network.StartServerForSQLService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber, _queries);
+        }
+
+        public void StartSQLServer()
+        {
+            _network.StartServerForSQLService(Settings.UseHttpsForConnections, _auth, _dbManager, _queries);
+        }
+
+        public void StartInfoServer()
+        {
+            _network.StartServerForInfoService(Settings.UseHttpsForConnections, _auth, _dbManager);
+        }
+
+        public void StartInfoServer(int overrideSettingsPortNumber, bool overrideSettingsUseHttps)
+        {
+            _network.StartServerForInfoService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber);
+        }
+
+        /// <summary>
+        /// Starts the database service for the Process with the default settings
+        /// </summary>
+        public void StartDbServer()
+        {
+            _network.StartServerForDatabaseService(Settings.UseHttpsForConnections, _auth, _dbManager);
+        }
+
+        /// <summary>
+        /// Starts the database service for the Process with the specified port number. This value will override what is in the appsettings.json file
+        /// </summary>
+        /// <param name="overrideSettingsPortNumber">The port number to start the database service on</param>
+        /// <param name="overrideSettingsUseHttps">Overrides the settings file to default true/false for using HTTPS. Used for testing purposes.</param>
+        public void StartDbServer(int overrideSettingsPortNumber, bool overrideSettingsUseHttps)
+        {
+            _network.StartServerForDatabaseService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber);
+        }
+
+        /// <summary>
+        /// This function is deprecated and should be removed. It is only for testing purposes.
+        /// </summary>
+        /// <param name="userName">The login to create</param>
+        /// <param name="pw">The pw</param>
+        /// <param name="guid">The login guid</param>
+        public void Test_SetupLogin(string userName, string pw, Guid guid)
+        {
+            _dbManager.CreateLogin(userName, pw, guid);
+        }
+
+        /// <summary>
+        /// This function is deprecated and should be removed. It is only for testing purposes. Creates an admin login for the rpcoess.
+        /// </summary>
+        /// <param name="userName">The login to creat</param>
+        /// <param name="pw">The pw</param>
+        /// <param name="guid">The login guid</param>
+        public void Test_SetupAdminLogin(string userName, string pw, Guid guid)
+        {
+            _dbManager.CreateAdminLogin(userName, pw, guid);
+        }
+        #endregion
+
+        #region Private Methods
+        /// <summary>
+        /// Loads configuration settings for the Process
+        /// </summary>
+        private void LoadConfiguration()
+        {
+            _settings = new Settings();
+            _settings = new Configurator().Load();
+        }
+
+        private void SetupStorage()
+        {
+            if (string.IsNullOrEmpty(_storageFolder))
+            {
+                _storage = new StorageManager(Settings.DatabaseFolder, Settings.HostDbExtension, Settings.PartialDbExtension, Settings.DatabaseLogExtension,
+                Settings.SystemDbExtension);
+            }
+            else
+            {
+                _storage = new StorageManager(_storageFolder, Settings.HostDbExtension, Settings.PartialDbExtension, Settings.DatabaseLogExtension,
+                Settings.SystemDbExtension);
+            }
+        }
+
+        private void SetupDatabases()
+        {
+            _dbManager = new DbManager(_xEntryManager);
+        }
+
+        private void LoadDatabases()
+        {
+            if (_loadSystemDatabases)
+            {
+                _dbManager.LoadSystemDatabases(_cache, _storage, _crypt);
+            }
+
+            if (_loadUserDatabases)
+            {
+                _dbManager.LoadUserDatabases(_cache, _storage, _crypt);
+            }
+
+            if (_loadUserDatabases && _loadSystemDatabases)
+            {
+                _dbManager.LoadSystemDatabaseTableWithActiveDbs();
+            }
+        }
+
+        private void SetupMemory()
+        {
+            _cache = new CacheManager();
+        }
+
+        private void SetupTransactionEntryManager()
+        {
+            _xEntryManager = new TransactionEntryManager();
+        }
+
+        private void SetupQueries()
+        {
+            _queries = new QueryManager(_dbManager, _auth, _xEntryManager);
+        }
+
+        private void SetupNetwork()
+        {
+            var sqlPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.SQLServicePort };
+            var databasePort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.DatabaseServicePort };
+            var infoPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.InfoServicePort };
+            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager);
+        }
+
+        private void SetupAuth()
+        {
+            _auth = new AuthenticationManager(_dbManager);
+        }
+
+        private void SetupCrypt()
+        {
+            _crypt = new CryptoManager();
+        }
+
+        private void CheckForAdminSetup()
+        {
+            var rootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var directoryInfo = new DirectoryInfo(rootPath);
+            if (directoryInfo.GetFiles().Any(file => file.Name == Constants.ADMIN_SETUP))
+            {
+                var text = File.ReadAllText(Path.Combine(rootPath, Constants.ADMIN_SETUP));
+                var items = text.Split(",");
+                var userName = items[0];
+                var password = items[1];
+                Guid userId = Guid.Parse(items[2]);
+
+                Debug.WriteLine($"Creating admin {userName}");
+
+                Test_SetupAdminLogin(userName, password, userId);
+            }
+        }
+        #endregion
+
+    }
+}

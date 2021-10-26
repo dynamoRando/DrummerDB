@@ -1,0 +1,134 @@
+﻿@page "/query"
+@inject Services.Connection connection
+
+@using Drummersoft.DrummerDB.Common
+@using Services
+<h1>Query</h1>
+
+<textarea id="queryText" name="queryText" rows="10" cols="100" @bind="QueryText">
+</textarea>
+
+<table class="table">
+	<tr>
+		<th>User Name</th>
+		<th>Password</th>
+	</tr>
+	<tr>
+		<td><input type="text" id="userName" @bind="UserName" /></td>
+		<td><input type="text" id="password" @bind="Password" /></td>
+	</tr>
+</table>
+
+<table class="table">
+	<tr>
+		<th>Load</th>
+		<th>Databases</th>
+		<th>Execute</th>
+	</tr>
+	<tr>
+		<td>
+			<input type="button" @onclick="LoadDatabases" value="Load Databases" />
+		</td>
+		<td>
+			<select id="databaseNames" value="connection.CurrentDatabaseName" @onchange="GetTableNamesForDatabase" @onclick="OnDatabaseClickCallback">
+				@foreach (var db in connection.CurrentDatabaseNames)
+				{
+					<option value="@db">@db</option>
+				}
+			</select>
+		</td>
+		<td>
+			<input type="button" @onclick="ExecuteQuery" value="Execute Query" />
+		</td>
+	</tr>
+</table>
+
+
+<h1>Results</h1>
+<textarea id="queryResult" name="queryResult" rows="10" cols="100" @bind="QueryResult">
+</textarea>
+
+<h1>Messages</h1>
+<textarea id="queryMessages" name="queryMessages" rows="10" cols="100" @bind="QueryMessages">
+</textarea>
+
+@code {
+	[Parameter]
+	public EventCallback<MouseEventArgs> OnDatabaseClickCallback { get; set; }
+	private string QueryText = string.Empty;
+	private string QueryResult = string.Empty;
+	private string QueryMessages = string.Empty;
+	private string UserName = string.Empty;
+	private string Password = string.Empty;
+
+	private void GetTableNamesForDatabase()
+	{
+
+	}
+
+	private void SetCurrentDatabase(MouseEventArgs e)
+	{
+	}
+
+	private void LoadDatabases()
+	{
+		var result = connection.SQLClient.ExecuteSQL(Connection.DATABASE_QUERY, UserName, Password, connection.UserSession);
+
+		if (result is not null)
+		{
+			var queryResult = result.Results.FirstOrDefault();
+
+			if (result.AuthenticationResult.IsAuthenticated)
+			{
+				if (queryResult is not null)
+				{
+					if (!queryResult.IsError)
+					{
+
+						var dataResult = result.Results.FirstOrDefault();
+						if (dataResult is not null)
+						{
+							connection.CurrentDatabaseNames.Clear();
+
+							foreach (var row in dataResult.Rows)
+							{
+								foreach (var value in row.Values)
+								{
+									string databaseName = DbBinaryConvert.BinaryToString(value.Value.ToByteArray());
+									connection.CurrentDatabaseNames.Add(databaseName);
+								}
+							}
+						}
+
+					}
+				}
+			}
+		}
+	}
+
+	private void ExecuteQuery()
+	{
+		QueryMessages = string.Empty;
+
+		// must change function to async void for this to work
+		//var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, UserName, Password, connection.UserSession);
+
+		var result = connection.SQLClient.ExecuteSQL(QueryText, UserName, Password, connection.UserSession);
+		var queryResult = result.Results.First();
+
+		if (!result.AuthenticationResult.IsAuthenticated)
+		{
+			QueryMessages += result.AuthenticationResult.AuthenticationMessage + Environment.NewLine;
+		}
+
+		if (queryResult.IsError)
+		{
+			QueryMessages += queryResult.ExecutionErrorMessage + Environment.NewLine;
+		}
+
+		if (!string.IsNullOrEmpty(queryResult.ResultMessage))
+		{
+			QueryMessages += queryResult.ResultMessage + Environment.NewLine;
+		}
+	}
+}

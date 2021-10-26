@@ -1,0 +1,35 @@
+syntax = "proto3";
+import "Drum.proto";
+option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication.InfoService";
+package DrummerInfoService;
+
+// A service for getting metadata information
+service InfoService {
+	// A basic test method for determinine if the service is responding
+	rpc IsOnline(Drum.TestRequest) returns (Drum.TestReply);
+	// Returns basic statistics about the running process. Requires authentication.
+	rpc GetProcessStatistics(ProcessStatisticsRequest) returns (ProcessStatisticsReply);
+	rpc GetUserDAtabaseSchema(GetUserDatabaseSchemaRequest) returns (GetUserDatabaseSchemaResult);
+}
+
+// An empty message for ProcessStatistics
+message ProcessStatisticsRequest {
+	Drum.AuthRequest authentication = 1;
+}
+
+// A message containing various statistics about the running Process 
+message ProcessStatisticsReply{
+ // things such as uptime, Process GUID, number of online databases, etc go here.
+}
+
+message GetUserDatabaseSchemaRequest {
+	Drum.AuthRequest authentication = 1;
+	string databaseName = 2;
+	string databaseId = 3;
+}
+
+message GetUserDatabaseSchemaResult {
+	Drum.AuthResult authenticationResult = 1;
+	Drum.DatabaseSchema schema = 2;
+}
+

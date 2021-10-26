@@ -1,0 +1,49 @@
+﻿@page "/"
+@inject Services.Connection connection
+
+<h1>DrummerDB Browser</h1>
+<p>Welcome to the browser. Please setup a connection before navigating to other pages.</p>
+
+<table class="table">
+    <tr>
+        <th>IP Address</th>
+        <th>Db Port Number (Default 5016)</th>
+        <th>SQL Port Number (Default 5017)</th>
+        <th>Info Port Number (Default 5018)</th>
+    </tr>
+    <tr>
+        <td><input type="text" id="ipAddress" @bind="connection.IPAddress"/></td>
+        <td><input type="text" id="dbPortNumber" @bind="connection.DatabasePort"/></td>
+        <td><input type="text" id="sqlPortNumber" @bind="connection.SQLPort"/></td>
+        <td><input type="text" id="infoPortNumber" @bind="connection.InfoPort"/></td>
+    </tr>
+</table>
+
+
+<input type="button" @onclick="Connect" value="Connect" />
+<input type="button" @onclick="ConnectDefault" value="Connect w/ Defaults" />
+<label for="isConnected">Is Connected?</label>
+<input type="checkbox" @bind="IsConnected" name="isConnected"/>
+
+@code {
+
+    public bool IsConnected = false;
+
+    private void Connect()
+    {
+        connection.IPAddress = $"http://{connection.IPAddress}";
+        connection.Init();
+        IsConnected = connection.SQLClient.IsClientOnline();
+    }
+
+    private void ConnectDefault()
+    {
+        connection.IPAddress = "http://localhost";
+        connection.DatabasePort = 5016;
+        connection.SQLPort = 5017;
+        connection.InfoPort = 5018;
+        connection.Init();
+        IsConnected = connection.SQLClient.IsClientOnline();
+    }
+
+}

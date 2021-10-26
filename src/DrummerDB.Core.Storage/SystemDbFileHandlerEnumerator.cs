@@ -1,0 +1,48 @@
+﻿using Drummersoft.DrummerDB.Core.Storage.Abstract;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Drummersoft.DrummerDB.Core.Storage
+{
+    class SystemDbFileHandlerEnumerator : IEnumerator<SystemDbFileHandler>
+    {
+        private SystemDbFileHandlerCollection _databases;
+        private int _index;
+        private SystemDbFileHandler _current;
+
+        public SystemDbFileHandler Current => _current;
+
+        object IEnumerator.Current => Current;
+
+        public SystemDbFileHandlerEnumerator(SystemDbFileHandlerCollection collection)
+        {
+            _databases = collection;
+            _index = -1;
+            _current = default(SystemDbFileHandler);
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            //Avoids going beyond the end of the collection.
+            if (++_index >= _databases.Count)
+            {
+                return false;
+            }
+            else
+            {
+                // Set current box to next item in collection.
+                _current = _databases[_index];
+            }
+            return true;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+    }
+}

@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>Drummersoft.DrummerDB.Core.Memory</AssemblyName>
+    <RootNamespace>Drummersoft.DrummerDB.Core.Memory</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="C5" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DrummerDB.Core.Structures\DrummerDB.Core.Structures.csproj" />
+  </ItemGroup>
+
+<ItemGroup>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+		<_Parameter1>Drummersoft.DrummerDB.Core.Databases</_Parameter1>
+	</AssemblyAttribute>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+		<_Parameter1>Drummersoft.DrummerDB.Core.Tests</_Parameter1>
+	</AssemblyAttribute>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+		<_Parameter1>Drummersoft.DrummerDB.Core.Tests.Mocks</_Parameter1>
+	</AssemblyAttribute>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+		<_Parameter1>Drummersoft.DrummerDB.Core.Systems</_Parameter1>
+	</AssemblyAttribute>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+		<_Parameter1>Drummersoft.DrummerDB.Core.QueryTransaction</_Parameter1>
+	</AssemblyAttribute>
+</ItemGroup>
+	
+</Project>

@@ -1,0 +1,101 @@
+﻿syntax = "proto3";
+package Drum;
+option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication";
+
+// a file for common objects to be used in all Drummersoft.DrummerDB.Communication services
+
+// a message for describing schema information of a column in a database table
+// see Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100 for more information
+message ColumnSchema {
+	// the name of the column. Max length of 50 characters
+	string columnName = 1;
+	// The ENUM data type of the column. See Drummersoft.DrummerDB.Common.SQLColumnType
+	uint32 columnType = 2; 
+	// the max or fixed length of the column, if applicable
+	uint32 columnLength = 3; 
+	// if the column is nullable or not
+	bool isNullable = 4;
+	// the ordinal value of the column, i.e. the order in which the column appears in the table
+	uint32 ordinal = 5; 
+	// empty value in a request, populated in a response with the column identifier (INT)
+	uint32 columnId = 6;
+	// empty string in a request, populated in a response with the table GUID the column is attached to
+	string tableId = 7; 
+	// empty string in a request, populated in a response with the column GUID value
+	string columnGUID = 8;
+	// if the column is the primary key of the table. If this is part of a list of columns, it is implied to be a composite primary key
+	bool isPrimaryKey = 9;
+}
+
+// a message for describing the schema information of a table in a database 
+message TableSchema {
+	string tableName = 1;
+	uint32 tableId = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	repeated ColumnSchema columns = 5;
+}
+
+// a message for describing the schema of a database
+message DatabaseSchema {
+	string databaseName = 1;
+	string databaseId = 2;
+	repeated TableSchema tables = 3;
+}
+
+// an object for representing a row in a table. used for returning data
+message Row {
+	uint32 rowId = 1;
+	uint32 tableId = 2;
+	string databaseId = 3;
+	repeated RowValue values = 4;
+}
+
+// an object for storing values for a row in a table. used for returning data
+message RowValue {
+	ColumnSchema column = 1;
+	bool isNullValue = 2;
+	// we send the raw bytes and expect the client to convert the value based on the column type. 
+	// note: this value does not include the 4 byte INT length prefix for variable length fields
+	// to ease conversion refer to the Drummersoft.DrummerDB.Common library, in particular the `DbBinaryConvert` class
+	bytes value = 3; 
+}
+
+// a message for identifying the location of a row in a partial database
+message RowParticipantAddress {
+	uint32 rowId = 1;
+	uint32 tableId = 2;
+	string databaseId = 3;
+}
+
+// A message for authentication purposes
+message AuthRequest{
+  string userName = 1;
+  string pw = 2;
+  bytes pwHash = 3;
+  string token = 4;
+}
+
+// A message describing the results of an authentication attempt
+message AuthResult {
+	string userName = 1;
+	string token = 2;
+	bool isAuthenticated = 3;
+	string authenticationMessage = 4;
+}
+
+// A message for basic online testing
+message TestRequest {
+	string requestTimeUTC = 1;
+	string requestOriginURL = 2;
+	string requestOriginIP4 = 3;
+	string requestOriginIP6 = 4;
+	uint32 requestPortNumber = 5;
+	string requestEchoMessage = 6;
+}
+
+// A message for basic online testing
+message TestReply {
+	string replyTimeUTC = 1;
+	string replyEchoMessage = 2;
+}

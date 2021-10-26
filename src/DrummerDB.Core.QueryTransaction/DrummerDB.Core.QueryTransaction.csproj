@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>Drummersoft.DrummerDB.Core.QueryTransaction</AssemblyName>
+    <RootNamespace>Drummersoft.DrummerDB.Core.QueryTransaction</RootNamespace>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Drummersoft.DrummerDB.Core.Tests</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Drummersoft.DrummerDB.Core.Communication</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Drummersoft.DrummerDB.Core.Systems</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\DrummerDB.Core.Databases\DrummerDB.Core.Databases.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.IdentityAccess\DrummerDB.Core.IdentityAccess.csproj" />
+	  <ProjectReference Include="..\DrummerDB.Core.Memory\DrummerDB.Core.Memory.csproj" />
+	</ItemGroup>
+
+</Project>

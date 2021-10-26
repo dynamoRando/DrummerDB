@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>Drummersoft.$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace>Drummersoft.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DrummerDB.Client\DrummerDB.Client.csproj" />
+    <ProjectReference Include="..\DrummerDB.Common\DrummerDB.Common.csproj" />
+  </ItemGroup>
+
+</Project>
