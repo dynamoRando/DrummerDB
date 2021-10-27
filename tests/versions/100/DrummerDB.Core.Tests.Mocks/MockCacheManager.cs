@@ -41,12 +41,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValueSearch[] values)
+        public List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValue[] values)
         {
             throw new NotImplementedException();
         }
 
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValueSearch> values)
+        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
         {
             throw new NotImplementedException();
         }
@@ -56,12 +56,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public List<IRow> FindRowsWithValue(TreeAddress address, RowValueStruct value, ITableSchema schema)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<IRow> FindRowsWithValue(TreeAddress address, RowValueSearch value)
+        public List<IRow> FindRowsWithValue(TreeAddress address, RowValue value)
         {
             throw new NotImplementedException();
         }
@@ -133,11 +128,6 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         }
 
         public bool HasValue(TreeAddress address, RowValue value, ITableSchema schema)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool HasValue(TreeAddress address, RowValueSearch value, ITableSchema schema)
         {
             throw new NotImplementedException();
         }

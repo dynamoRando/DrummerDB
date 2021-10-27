@@ -27,9 +27,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract List<RowAddress> GetRowIdsOnPage();
         public abstract PageRowStatus GetRowStatus(int rowId);
         public abstract List<RowAddress> GetRowsWithValue(IRowValue value);
-
-        public abstract List<RowAddress> GetRowsWithValue(RowValueStruct value);
-
         public abstract bool HasValue(IRowValue value);
         public abstract bool IsFull(int rowSize);
         public abstract int PageId();
@@ -37,8 +34,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract int TotalBytesUsed();
         public abstract int TotalRows();
         public abstract PageUpdateRowResult TryUpdateRowData(IRow row, out int updatedOffset);
-        public abstract List<RowAddress> GetRowsWithValue(RowValueSearch value);
-        public abstract bool HasValue(RowValueSearch value);
         public abstract RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
         public abstract RowDebug GetDebugRow(int rowId);
         public abstract bool HasRow(int rowId);

@@ -136,7 +136,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             if (HasDbSchema(schemaName))
             {
-                var schema = RowValueMaker.CreateStruct(_databaseSchemas, dbs.SchemaName, schemaName);
+                var schema = RowValueMaker.Create(_databaseSchemas, dbs.SchemaName, schemaName);
                 List<IRow> rows = _databaseSchemas.FindRowsWithValue(schema);
 
                 foreach (var row in rows)
@@ -644,10 +644,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public Guid GetTableObjectId(string tableName)
         {
-            var sv1 = RowValueMaker.CreateSearch(_userObjects, uo.ObjectName, tableName, true);
-            var sv2 = RowValueMaker.CreateSearch(_userObjects, uo.ObjectType, Convert.ToInt32(ObjectType.Table).ToString());
+            var sv1 = RowValueMaker.Create(_userObjects, uo.ObjectName, tableName, true);
+            var sv2 = RowValueMaker.Create(_userObjects, uo.ObjectType, Convert.ToInt32(ObjectType.Table).ToString());
 
-            var searchItems = new List<RowValueSearch>();
+            var searchItems = new List<RowValue>();
             searchItems.Add(sv1);
             searchItems.Add(sv2);
 
@@ -678,7 +678,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool HasObject(Guid objectId)
         {
-            var searchValue = RowValueMaker.CreateStruct(_userObjects, uo.ObjectId, objectId.ToString());
+            var searchValue = RowValueMaker.Create(_userObjects, uo.ObjectId, objectId.ToString());
             var results = _userObjects.FindRowsWithValue(searchValue);
 
             if (results.Count > 0)

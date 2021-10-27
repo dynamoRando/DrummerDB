@@ -34,9 +34,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract List<RowAddress> GetRowsWithValue(IRowValue value);
         public abstract List<RowAddress> GetRowIdsOnPage();
         public abstract bool HasValue(IRowValue value);
-        public abstract List<RowAddress> GetRowsWithValue(RowValueStruct value);
-        public abstract List<RowAddress> GetRowsWithValue(RowValueSearch value);
-        public abstract bool HasValue(RowValueSearch value);
         public abstract RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
         public abstract RowDebug GetDebugRow(int rowId);
         public abstract bool HasRow(int rowId);

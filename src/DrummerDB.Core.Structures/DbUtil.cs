@@ -4,7 +4,7 @@ using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;
 
-namespace Drummersoft.DrummerDB.Core.Databases
+namespace Drummersoft.DrummerDB.Core.Structures
 {
     internal static class DbUtil
     {

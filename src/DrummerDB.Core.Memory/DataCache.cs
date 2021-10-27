@@ -381,27 +381,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return container.GetRow(rowId);
         }
 
-        public List<RowAddress> HasValue(TreeAddress address, RowValueStruct value)
-        {
-            List<RowAddress> result = null;
-            TreeContainer container;
-            _dataCache.TryGetValue(address, out container);
-
-            if (container is not null)
-            {
-                result = new List<RowAddress>();
-                foreach (var id in container.Pages())
-                {
-                    var page = container.GetPage(id);
-                    var rows = page.GetRowsWithValue(value);
-                    result.AddRange(rows);
-                }
-            }
-
-            return result;
-        }
-
-        public List<RowAddress> HasValue(TreeAddress address, RowValueSearch value)
+        public List<RowAddress> HasValue(TreeAddress address, RowValue value)
         {
             List<RowAddress> result = null;
             TreeContainer container;
@@ -474,7 +454,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return false;
         }
 
-        public bool HasValueQuick(TreeAddress address, RowValueSearch value)
+        public bool HasValueQuick(TreeAddress address, RowValue value)
         {
             TreeContainer container;
             _dataCache.TryGetValue(address, out container);

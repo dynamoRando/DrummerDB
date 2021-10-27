@@ -45,9 +45,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract PageUpdateRowResult TryUpdateRowData(IRow row, out int updatedOffset);
 
         public abstract bool HasValue(IRowValue value);
-        public abstract bool HasValue(RowValueSearch value);
-        public abstract List<RowAddress> GetRowsWithValue(RowValueStruct value);
-        public abstract List<RowAddress> GetRowsWithValue(RowValueSearch value);
         public abstract RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
         public abstract RowDebug GetDebugRow(int rowId);
         public abstract List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false);

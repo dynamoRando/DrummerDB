@@ -86,9 +86,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         List<RowAddress> GetRowIdsOnPage();
 
         bool HasValue(IRowValue value);
-        bool HasValue(RowValueSearch value);
-        List<RowAddress> GetRowsWithValue(RowValueStruct value);
-        List<RowAddress> GetRowsWithValue(RowValueSearch value);
         RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
         RowDebug GetDebugRow(int rowId);
 

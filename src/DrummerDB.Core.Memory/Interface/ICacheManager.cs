@@ -23,7 +23,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
 
         List<RowAddress> FindRowAddressesWithValue(TreeAddress address, RowValue value, ITableSchema schema);
 
-        List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValueSearch[] values);
+        List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValue[] values);
 
         /// <summary>
         /// Returns a list of rows that contain all the values specified in the values param. This is effectively an AND operation.
@@ -31,7 +31,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         /// <param name="address">The address of the table</param>
         /// <param name="values">A list of values to search for</param>
         /// <returns>A list of rows matching all the values specified (or an empty list.)</returns>
-        List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValueSearch> values);
+        List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values);
 
         /// <summary>
         /// Finds rows with the specified value and returns them.
@@ -42,9 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         /// <returns>A list of rows that contain the specified value.</returns>
         List<IRow> FindRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema);
 
-        List<IRow> FindRowsWithValue(TreeAddress address, RowValueStruct value, ITableSchema schema);
-
-        List<IRow> FindRowsWithValue(TreeAddress address, RowValueSearch value);
+        List<IRow> FindRowsWithValue(TreeAddress address, RowValue value);
 
         /// <summary>
         /// Returns the name of the database for the specified database id. This method will load the system page into cache if it is not already there.
@@ -99,8 +97,6 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         ///   <c>true</c> if the specified address has the value; otherwise, <c>false</c>.
         /// </returns>
         bool HasValue(TreeAddress address, RowValue value, ITableSchema schema);
-
-        bool HasValue(TreeAddress address, RowValueSearch value, ITableSchema schema);
 
         /// <summary>
         /// Attempts to add the requested to row and returns the result of the operation

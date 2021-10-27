@@ -194,21 +194,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             throw new NotImplementedException();
         }
 
-        public override List<RowAddress> GetRowsWithValue(RowValueStruct value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override List<RowAddress> GetRowsWithValue(RowValueSearch value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool HasValue(RowValueSearch value)
-        {
-            throw new NotImplementedException();
-        }
-
         public override RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column)
         {
             throw new NotImplementedException();

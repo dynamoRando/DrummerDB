@@ -164,7 +164,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <param name="columnName">Name of the column.</param>
         /// <returns>The column with the name specified from this table</returns>
-        /// <exception cref="ColumnNotInTableException"></exception>
+        /// <exception cref="ColumnNotFoundException"></exception>
         /// <remarks>This function is useful as a shortcut when setting <seealso cref="RowValue"/> parameters.</remarks>
         public ColumnSchema GetColumn(string columnName)
         {
@@ -176,7 +176,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            throw new ColumnNotInTableException(columnName, Name);
+            throw new ColumnNotFoundException(columnName, Name);
         }
 
         public ColumnSchema GetColumn(int id)
@@ -189,7 +189,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            throw new ColumnNotInTableException($"Column Id {id.ToString()} not found in table {_schema.Name}");
+            throw new ColumnNotFoundException($"Column Id {id.ToString()} not found in table {_schema.Name}");
         }
 
         public ColumnSchemaStruct GetColumnStruct(int id)
@@ -202,7 +202,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            throw new ColumnNotInTableException($"Column Id {id.ToString()} not found in table {_schema.Name}");
+            throw new ColumnNotFoundException($"Column Id {id.ToString()} not found in table {_schema.Name}");
         }
 
         public ColumnSchemaStruct GetColumnStruct(string columnName)
@@ -534,17 +534,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return TryUpdateRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public List<IRow> FindRowsWithValue(RowValueStruct value)
-        {
-            if (!HasColumn(value.Column.Name))
-            {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
-            }
-
-            return _cache.FindRowsWithValue(Address, value, _schema);
-
-        }
-
+    
         /// <summary>
         /// Finds the rows with value.
         /// </summary>
@@ -556,7 +546,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
             return _cache.FindRowsWithValue(Address, value, _schema);
@@ -566,7 +556,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
             return _cache.FindRowAddressesWithValue(Address, value, _schema);
@@ -578,7 +568,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
             var rows = _cache.GetValues(Address, value.Column.Name, _schema);
@@ -607,7 +597,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <returns>
         ///   <c>true</c> if the specified table has the value; otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="ColumnNotInTableException">Thrown when the <seealso cref="ColumnSchema"/> in the row value is not part
+        /// <exception cref="ColumnNotFoundException">Thrown when the <seealso cref="ColumnSchema"/> in the row value is not part
         /// of the table.</exception>
         public bool HasValue(RowValue value)
         {
@@ -615,7 +605,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
             return _cache.HasValue(Address, value, _schema);
@@ -635,35 +625,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 if (!(HasColumn(value.Column.Name)))
                 {
-                    throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
-                }
-            });
-
-            bool hasAllValues = false;
-
-            foreach (var value in values)
-            {
-                if (!_cache.HasValue(Address, value, _schema))
-                {
-                    hasAllValues = false;
-                    break;
-                }
-                else
-                {
-                    hasAllValues = true;
-                }
-            }
-
-            return hasAllValues;
-        }
-
-        public bool HasAllValues(List<RowValueSearch> values)
-        {
-            values.ForEach(value =>
-            {
-                if (!(HasColumn(value.Column.Name)))
-                {
-                    throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
                 }
             });
 
@@ -694,23 +656,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <remarks>This performs effectively an AND operation on all the values</remarks>
         public List<IRow> FindRowsWithAllValues(List<RowValue> values)
         {
-            throw new NotImplementedException();
-        }
-
-
-        /// <summary>
-        /// Finds the rows with all values.
-        /// </summary>
-        /// <param name="values">The values.</param>
-        /// <returns>Returns the rows that contain all specified values, or an empty list</returns>
-        /// <remarks>This performs effectively an AND operation on all the values</remarks>
-        public List<IRow> FindRowsWithAllValues(List<RowValueSearch> values)
-        {
             foreach (var value in values)
             {
                 if (!HasColumn(value.Column.Name))
                 {
-                    throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
                 }
             }
 

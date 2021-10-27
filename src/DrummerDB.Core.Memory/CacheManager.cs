@@ -80,10 +80,10 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userDataCache.HasValue(address, value);
         }
 
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValueSearch> values)
+        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
         {
             var result = new List<IRow>();
-            var lookup = new Dictionary<RowValueSearch, RowAddress>();
+            var lookup = new Dictionary<RowValue, RowAddress>();
 
             if (!(_userDataCache.HasTree(address)))
             {
@@ -114,12 +114,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return result;
         }
 
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValueSearch[] values)
+        public List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValue[] values)
         {
             var result = new List<IRow>();
-            var lookup = new Dictionary<RowValueSearch, RowAddress>();
+            var lookup = new Dictionary<RowValue, RowAddress>();
 
-            if (!(_userDataCache.HasTree(address)))
+            if (!_userDataCache.HasTree(address))
             {
                 return result;
             }
@@ -148,31 +148,8 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return result;
         }
 
-        public List<IRow> FindRowsWithValue(TreeAddress address, RowValueSearch value)
+        public List<IRow> FindRowsWithValue(TreeAddress address, RowValue value)
         {
-            var result = new List<IRow>();
-
-            if (!(_userDataCache.HasTree(address)))
-            {
-                return result;
-            }
-
-            var locations = _userDataCache.HasValue(address, value);
-
-            if (locations.Count > 0)
-            {
-                foreach (var location in locations)
-                {
-                    result.Add(_userDataCache.GetRow(location.RowId, address));
-                }
-            }
-
-            return result;
-        }
-
-        public List<IRow> FindRowsWithValue(TreeAddress address, RowValueStruct value, ITableSchema schema)
-        {
-
             var result = new List<IRow>();
 
             if (!(_userDataCache.HasTree(address)))
@@ -195,6 +172,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
         public List<IRow> FindRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
+
             var result = new List<IRow>();
 
             if (!(_userDataCache.HasTree(address)))
@@ -202,7 +180,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                 return result;
             }
 
-            List<RowAddress> locations = _userDataCache.HasValue(address, value);
+            var locations = _userDataCache.HasValue(address, value);
 
             if (locations.Count > 0)
             {
@@ -349,16 +327,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
             return false;
         }
-        public bool HasValue(TreeAddress address, RowValueSearch value, ITableSchema schema)
-        {
-            if (!(_userDataCache.HasTree(address)))
-            {
-                return false;
-            }
-
-            return _userDataCache.HasValueQuick(address, value);
-        }
-
+     
         public bool HasValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
             if (!(_userDataCache.HasTree(address)))

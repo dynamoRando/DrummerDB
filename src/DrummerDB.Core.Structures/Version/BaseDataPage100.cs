@@ -568,56 +568,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
         }
 
-        public override List<RowAddress> GetRowsWithValue(RowValueSearch value)
-        {
-            var result = new List<RowAddress>();
-
-            List<RowAddress> rows = GetRowIdsOnPage();
-            foreach (var row in rows)
-            {
-                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
-
-                if (DbBinaryConvert.BinaryEqual(rowData.GetValueInByteSpan(value.Column.Name), value.GetValueInByteSpan()))
-                {
-                    result.Add(row);
-                }
-
-                /*
-                if (rowData.GetValueInString(value.Column.Name).ToUpper() == value.GetValueInString().ToUpper())
-                {
-                    result.Add(row);
-                }
-                */
-            }
-
-            return result;
-        }
-
-        public override List<RowAddress> GetRowsWithValue(RowValueStruct value)
-        {
-            var result = new List<RowAddress>();
-
-            List<RowAddress> rows = GetRowIdsOnPage();
-            foreach (var row in rows)
-            {
-                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
-
-                if (DbBinaryConvert.BinaryEqual(rowData.GetValueInByteSpan(value.Column.Name), value.GetValueInByteSpan()))
-                {
-                    result.Add(row);
-                }
-
-                /*
-                if (rowData.GetValueInString(value.Column.Name).ToUpper() == value.GetValueInString().ToUpper())
-                {
-                    result.Add(row);
-                }
-                */
-            }
-
-            return result;
-        }
-
         public override bool HasValue(IRowValue value)
         {
             List<RowAddress> rows = GetRowIdsOnPage();
@@ -626,33 +576,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 //RowDebug debug = GetDebugRowAtOffset(row.RowOffset, row.RowId);
 
-                IRow rowData = GetRowAtOffset(row.RowOffset, row.RowId);
-
-                if (DbBinaryConvert.BinaryEqual(rowData.GetValueInByteSpan(value.Column.Name), value.GetValueInByteSpan()))
-                {
-                    return true;
-                }
-
-                /*
-                
-                Re-write to see if better in performance, also this was silly to compare strings
-
-                if (rowData.GetValueInString(value.Column.Name).ToUpper() == value.GetValueInString().ToUpper())
-                {
-                    return true;
-                }
-                */
-            }
-
-            return false;
-        }
-
-
-        public override bool HasValue(RowValueSearch value)
-        {
-            List<RowAddress> rows = GetRowIdsOnPage();
-            foreach (var row in rows)
-            {
                 IRow rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
                 if (DbBinaryConvert.BinaryEqual(rowData.GetValueInByteSpan(value.Column.Name), value.GetValueInByteSpan()))

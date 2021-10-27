@@ -197,21 +197,6 @@ namespace Drummersoft.DrummerDB.Core.Structures
             return _basePage.HasValue(value);
         }
 
-        public override List<RowAddress> GetRowsWithValue(RowValueStruct value)
-        {
-            return _basePage.GetRowsWithValue(value);
-        }
-
-        public override List<RowAddress> GetRowsWithValue(RowValueSearch value)
-        {
-            return _basePage.GetRowsWithValue(value);
-        }
-
-        public override bool HasValue(RowValueSearch value)
-        {
-            throw new NotImplementedException();
-        }
-
         public override RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column)
         {
             return _basePage.GetValueAtAddress(address,column);

@@ -487,6 +487,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     throw new UnknownSQLTypeException($"{Column.DataType.GetType().ToString()} is unknown");
             }
         }
+
         /// <summary>
         /// Returns the binary array size of the value
         /// </summary>
