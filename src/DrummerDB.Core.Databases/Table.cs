@@ -534,32 +534,34 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return TryUpdateRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-    
-        /// <summary>
-        /// Finds the rows with value.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException">You must supply a value with a column of the table</exception>
-        /// <remarks>This performs an EQUALS operation on the specified value</remarks>
-        public List<IRow> FindRowsWithValue(RowValue value)
+        public List<IRow> GetRowsWithValue(RowValue value)
         {
             if (!HasColumn(value.Column.Name))
             {
                 throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            return _cache.FindRowsWithValue(Address, value, _schema);
+            return _cache.GetRowsWithValue(Address, value, _schema);
         }
 
-        public List<RowAddress> FindRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)
+        public int CountOfRowsWithValue(RowValue value)
         {
             if (!HasColumn(value.Column.Name))
             {
                 throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            return _cache.FindRowAddressesWithValue(Address, value, _schema);
+            return _cache.CountOfRowsWithValue(Address, value);
+        }
+
+        public List<RowAddress> GetRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (!HasColumn(value.Column.Name))
+            {
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
+            }
+
+            return _cache.GetRowAddressesWithValue(Address, value);
         }
 
         public List<RowAddress> FindRowAddressesWithValue(RowValue value, ValueComparisonOperator comparison, TransactionRequest transaction, TransactionMode transactionMode)
@@ -647,14 +649,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return hasAllValues;
         }
 
-        /// <summary>
-        /// Finds the rows with all values.
-        /// </summary>
-        /// <param name="values">The values.</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        /// <remarks>This performs effectively an AND operation on all the values</remarks>
-        public List<IRow> FindRowsWithAllValues(List<RowValue> values)
+        public int CountOfRowsWithAllValues(IRowValue[] values)
+        {
+            return _cache.CountOfRowsWithAllValues(Address, ref values);
+        }
+
+
+        public IRow[] GetRowsWithAllValues(IRowValue[] values)
         {
             foreach (var value in values)
             {
@@ -664,10 +665,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            List<IRow> result = _cache.FindRowsWithAllValues(Address, values);
+            var result = _cache.GetRowsWithAllValues(Address, ref values);
 
             return result;
         }
+
+
 
         /// <summary>
         /// Finds the rows with any values.

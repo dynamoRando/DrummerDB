@@ -49,5 +49,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract RowDebug GetDebugRow(int rowId);
         public abstract List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false);
         public abstract PageAddress Address { get; }
+        public abstract int GetCountOfRowIdsOnPage();
+        public abstract RowAddress[] GetRowAddressesWithValue(IRowValue value);
+        public abstract int GetCountOfRowsWithValue(IRowValue value);
     }
 }

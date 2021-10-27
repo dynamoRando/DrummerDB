@@ -78,12 +78,14 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// <param name="value">The value to search for</param>
         /// <returns>A list of row ids that contain the specified value</returns>
         List<RowAddress> GetRowsWithValue(IRowValue value);
+        RowAddress[] GetRowAddressesWithValue(IRowValue value);
 
         /// <summary>
         /// Gets all the Row Ids on this page
         /// </summary>
         /// <returns>A list of row ids</returns>
         List<RowAddress> GetRowIdsOnPage();
+        int GetCountOfRowIdsOnPage();
 
         bool HasValue(IRowValue value);
         RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
@@ -97,5 +99,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// , otherwise <c>FALSE</c></returns>
         bool HasRow(int rowId);
         List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false);
+        int GetCountOfRowsWithValue(IRowValue value);
     }
 }

@@ -21,6 +21,16 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountOfRowsWithValue(TreeAddress address, IRowValue value)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool DeleteRow(IRow row, TreeAddress address)
         {
             throw new NotImplementedException();
@@ -87,7 +97,27 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public List<RowAddress> GetRowAddressesWithValue(TreeAddress address, RowValue value)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<RowAddress> GetRows(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<IRow> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
             throw new NotImplementedException();
         }
@@ -113,6 +143,16 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         }
 
         public List<ValueAddress> GetValuesForColumnByRows(TreeAddress address, string columnName, ITableSchema schema, List<RowAddress> rows)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasRowsWithValue(TreeAddress address, IRowValue value)
         {
             throw new NotImplementedException();
         }

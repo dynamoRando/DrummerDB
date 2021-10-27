@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static Drummersoft.DrummerDB.Core.Structures.PageParser;
 
 namespace Drummersoft.DrummerDB.Core.Structures.Version
 {
@@ -109,7 +110,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         {
             _data = data;
             _schema = schema;
-            
+
 
             SetPageAddressFromData();
             SetPageTypeFromData();
@@ -121,85 +122,22 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Public Methods
+        public override int GetCountOfRowIdsOnPage()
+        {
+            int totalCount = 0;
+            var action = new ParsePageAction<int>(CountRows);
+            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, -1, false, ref totalCount);
+
+            return totalCount;
+        }
+
         public override List<RowAddress> GetRowIdsOnPage()
         {
-            // this entire method is a copy of GetRowOffsets
-            // TODO - need to figure out how to have a general iterative function over the array
-            // but can do different things if we're iterating
+            var addresses = new List<RowAddress>();
+            var action = new ParsePageAction<List<RowAddress>>(AddToRowAddresses);
 
-            var result = new List<RowAddress>();
-            int pageId = PageId();
-
-            int runningTotal = DataPageConstants.RowDataStartOffset();
-            var span = new ReadOnlySpan<byte>(_data);
-
-            do
-            {
-                int lengthOfPreamble = RowConstants.LengthOfPreamble();
-                int totalSlice = runningTotal + lengthOfPreamble;
-                if (totalSlice >= Constants.PAGE_SIZE)
-                {
-                    break;
-                }
-
-                ReadOnlySpan<byte> preamble = span.Slice(runningTotal, RowConstants.LengthOfPreamble());
-                Row item = new Row(preamble);
-
-                // if we have no rows on the page (i.e. the row we parsed has a row id of 0)
-                // just return
-                if (item.Id == 0)
-                {
-                    return result;
-                }
-
-                if (!result.Any(id => id.RowId == item.Id))
-                {
-                    if (item.IsForwarded)
-                    {
-                        if (item.ForwardedPageId == pageId)
-                        {
-                            result.Add(new RowAddress(pageId, item.Id, runningTotal));
-                        }
-                    }
-                    else
-                    {
-                        result.Add(new RowAddress(pageId, item.Id, runningTotal));
-                    }
-                }
-
-                if (item.IsLocal) //  the next item is the row size, get the size of the row to add to the running total
-                {
-                    // we've read the preample, so add it to our total
-                    runningTotal += RowConstants.LengthOfPreamble();
-
-                    // get the row size, which includes the preamble, the size of data, and the size of the row size itself
-                    int rowSize = Row.GetRowSizeFromBinary(span.Slice(runningTotal, RowConstants.SIZE_OF_ROW_SIZE));
-
-                    // the remainder is the size of the row minus what we've already read
-                    int remainder = rowSize - RowConstants.LengthOfPreamble();
-
-                    runningTotal += remainder;
-                }
-                else // the next item is the participant id, we need to add to the running total the size of a GUID 
-                {
-                    runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID;
-                    if (runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID > Constants.PAGE_SIZE)
-                    {
-                        break;
-                    }
-                    var participantBytes = span.Slice(runningTotal, RowConstants.SIZE_OF_PARTICIPANT_ID);
-
-                    //Guid participantId = DbBinaryConvert.BinaryToGuid(participantBytes);
-                    //throw new NotImplementedException("Have not implemented retrival of a remote row. Need to get remote row and then");
-
-                    //^^ the above would've been to get the ParticipantId, which is the only other data in the array.  Now fast forward to the next potential row
-                    // add the preamble to our total since we've already read it
-                    runningTotal += RowConstants.LengthOfPreamble();
-                }
-            }
-            while (true);
-
-            return result;
+            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, -1, false, ref addresses);
+            return addresses;
         }
 
         public override void ForwardRows(int rowId, int newPageId, int newPageOffset)
@@ -548,6 +486,31 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return (DataPageType)result;
         }
 
+
+        public override int GetCountOfRowsWithValue(IRowValue value)
+        {
+            int count = 0;
+
+            List<RowAddress> rows = GetRowIdsOnPage();
+            foreach (var row in rows)
+            {
+                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+
+                byte[] a;
+                byte[] b;
+
+                a = rowData.GetValueInByte(value.Column.Name);
+                b = value.GetValueInBinary();
+
+                if (DbBinaryConvert.BinaryEqual(a, b))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         public override List<RowAddress> GetRowsWithValue(IRowValue value)
         {
             var result = new List<RowAddress>();
@@ -557,16 +520,31 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             {
                 var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
-                // probably need to change this comparison
-                if (rowData.GetValueInString(value.Column.Name).ToUpper() == value.GetValueInString().ToUpper())
+                byte[] a;
+                byte[] b;
+
+                a = rowData.GetValueInByte(value.Column.Name);
+                b = value.GetValueInBinary();
+
+                if (DbBinaryConvert.BinaryEqual(a, b))
                 {
                     result.Add(row);
                 }
             }
 
             return result;
-
         }
+
+        public override RowAddress[] GetRowAddressesWithValue(IRowValue value)
+        {
+            int count = GetCountOfRowIdsOnPage();
+            RowAddress[] rows = new RowAddress[count];
+
+
+
+            throw new NotImplementedException();
+        }
+
 
         public override bool HasValue(IRowValue value)
         {
@@ -618,82 +596,47 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// Note that this returns forwarded rows that may be on other pages.</remarks>
         public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false)
         {
-            var result = new List<int>();
+            var offsets = new List<int>();
+            var action = new ParsePageAction<List<int>>(AddParsedRowToOffsets);
+            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, rowId, stopAtFirstForward, ref offsets);
 
-            int runningTotal = DataPageConstants.RowDataStartOffset();
-            var span = new ReadOnlySpan<byte>(_data);
-            int lengthOfPreamble = RowConstants.LengthOfPreamble();
-
-            do
-            {
-                int totalSlice = runningTotal + lengthOfPreamble;
-                if (totalSlice >= Constants.PAGE_SIZE)
-                {
-                    break;
-                }
-
-                var preamble = span.Slice(runningTotal, RowConstants.LengthOfPreamble());
-                Row item = new Row(preamble);
-
-                if (item.Id > 1_000_000)
-                {
-                    break;
-                }
-
-                if (item.Id == 0)
-                {
-                    break;
-                }
-
-                if (item.Id == rowId)
-                {
-                    result.Add(runningTotal);
-                    if (item.IsForwarded && item.ForwardOffset > 0 && stopAtFirstForward)
-                    {
-                        break;
-                    }
-                }
-
-                if (item.IsLocal) //  the next item is the row size, get the size of the row to add to the running total
-                {
-                    // we've read the preample, so add it to our total
-                    runningTotal += RowConstants.LengthOfPreamble();
-
-                    // get the row size, which includes the preamble, the size of data, and the size of the row size itself
-                    int rowSize = Row.GetRowSizeFromBinary(span.Slice(runningTotal, RowConstants.SIZE_OF_ROW_SIZE));
-
-                    // the remainder is the size of the row minus what we've already read
-                    int remainder = rowSize - RowConstants.LengthOfPreamble();
-
-                    runningTotal += remainder;
-                }
-                else // the next item is the participant id, we need to add to the running total the size of a GUID 
-                {
-                    runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID;
-                    if (runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID > Constants.PAGE_SIZE)
-                    {
-                        break;
-                    }
-                    var participantBytes = span.Slice(runningTotal, RowConstants.SIZE_OF_PARTICIPANT_ID);
-
-                    //Guid participantId = DbBinaryConvert.BinaryToGuid(participantBytes);
-                    //throw new NotImplementedException("Have not implemented retrival of a remote row. Need to get remote row and then");
-
-                    //^^ the above would've been to get the ParticipantId, which is the only other data in the array.  Now fast forward to the next potential row
-                    // add the preamble to our total since we've already read it
-                    runningTotal += RowConstants.LengthOfPreamble();
-                }
-            }
-            while (true);
-
-            return result;
+            return offsets;
         }
         #endregion
 
         #region Private Methods
+        private void CountRows(int pageId, Row row, int offset, int targetRowId, ref int totalCount)
+        {
+            totalCount++;
+        }
+
+        private void AddToRowAddresses(int pageId, Row row, int offset, int targetRowId, ref List<RowAddress> addresses)
+        {
+            if (row.IsForwarded)
+            {
+                if (row.ForwardedPageId == pageId)
+                {
+                    addresses.Add(new RowAddress(pageId, row.Id, offset));
+                }
+            }
+            else
+            {
+                addresses.Add(new RowAddress(pageId, row.Id, offset));
+            }
+
+        }
+
+        private void AddParsedRowToOffsets(int pageId, Row row, int offset, int targetRowId, ref List<int> items)
+        {
+            if (targetRowId == row.Id)
+            {
+                items.Add(offset);
+            }
+        }
+
         private void SetTotalRows()
         {
-            _totalRows =  TotalRows();
+            _totalRows = TotalRows();
         }
 
         private void SetTotalBytesUsed()
@@ -927,6 +870,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 throw new InvalidOperationException("Unknown Page Type");
             }
         }
+
+
+
 
         #endregion
     }

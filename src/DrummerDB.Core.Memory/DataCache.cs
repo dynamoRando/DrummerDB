@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using Drummersoft.DrummerDB.Core.Structures.DbDebug;
+using Drummersoft.DrummerDB.Core.Memory.Interface;
 
 namespace Drummersoft.DrummerDB.Core.Memory
 {
@@ -15,7 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
     /// A concrete representation of an object for interfacing with Data Pages (System and User). For more information, see Page.md
     /// </summary>
     /// <seealso cref="Drummersoft.DrummerDB.Core.Memory.Interface.IDataCache" />
-    internal class DataCache
+    internal class DataCache : IMemoryData
     {
         #region Private Fields
         private ConcurrentDictionary<TreeAddress, TreeContainer> _dataCache;
@@ -381,7 +382,27 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return container.GetRow(rowId);
         }
 
-        public List<RowAddress> HasValue(TreeAddress address, RowValue value)
+        public RowAddress[] GetRowAddressesWithValue(TreeAddress address, IRowValue value)
+        {
+            List<RowAddress> result = null;
+            TreeContainer container;
+            _dataCache.TryGetValue(address, out container);
+
+            if (container is not null)
+            {
+                result = new List<RowAddress>();
+                foreach (var id in container.Pages())
+                {
+                    var page = container.GetPage(id);
+                    var rows = page.GetRowsWithValue(value);
+                    result.AddRange(rows);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        public List<RowAddress> GetRowAddressesWithValue(TreeAddress address, RowValue value)
         {
             List<RowAddress> result = null;
             TreeContainer container;
@@ -399,6 +420,46 @@ namespace Drummersoft.DrummerDB.Core.Memory
             }
 
             return result;
+        }
+
+        public int GetCountOfRowsWithValue(TreeAddress address, RowValue value)
+        {
+            int count = 0;
+
+            TreeContainer container;
+            _dataCache.TryGetValue(address, out container);
+
+            if (container is not null)
+            {
+                foreach (var id in container.Pages())
+                {
+                    var page = container.GetPage(id);
+                    count += page.GetRowsWithValue(value).Count;
+                }
+            }
+
+            return count;
+        }
+
+        public bool HasValue(TreeAddress address, RowValue value)
+        {
+            TreeContainer container;
+            _dataCache.TryGetValue(address, out container);
+
+            if (container is not null)
+            {
+                foreach (var id in container.Pages())
+                {
+                    var page = container.GetPage(id);
+                    var result = page.HasValue(value);
+                    if (result)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -427,14 +488,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return result;
         }
 
-        /// <summary>
-        /// Returns <see langword="true"/> if any page in the tree contains the specified value, otherwise <see langword="false"/>
-        /// </summary>
-        /// <param name="address">The address of the tree</param>
-        /// <param name="value">The value to look for</param>
-        /// <returns><see langword="true"/> if any page has the specified value, otherwise <see langword="false"/></returns>
-        /// <remarks>Use this to quickly search for if a tree has a value and you don't need to know it's location. Otherwise use <seealso cref="HasValue(TreeAddress, IRowValue)"/> function.</remarks>
-        public bool HasValueQuick(TreeAddress address, IRowValue value)
+        public bool HasRowsWithValue(TreeAddress address, IRowValue value)
         {
             TreeContainer container;
             _dataCache.TryGetValue(address, out container);
@@ -453,6 +507,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
             return false;
         }
+
 
         public bool HasValueQuick(TreeAddress address, RowValue value)
         {
@@ -490,6 +545,106 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _dataCache.ContainsKey(address);
         }
 
+        public bool DeleteRow(IRow row, TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool DeleteRow(int rowId, TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<RowAddress> FindRowAddressesWithValue(TreeAddress address, RowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<IRow> FindRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountOfRowsWithValue(TreeAddress address, IRowValue value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetDatabaseName(Guid dbId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow GetRow(RowAddress address, TreeAddress treeAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<RowAddress> GetRows(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ResultsetValue GetValueAtAddress(in ValueAddress address, ColumnSchema column)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<ValueAddress> GetValues(TreeAddress address, string columnName, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<ValueAddress> GetValuesForColumnByRows(TreeAddress address, string columnName, ITableSchema schema, List<RowAddress> rows)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasValue(TreeAddress address, RowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CacheAddRowResult TryAddRow(IRow row, TreeAddress address, ITableSchema schema, out int pageId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateRow(IRow row, TreeAddress address, ITableSchema schema, out int pageId)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region Private Methods
@@ -517,6 +672,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
             return 0;
         }
+
+        public List<IRow> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }

@@ -69,7 +69,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (tableFilter.ComparisonOperator == ValueComparisonOperator.Equals)
                 {
                     var table = db.GetTable(new TreeAddress(tableFilter.TableRowValue.DatabaseId, tableFilter.TableRowValue.TableId, tableFilter.TableRowValue.SchemaId));
-                    return table.FindRowAddressesWithValue(tableFilter.TableRowValue.RowValue, transaction, transactionMode);
+                    return table.GetRowAddressesWithValue(tableFilter.TableRowValue.RowValue, transaction, transactionMode);
                 }
                 else
                 {

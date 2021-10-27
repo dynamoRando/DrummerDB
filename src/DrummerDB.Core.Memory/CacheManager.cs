@@ -68,18 +68,37 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return DeleteRow(row.Id, address);
         }
 
-        public List<RowAddress> FindRowAddressesWithValue(TreeAddress address, RowValue value, ITableSchema schema)
+        public List<RowAddress> GetRowAddressesWithValue(TreeAddress address, RowValue value)
         {
             var result = new List<RowAddress>();
 
-            if (!(_userDataCache.HasTree(address)))
+            if (!_userDataCache.HasTree(address))
             {
                 return result;
             }
 
-            return _userDataCache.HasValue(address, value);
+            return _userDataCache.GetRowAddressesWithValue(address, value);
         }
 
+        public bool HasRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            if (!_userDataCache.HasTree(address))
+            {
+                throw new InvalidOperationException("Tree not in memory");
+            }
+
+            foreach (var value in values)
+            {
+                if (!_userDataCache.HasRowsWithValue(address, value))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // deprecated
         public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
         {
             var result = new List<IRow>();
@@ -93,7 +112,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             // i need to find where for every value, the locations are the same
             foreach (var value in values)
             {
-                List<RowAddress> locations = _userDataCache.HasValue(address, value);
+                List<RowAddress> locations = _userDataCache.GetRowAddressesWithValue(address, value);
 
                 foreach (var location in locations)
                 {
@@ -114,80 +133,40 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return result;
         }
 
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValue[] values)
+        public bool HasRowsWithValue(TreeAddress address, IRowValue value)
+        {
+            if (!_userDataCache.HasTree(address))
+            {
+                throw new InvalidOperationException("Tree not in memory");
+            }
+
+            return _userDataCache.HasRowsWithValue(address, value);
+        }
+
+        public int CountOfRowsWithValue(TreeAddress address, IRowValue value)
+        {
+            if (!_userDataCache.HasTree(address))
+            {
+                throw new InvalidOperationException("Tree not in memory");
+            }
+
+            return _userDataCache.CountOfRowsWithValue(address, value);
+        }
+
+        public List<IRow> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
             var result = new List<IRow>();
-            var lookup = new Dictionary<RowValue, RowAddress>();
 
             if (!_userDataCache.HasTree(address))
             {
                 return result;
             }
 
-            // i need to find where for every value, the locations are the same
-            foreach (var value in values)
+            var locations = _userDataCache.GetRowAddressesWithValue(address, value);
+
+            foreach (var location in locations)
             {
-                List<RowAddress> locations = _userDataCache.HasValue(address, value);
-
-                foreach (var location in locations)
-                {
-                    lookup.Add(value, location);
-                }
-            }
-
-            // if we found every search item specified
-            if (lookup.Keys.Count == values.Count())
-            {
-                var distinctLocations = lookup.Values.Distinct().ToList();
-                foreach (var location in distinctLocations)
-                {
-                    result.Add(_userDataCache.GetRow(location.RowId, address));
-                }
-            }
-
-            return result;
-        }
-
-        public List<IRow> FindRowsWithValue(TreeAddress address, RowValue value)
-        {
-            var result = new List<IRow>();
-
-            if (!(_userDataCache.HasTree(address)))
-            {
-                return result;
-            }
-
-            var locations = _userDataCache.HasValue(address, value);
-
-            if (locations.Count > 0)
-            {
-                foreach (var location in locations)
-                {
-                    result.Add(_userDataCache.GetRow(location.RowId, address));
-                }
-            }
-
-            return result;
-        }
-
-        public List<IRow> FindRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
-        {
-
-            var result = new List<IRow>();
-
-            if (!(_userDataCache.HasTree(address)))
-            {
-                return result;
-            }
-
-            var locations = _userDataCache.HasValue(address, value);
-
-            if (locations.Count > 0)
-            {
-                foreach (var location in locations)
-                {
-                    result.Add(_userDataCache.GetRow(location.RowId, address));
-                }
+                result.Add(_userDataCache.GetRow(location.RowId, address));
             }
 
             return result;
@@ -327,10 +306,10 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
             return false;
         }
-     
+
         public bool HasValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
-            if (!(_userDataCache.HasTree(address)))
+            if (!_userDataCache.HasTree(address))
             {
                 return false;
             }
@@ -440,6 +419,21 @@ namespace Drummersoft.DrummerDB.Core.Memory
         {
             return _userSystemCache.HasDatabase(dbId);
         }
+
+        public int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
         #region Private Methods
@@ -533,6 +527,8 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
             */
         }
+
+
 
         #endregion
 

@@ -198,6 +198,21 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         {
             throw new NotImplementedException();
         }
+
+        public override int GetCountOfRowIdsOnPage()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override RowAddress[] GetRowAddressesWithValue(IRowValue value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int GetCountOfRowsWithValue(IRowValue value)
+        {
+            return _basePage.GetCountOfRowsWithValue(value);
+        }
         #endregion
 
         #region Private Methods
