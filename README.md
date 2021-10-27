@@ -20,11 +20,11 @@ I don't consider myself a C# developer. I am learning as I go along.
 
 This project is licensed under the [Mozilla Public License v2](https://www.mozilla.org/en-US/MPL/2.0/). 
 
-This project leverages the following other projects / libaries --
+This project leverages the following other projects / libraries --
 
-| Project / Library | License                           | Website                                         |
-| ----------------- | --------------------------------- | ----------------------------------------------- |
-| Antlr             | BSD-3                             | [Antlr.org](https://www.antlr.org/license.html) |
-| C5                | MIT                               | [C5 Github](https://github.com/sestoft/C5/)     |
-| gRPC              | Creative Commons 2.0 / Apache 2.0 | [grpc.io](https://grpc.io/)                     |
+| Project / Library | License                           | Website                                         | Usage                                                                                                                |
+| ----------------- | --------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Antlr             | BSD-3                             | [Antlr.org](https://www.antlr.org/license.html) | SQL parsing based on [T-SQL](https://github.com/antlr/grammars-v4/tree/master/sql/tsql) |
+| C5                | MIT                               | [C5 Github](https://github.com/sestoft/C5/)     | Leverages a tree dictionary for holding pages in memory                                                                                                                     |
+| gRPC              | Creative Commons 2.0 / Apache 2.0 | [grpc.io](https://grpc.io/)                     | Used for various communication purposes                                                                                                                     |
 
