@@ -423,24 +423,6 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return result;
         }
 
-        public int GetCountOfRowsWithValue(TreeAddress address, RowValue value)
-        {
-            int count = 0;
-
-            TreeContainer container;
-            _dataCache.TryGetValue(address, out container);
-
-            if (container is not null)
-            {
-                foreach (var id in container.Pages())
-                {
-                    var page = container.GetPage(id);
-                    count += page.GetRowsWithValue(value).Count;
-                }
-            }
-
-            return count;
-        }
 
         public bool HasValue(TreeAddress address, RowValue value)
         {
