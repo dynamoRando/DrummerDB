@@ -438,12 +438,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 Guid roleGuid = Guid.Empty;
                 string roleName = string.Empty;
 
-                RowValue searchForRole = RowValueMaker.Create(_systemRoles, SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName, role.Name);
+                RowValue searchForRole = RowValueMaker.Create(_systemRoles, SystemRolesTable.Columns.RoleName, role.Name);
                 var roles = _systemRoles.GetRowsWithValue(searchForRole);
 
                 foreach (var x in roles)
                 {
-                    roleName = x.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName);
+                    roleName = x.GetValueInString(SystemRolesTable.Columns.RoleName);
                     if (roleName == role.Name)
                     {
                         string roleGuidString = x.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleGUID);

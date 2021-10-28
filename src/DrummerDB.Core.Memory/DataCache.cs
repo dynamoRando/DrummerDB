@@ -235,7 +235,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                     container.DeleteRow(rowId);
                     return true;
                 }
-                
+
             }
 
             return false;
@@ -572,11 +572,54 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
         public int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
-            throw new NotImplementedException();
+            int count = 0;
+
+            TreeContainer container;
+            _dataCache.TryGetValue(address, out container);
+
+            if (container is not null)
+            {
+                foreach (var value in values)
+                {
+                    foreach (var id in container.Pages())
+                    {
+                        var page = container.GetPage(id);
+                        if (page.HasValue(value))
+                        {
+                            count += page.GetCountOfRowsWithValue(value);
+                        }
+                    }
+                }
+            }
+
+            return count;
         }
 
         public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
+            int count = CountOfRowsWithAllValues(address, ref values);
+            var result = new IRow[count];
+            int index = 0;
+
+            TreeContainer container;
+            _dataCache.TryGetValue(address, out container);
+
+            if (container is not null)
+            {
+                foreach (var value in values)
+                {
+                    foreach (var id in container.Pages())
+                    {
+                        var page = container.GetPage(id);
+                        if (page.HasValue(value))
+                        {
+                            var rowsWithValue = page.GetRowAddressesWithValue(value);
+                        }
+                    }
+                }
+            }
+
+
             throw new NotImplementedException();
         }
 
@@ -592,7 +635,23 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
         public int CountOfRowsWithValue(TreeAddress address, IRowValue value)
         {
-            throw new NotImplementedException();
+            int count = 0;
+            TreeContainer container;
+            _dataCache.TryGetValue(address, out container);
+
+            if (container is not null)
+            {
+                foreach (var id in container.Pages())
+                {
+                    var page = container.GetPage(id);
+                    if (page.HasValue(value))
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
         }
 
         public IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)

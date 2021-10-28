@@ -209,7 +209,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public override RowAddress[] GetRowAddressesWithValue(IRowValue value)
         {
-            throw new NotImplementedException();
+            return _basePage.GetRowAddressesWithValue(value);
         }
 
         public override int GetCountOfRowsWithValue(IRowValue value)

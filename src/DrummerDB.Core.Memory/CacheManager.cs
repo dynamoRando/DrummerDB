@@ -422,12 +422,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
         public int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
-            throw new NotImplementedException();
+            return _userDataCache.CountOfRowsWithAllValues(address, ref values);
         }
 
         public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
-            throw new NotImplementedException();
+            return _userDataCache.GetRowsWithAllValues(address, ref values);
         }
 
         public IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)

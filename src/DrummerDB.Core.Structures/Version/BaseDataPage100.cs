@@ -524,7 +524,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 byte[] b;
 
                 a = rowData.GetValueInByte(value.Column.Name);
-                b = value.GetValueInBinary();
+                b = value.GetValueInBinary(false, false);
 
                 if (DbBinaryConvert.BinaryEqual(a, b))
                 {
@@ -537,12 +537,29 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
         public override RowAddress[] GetRowAddressesWithValue(IRowValue value)
         {
-            int count = GetCountOfRowIdsOnPage();
-            RowAddress[] rows = new RowAddress[count];
+            int count = GetCountOfRowsWithValue(value);
+            var result = new RowAddress[count];
+            int index = 0;
 
+            List<RowAddress> rows = GetRowIdsOnPage();
+            foreach (var row in rows)
+            {
+                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
+                byte[] a;
+                byte[] b;
 
-            throw new NotImplementedException();
+                a = rowData.GetValueInByte(value.Column.Name);
+                b = value.GetValueInBinary();
+
+                if (DbBinaryConvert.BinaryEqual(a, b))
+                {
+                    result[index] = row;
+                    index++;
+                }
+            }
+
+            return result;
         }
 
 
