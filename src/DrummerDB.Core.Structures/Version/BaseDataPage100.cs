@@ -524,7 +524,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 byte[] b;
 
                 a = rowData.GetValueInByte(value.Column.Name);
-                b = value.GetValueInBinary(false, false);
+                b = value.GetValueInBinary(false, value.Column.IsNullable);
 
                 if (DbBinaryConvert.BinaryEqual(a, b))
                 {

@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
+using System.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.Memory
 {
@@ -614,13 +615,20 @@ namespace Drummersoft.DrummerDB.Core.Memory
                         if (page.HasValue(value))
                         {
                             var rowsWithValue = page.GetRowAddressesWithValue(value);
+                            if (rowsWithValue.Length > 0)
+                            {
+                                foreach (var row in rowsWithValue)
+                                {
+                                    result[index] = page.GetRow(row);
+                                }
+                            }
+
                         }
                     }
                 }
             }
 
-
-            throw new NotImplementedException();
+            return result;
         }
 
         public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
