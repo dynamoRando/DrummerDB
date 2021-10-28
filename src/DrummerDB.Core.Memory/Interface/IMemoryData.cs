@@ -15,26 +15,15 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
 
         bool DeleteRow(int rowId, TreeAddress address);
         List<RowAddress> GetRowAddressesWithValue(TreeAddress address, RowValue value);
-
-
         bool HasRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
         int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
         IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
-
-        /// <summary>
-        /// Returns a list of rows that contain all the values specified in the values param. This is effectively an AND operation.
-        /// </summary>
-        /// <param name="address">The address of the table</param>
-        /// <param name="values">A list of values to search for</param>
-        /// <returns>A list of rows matching all the values specified (or an empty list.)</returns>
-        List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values);
 
         List<IRow> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema);
 
         bool HasRowsWithValue(TreeAddress address, IRowValue value);
         int CountOfRowsWithValue(TreeAddress address, IRowValue value);
         IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema);
-
 
         /// <summary>
         /// Returns the name of the database for the specified database id. This method will load the system page into cache if it is not already there.
@@ -63,9 +52,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         /// <remarks>This is an expensive operation. Use this sparingly.</remarks>
         List<RowAddress> GetRows(TreeAddress address);
         ResultsetValue GetValueAtAddress(in ValueAddress address, ColumnSchema column);
-
         List<ValueAddress> GetValues(TreeAddress address, string columnName, ITableSchema schema);
-
         List<ValueAddress> GetValuesForColumnByRows(TreeAddress address, string columnName, ITableSchema schema, List<RowAddress> rows);
 
         /// <summary>

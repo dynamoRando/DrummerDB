@@ -98,40 +98,6 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return true;
         }
 
-        // deprecated
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
-        {
-            var result = new List<IRow>();
-            var lookup = new Dictionary<RowValue, RowAddress>();
-
-            if (!(_userDataCache.HasTree(address)))
-            {
-                return result;
-            }
-
-            // i need to find where for every value, the locations are the same
-            foreach (var value in values)
-            {
-                List<RowAddress> locations = _userDataCache.GetRowAddressesWithValue(address, value);
-
-                foreach (var location in locations)
-                {
-                    lookup.Add(value, location);
-                }
-            }
-
-            // if we found every search item specified
-            if (lookup.Keys.Count == values.Count())
-            {
-                var distinctLocations = lookup.Values.Distinct().ToList();
-                foreach (var location in distinctLocations)
-                {
-                    result.Add(_userDataCache.GetRow(location.RowId, address));
-                }
-            }
-
-            return result;
-        }
 
         public bool HasRowsWithValue(TreeAddress address, IRowValue value)
         {
