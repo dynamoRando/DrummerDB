@@ -18,6 +18,8 @@ using System.Linq;
 using System.IO;
 using System.Reflection;
 using System.Diagnostics;
+using NLog;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.Systems
 {
@@ -36,6 +38,8 @@ namespace Drummersoft.DrummerDB.Core.Systems
         private IAuthenticationManager _auth;
         private ICryptoManager _crypt;
         private ITransactionEntryManager _xEntryManager;
+        private LogService _logService;
+        
 
         // test variables
         private string _storageFolder;
@@ -115,6 +119,12 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public void Start()
         {
             LoadConfiguration();
+
+            if (Settings.EnableLogging)
+            {
+                ConfigureLogService();
+            }
+
             SetupCrypt();
             SetupStorage();
             SetupMemory();
@@ -125,6 +135,9 @@ namespace Drummersoft.DrummerDB.Core.Systems
             SetupQueries();
             LoadDatabases();
             CheckForAdminSetup();
+
+          
+
         }
 
         public void Stop()
@@ -262,7 +275,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
             var sqlPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.SQLServicePort };
             var databasePort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.DatabaseServicePort };
             var infoPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.InfoServicePort };
-            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager);
+            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager, _logService);
         }
 
         private void SetupAuth()
@@ -292,7 +305,39 @@ namespace Drummersoft.DrummerDB.Core.Systems
                 Test_SetupAdminLogin(userName, password, userId);
             }
         }
+
+        private void ConfigureLogService()
+        {
+            var config = new NLog.Config.LoggingConfiguration();
+
+            string fullPath = Path.Combine(_storageFolder, Settings.LogFileName);
+
+            // Targets where to log to: File and Console
+            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = fullPath };
+
+            // Rules for mapping loggers to targets            
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, logfile);
+
+            // Apply config           
+            NLog.LogManager.Configuration = config;
+
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+
+            _logService = new LogService(logger, Settings.EnableLogging, Settings.LogPerformanceMetrics);
+            _logService.Info("DrummerDB started");
+
+            DateTimeOffset localTime = DateTimeOffset.Now;
+            DateTimeOffset utcTime = DateTimeOffset.UtcNow;
+
+            string currentMessage = $"Local Time: {localTime.ToString("T")}";
+            string offsetMessage = $"Difference from UTC: {localTime.Offset.ToString()}";
+
+            _logService.Info(currentMessage);
+            _logService.Info(offsetMessage);
+        }
+
         #endregion
 
     }
 }
+

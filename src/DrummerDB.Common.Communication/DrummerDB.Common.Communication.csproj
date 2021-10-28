@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DrummerDB.Core.Diagnostics\DrummerDB.Core.Diagnostics.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Protobuf Include="Protos\Drum.proto" ProtoRoot="Protos\" />
     <Protobuf Include="Protos\DrumDatabaseService.proto" ProtoRoot="Protos\" />
     <Protobuf Include="Protos\DrumInfoService.proto" ProtoRoot="Protos\" />

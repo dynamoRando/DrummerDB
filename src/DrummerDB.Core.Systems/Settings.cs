@@ -39,6 +39,8 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public string SystemDbExtension { get; set; }
         public bool LogSelectStatementsForHost { get; set; }
         public bool LogPerformanceMetrics { get; set; }
+        public bool EnableLogging { get; set; }
+        public string LogFileName { get; set; }
 
         /// <summary>
         /// The location for the database files. If blank, will return the app path + database folder name
