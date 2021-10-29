@@ -16,7 +16,6 @@ namespace Drummersoft.DrummerDB.Core.Diagnostics
         #endregion
 
         #region Public Properties
-        public Logger Log => _logger;
         public bool IsEnabled => _enableLogging;
         public bool IsPerformanceLoggingEnabled => _enablePerformanceLogging;
         #endregion
