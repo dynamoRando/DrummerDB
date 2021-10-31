@@ -39,7 +39,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         private ICryptoManager _crypt;
         private ITransactionEntryManager _xEntryManager;
         private LogService _logService;
-        
+
 
         // test variables
         private string _storageFolder;
@@ -136,7 +136,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
             LoadDatabases();
             CheckForAdminSetup();
 
-          
+
 
         }
 
@@ -309,8 +309,17 @@ namespace Drummersoft.DrummerDB.Core.Systems
         private void ConfigureLogService()
         {
             var config = new NLog.Config.LoggingConfiguration();
+            string fullPath = string.Empty;
 
-            string fullPath = Path.Combine(_storageFolder, Settings.LogFileName);
+            if (!string.IsNullOrEmpty(_storageFolder))
+            {
+                fullPath = Path.Combine(_storageFolder, Settings.LogFileName);
+            }
+            else
+            {
+                fullPath = Path.Combine(Settings.DatabaseFolder, Settings.LogFileName);
+            }
+
 
             // Targets where to log to: File and Console
             var logfile = new NLog.Targets.FileTarget("logfile") { FileName = fullPath };
