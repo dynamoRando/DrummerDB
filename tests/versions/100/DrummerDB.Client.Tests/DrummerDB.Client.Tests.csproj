@@ -48,7 +48,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <RestoreSources>$(RestoreSources);https://api.nuget.org/v3/index.json;\\datacore\Randy\packages</RestoreSources>
+    <RestoreSources>$(RestoreSources);https://api.nuget.org/v3/index.json;http://devserver:9000/v3/index.json</RestoreSources>
   </PropertyGroup>
 
 </Project>
