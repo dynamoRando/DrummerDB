@@ -8,6 +8,7 @@ using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Common.Communication.SQLService;
 using System.IO;
 using PerfJournal.Client;
+using Microsoft.Extensions.Configuration;
 
 namespace Drummersoft.DrummerDB.Client.Tests
 {
@@ -26,12 +27,15 @@ namespace Drummersoft.DrummerDB.Client.Tests
         private SQLQueryReply _selectResult;
         private string _sqlSelectQuery = string.Empty;
         private string _setDb = string.Empty;
+        private Settings _settings;
 
         // perf journal
         string _journalUrl = string.Empty;
         string _projectName = string.Empty;
         int _projectId = 0;
-        
+
+        public Settings Settings => _settings;
+
         /// <summary>
         /// Configures a test harness without use of a <see cref="Journal"/>.
         /// </summary>
@@ -40,13 +44,16 @@ namespace Drummersoft.DrummerDB.Client.Tests
             // default
         }
 
-        /// <summary>
-        /// Configures a test harness that will log results to a <see cref="Journal"/>
-        /// </summary>
-        /// <param name="journalUrl">The url for the PerfJournal in format http://localhost:7000</param>
-        public TestHarness(string journalUrl)
+        public void LoadJournalSettings()
         {
-            _journalUrl = journalUrl;
+            var config = new ConfigurationBuilder()
+               .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+               .AddJsonFile("testSettings.json").Build();
+
+            var section = config.GetSection(nameof(Settings));
+            var _settings = section.Get<Settings>();
+            _journalUrl = _settings.JournalUrl;
+
         }
 
         public async void ConfigureJournalForProjectAsync(string projectName)
@@ -70,9 +77,10 @@ namespace Drummersoft.DrummerDB.Client.Tests
         public async Task<int> ConfigureJournalForTestAsync(string testName)
         {
             int testId = 0;
-            if (!Journal.HasTestAsync(_journalUrl, _projectId, testName).Result)
+            var testTask = await Journal.HasTestAsync(_journalUrl, _projectId, testName);
+            if (testTask)
             {
-               var isSuccess  = await Journal.CreateTestAsync(_journalUrl, _projectId, testName);
+                var isSuccess = await Journal.CreateTestAsync(_journalUrl, _projectId, testName);
                 if (!isSuccess)
                 {
                     throw new InvalidOperationException($"Unable to create test {testName}");
