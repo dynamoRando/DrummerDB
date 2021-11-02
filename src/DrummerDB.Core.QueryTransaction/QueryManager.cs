@@ -8,6 +8,8 @@ using Drummersoft.DrummerDB.Core.Structures;
 using System;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
+using System.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -23,6 +25,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private IQueryExecutor _queryExecutor;
         private IQueryParser _queryParser;
         private IQueryPlanGenerator _queryPlanGenerator;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -39,6 +42,19 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _queryPlanGenerator = new QueryPlanGenerator(_statementHandler);
             _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager);
         }
+
+        public QueryManager(DbManager dbManager, IAuthenticationManager authManager, ITransactionEntryManager entryManager, LogService log)
+        {
+            _dbManager = dbManager;
+            _authManager = authManager;
+
+            _statementHandler = new StatementHandler(_dbManager);
+            _queryParser = new QueryParser(_statementHandler);
+            _queryPlanGenerator = new QueryPlanGenerator(_statementHandler);
+            _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager, log);
+
+            _log = log;
+        }
         #endregion
 
         #region Public Methods
@@ -51,14 +67,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <returns><c>TRUE</c> if the SQL query can be executed, otherwise <c>FALSE</c></returns>
         public bool IsStatementValid(string sqlStatement, out string errorMessage)
         {
-            errorMessage = string.Empty;
-            return _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+            if (_log is not null)
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                var result = _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+                return result;
+            }
+            else
+            {
+                return _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+            }
+
         }
 
         public bool IsStatementValid(string sqlStatement, string dbName, out string errorMessage)
         {
             errorMessage = string.Empty;
-            return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+
+            if (_log is not null)
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                var result = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.Elapsed.TotalMilliseconds);
+                return result;
+            }
+            else
+            {
+                return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+            }
         }
 
         /// <summary>
@@ -114,20 +155,44 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (_dbManager.HasDatabase(parsedDbName))
                 {
                     db = _dbManager.GetDatabase(parsedDbName);
-                    
+
                     // for the parser to work correctly, we need to remove the USE {dbName} statement
                     sqlStatement = RemoveUsingStatement(sqlStatement, parsedDbName);
 
+
+                    if (_log is not null)
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        var result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        sw.Stop();
+                        _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+                        return result;
+
+                    }
                     return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+
                 }
                 else
                 {
                     // default to system database if the user database was not supplied. This usually happens when the user is creating a new database
                     db = _dbManager.GetSystemDatabase();
+
+                    if (_log is not null)
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        var result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        sw.Stop();
+                        _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+                        return result;
+
+                    }
+
                     return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
                 }
             }
-           
+
             return null;
         }
 

@@ -72,6 +72,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _sqlServiceHandler.SetQueryManager(queryManager);
                 _sqlServiceHandler.SetDbManager(dbManager);
                 _sqlServiceHandler.SetAuthentication(authenticationManager);
+
+                if (_logService is not null)
+                {
+                    _sqlServiceHandler.SetLogService(_logService);
+                }
             }
 
             if (useHttps)

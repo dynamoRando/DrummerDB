@@ -16,6 +16,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
+using System.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -27,6 +29,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private LockManager _lockManager;
         private ITransactionManager _transactionManager;
         private ActivePlanCollection _activePlans;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -40,6 +43,17 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _lockManager = new LockManager(_db);
             _transactionManager = new TransactionManager(entryManager);
             _activePlans = new ActivePlanCollection();
+        }
+
+        public QueryExecutor(IAuthenticationManager auth, IDbManager db, ITransactionEntryManager entryManager, LogService log)
+        {
+            _auth = auth;
+            _db = db;
+            _lockManager = new LockManager(_db);
+            _transactionManager = new TransactionManager(entryManager);
+            _activePlans = new ActivePlanCollection();
+
+            _log = log;
         }
         #endregion
 
@@ -118,7 +132,19 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #region Private Methods
         private async Task<Resultset> ExecuteAsync(QueryPlan plan, TransactionRequest transaction)
         {
-            return await Task.Factory.StartNew(() => ExecutePlan(plan, transaction));
+            if (_log is not null)
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                var result = await Task.Factory.StartNew(() => ExecutePlan(plan, transaction));
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds, transaction.TransactionBatchId, plan.SqlStatement);
+                return result;
+            }
+            else
+            {
+                return await Task.Factory.StartNew(() => ExecutePlan(plan, transaction));
+            }
         }
 
         private Resultset ExecutePlan(QueryPlan plan, TransactionRequest transaction)

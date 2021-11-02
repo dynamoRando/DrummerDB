@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using NLog;
@@ -13,6 +14,13 @@ namespace Drummersoft.DrummerDB.Core.Diagnostics
         private Logger _logger;
         private bool _enableLogging = false;
         private bool _enablePerformanceLogging = false;
+        private const string XACT_BATCH_ID = "XACT_BATCH_ID";
+        private const string SQL_STATEMENT = "STATEMENT";
+        private const string METHOD_NAME = "METHOD_NAME";
+        private const string TOTAL_MILLISECONDS = "TOTAL_MILLISECONDS";
+
+        public const string PERFORMANCE = "PERFORMANCE";
+
         #endregion
 
         #region Public Properties
@@ -36,6 +44,36 @@ namespace Drummersoft.DrummerDB.Core.Diagnostics
             {
                 _logger.Info(message);
             }
+        }
+
+
+        public void Performance(string methodName, double totalTimeInMilliseocnds)
+        {
+            if (_enableLogging)
+            {
+                if (_enablePerformanceLogging)
+                {
+                    string logMessage = $"{PERFORMANCE} :: {METHOD_NAME} : {methodName} - {TOTAL_MILLISECONDS} : {totalTimeInMilliseocnds.ToString()}";
+                    _logger.Info(logMessage);
+                }
+            }
+        }
+
+        public void Performance(string methodName, double totalTimeInMilliseocnds, Guid transactionBatchId, string sqlStatement)
+        {
+            if (_enableLogging)
+            {
+                if (_enablePerformanceLogging)
+                {
+                    string logMessage = $"{PERFORMANCE} :: {XACT_BATCH_ID} : {transactionBatchId.ToString()} : {METHOD_NAME} : {methodName} - {TOTAL_MILLISECONDS} : {totalTimeInMilliseocnds.ToString()} : {SQL_STATEMENT} : {sqlStatement} ";
+                    _logger.Info(logMessage);
+                }
+            }
+        }
+
+        public static string GetCurrentMethod([CallerMemberName] string callerName = "")
+        {
+            return callerName;
         }
         #endregion
 

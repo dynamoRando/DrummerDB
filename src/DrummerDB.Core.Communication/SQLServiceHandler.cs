@@ -5,6 +5,7 @@ using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -17,6 +18,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private IAuthenticationManager _auth;
         private IDbManager _db;
         private QueryManager _query;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -67,6 +69,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public void SetDbManager(IDbManager db)
         {
             _db = db;
+        }
+
+        public void SetLogService(LogService logService)
+        {
+            _log = logService;
         }
         #endregion
 

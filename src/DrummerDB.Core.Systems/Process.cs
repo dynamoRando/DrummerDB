@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Core.Communication.Interface;
 using Drummersoft.DrummerDB.Core.Cryptography;
 using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.Memory;
@@ -13,13 +14,12 @@ using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
-using System;
-using System.Linq;
-using System.IO;
-using System.Reflection;
-using System.Diagnostics;
 using NLog;
-using Drummersoft.DrummerDB.Core.Diagnostics;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.Systems
 {
@@ -267,7 +267,15 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
         private void SetupQueries()
         {
-            _queries = new QueryManager(_dbManager, _auth, _xEntryManager);
+            if (Settings.EnableLogging)
+            {
+                _queries = new QueryManager(_dbManager, _auth, _xEntryManager, _logService);
+            }
+            else
+            {
+                _queries = new QueryManager(_dbManager, _auth, _xEntryManager);
+            }
+            
         }
 
         private void SetupNetwork()

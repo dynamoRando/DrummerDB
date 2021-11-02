@@ -123,7 +123,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 _generator = new QueryPlanGeneratorBase(_db);
             }
 
-            _generator.QueryPlan = new QueryPlan();
+            _generator.QueryPlan = new QueryPlan(statement);
 
             // not sure if there's a way to not have to allocate new objects each time we evaluate a SQL statement
             AntlrInputStream inputStream = new AntlrInputStream(statement);
@@ -181,7 +181,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 _generator = new QueryPlanGeneratorBase(_db);
             }
 
-            _generator.QueryPlan = new QueryPlan();
+            _generator.QueryPlan = new QueryPlan(statement);
 
             // not sure if there's a way to not have to allocate new objects each time we evaluate a SQL statement
             AntlrInputStream inputStream = new AntlrInputStream(statement);
