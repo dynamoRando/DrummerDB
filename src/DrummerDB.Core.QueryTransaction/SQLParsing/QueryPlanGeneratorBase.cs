@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using a = Antlr4.Runtime.Misc;
 using System.Reflection;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
 {
@@ -40,6 +41,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
         #region Public Fields
         public IDbManager _dbManager;
         public IDatabase Database;
+        public LogService LogService;
         #endregion
 
         #region Public Properties
@@ -498,7 +500,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             base.ExitDelete_statement(context);
             DebugContext(context);
 
-            StatementPlanEvaluator.EvalutateQueryPlanForDelete(_statement as DeleteStatement, _plan, _dbManager, Database);
+            StatementPlanEvaluator.EvalutateQueryPlanForDelete(_statement as DeleteStatement, _plan, _dbManager, Database, LogService);
 
         }
 
@@ -560,7 +562,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             Debug.WriteLine("ExitSearch_condition");
             Debug.WriteLine(debug);
 
-            StatementPlanEvaluator.EvaluateQueryPlanForSearchConditions(_statement, _plan, Database, _dbManager);
+            StatementPlanEvaluator.EvaluateQueryPlanForSearchConditions(_statement, _plan, Database, _dbManager, LogService);
         }
 
         public override void ExitSelect_list([NotNull] TSqlParser.Select_listContext context)
@@ -620,11 +622,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
 
                                 if (statement.Columns.Select(c => c.ColumnName).ToList().Any(x => string.Equals(x, SQLGeneralKeywords.WILDCARD, StringComparison.OrdinalIgnoreCase)))
                                 {
-                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, physicalTable.Schema().Columns.Select(c => c.Name).ToArray());
+                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, physicalTable.Schema().Columns.Select(c => c.Name).ToArray(), LogService);
                                 }
                                 else
                                 {
-                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, statement.Columns.Select(c => c.ColumnName).ToArray());
+                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, statement.Columns.Select(c => c.ColumnName).ToArray(), LogService);
                                 }
 
 
@@ -711,11 +713,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
 
                                 if (statement.Columns.Select(c => c.ColumnName).ToList().Any(x => string.Equals(x, SQLGeneralKeywords.WILDCARD, StringComparison.OrdinalIgnoreCase)))
                                 {
-                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, physicalTable.Schema().Columns.Select(c => c.Name).ToArray());
+                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, physicalTable.Schema().Columns.Select(c => c.Name).ToArray(), LogService);
                                 }
                                 else
                                 {
-                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, statement.Columns.Select(c => c.ColumnName).ToArray());
+                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, statement.Columns.Select(c => c.ColumnName).ToArray(), LogService);
                                 }
 
 
@@ -814,7 +816,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             {
                 if (_plan is not null)
                 {
-                    StatementPlanEvaluator.EvaluateQueryPlanForUpdate(_statement as UpdateStatement, _plan, _dbManager, Database);
+                    StatementPlanEvaluator.EvaluateQueryPlanForUpdate(_statement as UpdateStatement, _plan, _dbManager, Database, LogService);
                 }
             }
         }

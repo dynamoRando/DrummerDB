@@ -48,7 +48,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _dbManager = dbManager;
             _authManager = authManager;
 
-            _statementHandler = new StatementHandler(_dbManager);
+            _statementHandler = new StatementHandler(_dbManager, log);
             _queryParser = new QueryParser(_statementHandler);
             _queryPlanGenerator = new QueryPlanGenerator(_statementHandler);
             _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager, log);

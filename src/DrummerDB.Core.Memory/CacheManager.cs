@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Memory.Enum;
+﻿using Drummersoft.DrummerDB.Core.Diagnostics;
+using Drummersoft.DrummerDB.Core.Memory.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Abstract;
@@ -9,7 +10,9 @@ using Drummersoft.DrummerDB.Core.Structures.Interface;
 using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.Memory
 {
@@ -22,6 +25,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         // internal objects
 
         private SystemCache _systemSystemCache;
+        private LogService _log;
 
         // structures for user databases
         private DataCache _userDataCache;
@@ -43,6 +47,14 @@ namespace Drummersoft.DrummerDB.Core.Memory
             _userSystemCache = new SystemCache();
             _systemSystemCache = new SystemCache();
 
+        }
+
+        internal CacheManager(LogService log)
+        {
+            _userDataCache = new DataCache(log);
+            _userSystemCache = new SystemCache(log);
+            _systemSystemCache = new SystemCache(log);
+            _log = log;
         }
         #endregion
 
@@ -225,10 +237,23 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
         public ResultsetValue GetValueAtAddress(in ValueAddress address, ColumnSchema column)
         {
+            Stopwatch sw = null;
+            if (_log is not null)
+            {
+                sw = Stopwatch.StartNew();
+            }
+
             var page = _userDataCache.GetPage(new PageAddress(address.DatabaseId, address.TableId, address.PageId, address.SchemaId));
             if (page is not null)
             {
                 RowValue value = page.GetValueAtAddress(address, column);
+
+                if (_log is not null)
+                {
+                    sw.Stop();
+                    _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+                }
+
                 return new ResultsetValue { Value = value.GetValueInBinary(false, true) };
             }
 

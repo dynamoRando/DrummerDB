@@ -26,7 +26,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
         }
 
         [Fact]
-        public async void Test_Load_Start_Restart_Async()
+        public async void Test_Restart_Async()
         {
             string testName = GetCurrentMethod();
             /*
@@ -46,7 +46,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             var test = new TestHarness();
 
             test.LoadJournalSettings();
-            test.ConfigureJournalForProjectAsync(DRUMMER_DB_CLIENT);
+            await test.ConfigureJournalForProjectAsync(DRUMMER_DB_CLIENT);
 
             int testId = await test.ConfigureJournalForTestAsync(testName);
 
@@ -249,7 +249,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             // ensure that brandon's id is 99 after restart
             Assert.Equal(99, brandonConvertedId2);
 
-            stopwatch.Start();
+            stopwatch.Stop();
 
             await test.SaveResultToJournal(testId, (int)stopwatch.ElapsedMilliseconds, true);
         }

@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.Interface;
+﻿using Drummersoft.DrummerDB.Core.Diagnostics;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Concurrent;
 
@@ -11,6 +12,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
     {
         #region Private Fields
         private ConcurrentDictionary<Guid, ISystemPage> _systemCache;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -20,6 +22,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
         public SystemCache()
         {
             _systemCache = new ConcurrentDictionary<Guid, ISystemPage>();
+        }
+
+        public SystemCache(LogService log)
+        {
+            _systemCache = new ConcurrentDictionary<Guid, ISystemPage>();
+            _log = log;
         }
         #endregion
 

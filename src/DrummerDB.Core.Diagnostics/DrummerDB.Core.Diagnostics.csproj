@@ -20,6 +20,15 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>Drummersoft.DrummerDB.Core.QueryTransaction</_Parameter1>
     </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.Memory</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.Structures</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.Databases</_Parameter1>
+    </AssemblyAttribute>
 	</ItemGroup>
 
 	<ItemGroup>

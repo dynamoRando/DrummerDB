@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DrummerDB.Core.Diagnostics\DrummerDB.Core.Diagnostics.csproj" />
     <ProjectReference Include="..\DrummerDB.Core.Structures\DrummerDB.Core.Structures.csproj" />
   </ItemGroup>
 

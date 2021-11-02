@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DrummerDB.Core.Cryptography\DrummerDB.Core.Cryptography.csproj" />
     <ProjectReference Include="..\DrummerDB.Core.Databases.Remote\DrummerDB.Core.Databases.Remote.csproj" />
+    <ProjectReference Include="..\DrummerDB.Core.Diagnostics\DrummerDB.Core.Diagnostics.csproj" />
     <ProjectReference Include="..\DrummerDB.Core.IdentityAccess.Structures\DrummerDB.Core.IdentityAccess.Structures.csproj" />
     <ProjectReference Include="..\DrummerDB.Core.Memory\DrummerDB.Core.Memory.csproj" />
     <ProjectReference Include="..\DrummerDB.Core.Storage\DrummerDB.Core.Storage.csproj" />

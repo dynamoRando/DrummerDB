@@ -257,7 +257,15 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
         private void SetupMemory()
         {
-            _cache = new CacheManager();
+            if (_logService is not null)
+            {
+                _cache = new CacheManager(_logService);
+            }
+            else
+            {
+                _cache = new CacheManager();
+            }
+
         }
 
         private void SetupTransactionEntryManager()
@@ -275,7 +283,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
             {
                 _queries = new QueryManager(_dbManager, _auth, _xEntryManager);
             }
-            
+
         }
 
         private void SetupNetwork()

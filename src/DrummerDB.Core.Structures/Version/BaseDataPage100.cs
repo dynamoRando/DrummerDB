@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
@@ -23,6 +24,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
          */
 
         #region Private Fields
+        private LogService _log;
+
         //private ICacheManager _cache;
 
         /// <summary>
@@ -98,6 +101,32 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             SaveDatabaseIdToData();
             SaveTableIdToData();
             SaveDataPageTypeToData();
+        }
+
+
+        /// <summary>
+        /// Make a new Data Page in memory
+        /// </summary>
+        /// <param name="address">The address of this page</param>
+        /// <param name="schema">The schema for the table this page is on</param>
+        /// <param name="pageType">The type of page this is for</param>
+        /// <param name="cache">The cache for network calls</param>
+        public BaseDataPage100(PageAddress address, ITableSchema schema, DataPageType pageType, LogService log)
+        {
+            _data = new byte[Constants.PAGE_SIZE];
+            _address = address;
+            _schema = schema;
+            _totalBytesUsed = 0;
+            _totalRows = 0;
+            _dataPageType = pageType;
+
+            SavePageIdToData();
+            SavePageTypeToData();
+            SaveDatabaseIdToData();
+            SaveTableIdToData();
+            SaveDataPageTypeToData();
+
+            _log = log;
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
@@ -33,7 +34,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
         }
 
-        static public void EvaluateQueryPlanForSearchConditions(IStatement statement, QueryPlan plan, IDatabase db, IDbManager dbManager)
+        static public void EvaluateQueryPlanForSearchConditions(IStatement statement, QueryPlan plan, IDatabase db, IDbManager dbManager, LogService log)
         {
             if (plan is not null)
             {
@@ -52,7 +53,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        EvaluateForWhereClause(statement, plan, db, dbManager);
+                        EvaluateForWhereClause(statement, plan, db, dbManager, log);
                     }
                 }
             }
@@ -108,7 +109,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 plan.Parts.Add(createTable);
             }
         }
-        static public void EvaluateQueryPlanForUpdate(UpdateStatement statement, QueryPlan plan, IDbManager dbManager, IDatabase db)
+        static public void EvaluateQueryPlanForUpdate(UpdateStatement statement, QueryPlan plan, IDbManager dbManager, IDatabase db, LogService log)
         {
             if (plan is not null)
             {
@@ -148,7 +149,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             var updateOp = new UpdateOperator(dbManager, address, statement.Values);
                             updateOp.DatabaseName = db.Name;
 
-                            var readOp = new TableReadOperator(dbManager, address, statement.Columns.Select(column => column.ColumnName).ToArray());
+                            var readOp = new TableReadOperator(dbManager, address, statement.Columns.Select(column => column.ColumnName).ToArray(), log);
                             updateOp.PreviousOperation = readOp;
                             readOp.NextOperation = updateOp;
                             update.Operations.Add(readOp);
@@ -159,7 +160,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }            
         }
 
-        static public void EvalutateQueryPlanForDelete(DeleteStatement statement, QueryPlan plan, IDbManager dbManager, IDatabase db)
+        static public void EvalutateQueryPlanForDelete(DeleteStatement statement, QueryPlan plan, IDbManager dbManager, IDatabase db, LogService log)
         {
             if (plan is not null)
             {
@@ -200,7 +201,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             var updateOp = new DeleteOperator(dbManager, address);
                             updateOp.DatabaseName = db.Name;
 
-                            var readOp = new TableReadOperator(dbManager, address, table.Schema().Columns.Select(column => column.Name).ToArray());
+                            var readOp = new TableReadOperator(dbManager, address, table.Schema().Columns.Select(column => column.Name).ToArray(), log);
                             updateOp.PreviousOperation = readOp;
                             readOp.NextOperation = updateOp;
                             delete.Operations.Add(readOp);
@@ -316,7 +317,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
         }
 
-        private static void EvaluateForWhereClause(IStatement statement, QueryPlan plan, IDatabase db, IDbManager dbManager)
+        private static void EvaluateForWhereClause(IStatement statement, QueryPlan plan, IDatabase db, IDbManager dbManager, LogService log)
         {
             if (plan is not null)
             {
@@ -352,7 +353,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                     {
                                         var physicalTable = db.GetTable(update.TableName);
                                         var tableAddress = physicalTable.Address;
-                                        var readOp = new TableReadOperator(dbManager, tableAddress, update.Columns.Select(c => c.ColumnName).ToArray());
+                                        var readOp = new TableReadOperator(dbManager, tableAddress, update.Columns.Select(c => c.ColumnName).ToArray(), log);
 
                                         op.Operations.Add(readOp);
                                         tableReadOperation = readOp;
@@ -368,7 +369,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 {
                                     var physicalTable = db.GetTable(delete.TableName);
                                     var tableAddress = physicalTable.Address;
-                                    var readOp = new TableReadOperator(dbManager, tableAddress, physicalTable.Schema().Columns.Select(col => col.Name).ToArray());
+                                    var readOp = new TableReadOperator(dbManager, tableAddress, physicalTable.Schema().Columns.Select(col => col.Name).ToArray(), log);
 
                                     op.Operations.Add(readOp);
                                     tableReadOperation = readOp;

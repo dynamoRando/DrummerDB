@@ -56,11 +56,13 @@ namespace Drummersoft.DrummerDB.Client.Tests
 
         }
 
-        public async void ConfigureJournalForProjectAsync(string projectName)
+        public async Task ConfigureJournalForProjectAsync(string projectName)
         {
             _projectName = projectName;
 
-            if (!Journal.HasProjectAsync(_journalUrl, projectName).Result)
+            var hasProject = await Journal.HasProjectAsync(_journalUrl, projectName);
+
+            if (!hasProject)
             {
                 var result = await Journal.CreateProjectAsync(_journalUrl, projectName);
                 if (result)
@@ -77,8 +79,8 @@ namespace Drummersoft.DrummerDB.Client.Tests
         public async Task<int> ConfigureJournalForTestAsync(string testName)
         {
             int testId = 0;
-            var testTask = await Journal.HasTestAsync(_journalUrl, _projectId, testName);
-            if (testTask)
+            var hasTest = await Journal.HasTestAsync(_journalUrl, _projectId, testName);
+            if (!hasTest)
             {
                 var isSuccess = await Journal.CreateTestAsync(_journalUrl, _projectId, testName);
                 if (!isSuccess)

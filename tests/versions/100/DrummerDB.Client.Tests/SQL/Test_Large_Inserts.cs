@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -11,13 +12,33 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
 {
     public class Test_Large_Inserts
     {
-        [Fact]
-        public void Test_TwoThousand_Insert()
+        private string GetCurrentMethod([CallerMemberName] string callerName = "")
         {
+            return callerName;
+        }
+
+        [Fact]
+        public async void Test_Insert_Async()
+        {
+            string testName = GetCurrentMethod();
+
             string dbName = "TestLarge";
             string tableName = "LargeTable";
             string storageFolder = "TestLargeInsert";
             var test = new TestHarness();
+
+            test.LoadJournalSettings();
+            await test.ConfigureJournalForProjectAsync(DRUMMER_DB_CLIENT);
+
+            int testId = await test.ConfigureJournalForTestAsync(testName);
+
+            if (testId == 0)
+            {
+                throw new InvalidOperationException("Unable to configure test");
+            }
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
 
             int start = 0;
             int max = 2_000;
@@ -85,6 +106,10 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             selectResult = test.ExecuteSQL(test.SelectQuery, dbName);
 
             Assert.InRange(selectResult.Results.First().Rows.Count, max, max);
+
+            stopwatch.Stop();
+
+            await test.SaveResultToJournal(testId, (int)stopwatch.ElapsedMilliseconds, true);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Remote.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
@@ -24,6 +25,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private IStorageManager _storage;
         private ProcessUserDatabaseSettings _settings;
         private ITransactionEntryManager _xEntryManager;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -45,12 +47,28 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _remoteManager = remoteManager;
         }
 
+        public Table(ITableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log) :
+         this(schema, cache, storage, xEntryManager, log)
+        {
+            _remoteManager = remoteManager;
+        }
+
         public Table(ITableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager)
         {
             _cache = cache;
             _schema = schema;
             _storage = storage;
             _xEntryManager = xEntryManager;
+            BringTreeOnline();
+        }
+
+        public Table(ITableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log)
+        {
+            _cache = cache;
+            _schema = schema;
+            _storage = storage;
+            _xEntryManager = xEntryManager;
+            _log = log; 
             BringTreeOnline();
         }
 
@@ -782,9 +800,20 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private List<ValueAddress> GetAllValuesForColumn(string columnName)
         {
-            BringTreeOnline();
 
-            var items = _cache.GetValues(Address, columnName, _schema);
+            BringTreeOnline();
+            List<ValueAddress> items = null;
+            if (_log is not null)
+            {
+                var sw = Stopwatch.StartNew();
+                items = _cache.GetValues(Address, columnName, _schema);
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                 items = _cache.GetValues(Address, columnName, _schema);
+            }
 
             return items;
         }

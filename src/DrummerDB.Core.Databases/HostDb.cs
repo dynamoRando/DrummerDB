@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Abstract;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
@@ -20,6 +21,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private DatabaseMetadata _metaData;
         private ITransactionEntryManager _xEntryManager;
         private List<Table> _inMemoryTables;
+        private LogService _log;
 
         private ProcessUserDatabaseSettings _settings;
         #endregion
@@ -37,6 +39,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _metaData = metadata;
             _xEntryManager = xEntryManager;
             _inMemoryTables = new List<Table>();
+        }
+
+        internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
+        {
+            _metaData = metadata;
+            _xEntryManager = xEntryManager;
+            _inMemoryTables = new List<Table>();
+            _log = log;
         }
 
         internal HostDb(DatabaseMetadata metadata, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) : 
@@ -102,7 +112,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 else
                 {
                     var item = GetTableSchema(tableId);
-                    result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    if (_log is not null)
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                    }
+                    else
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    }
+                    
                     _inMemoryTables.Add(result);
                 }
             }
@@ -167,7 +185,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 else
                 {
                     var item = GetTableSchema(tableName);
-                    result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    if (_log is not null)
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                    }
+                    else
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    }
+                    
                     _inMemoryTables.Add(result);
                 }
             

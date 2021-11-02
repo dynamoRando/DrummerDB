@@ -17,6 +17,7 @@ using Drummersoft.DrummerDB.Core.Structures.Version;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -44,7 +45,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private Table _databaseSchemas;
         private Table _databaseSchemaPermissions;
         private Table _databaseTableDatabases;
-        private ILogger _logger;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -83,9 +84,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             SetupTables();
         }
 
-        public SystemDatabase(DatabaseMetadata metadata, ILogger logger) : this(metadata)
+        public SystemDatabase(DatabaseMetadata metadata, LogService log) : this(metadata)
         {
-            _logger = logger;
+            _log = log;
         }
 
         #endregion
@@ -187,9 +188,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             row.SetValue(login.Workfactor, iterations.ToString());
             _systemLogins.TryAddRow(row);
 
-            if (_logger is not null)
+            if (_log is not null)
             {
-                _logger.LogInformation($"User {userName} login created in database {_metadata.Name}");
+                _log.Info($"User {userName} login created in database {_metadata.Name}");
             }
 
             return true;
@@ -464,7 +465,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         RowValueMaker.Create(_systemRolePermissions, SystemRolesPermissions.Columns.SystemPermission, Convert.ToString((int)permission));
 
                     int count = _systemRolePermissions.CountOfRowsWithValue(permissionToCheck);
-                    
+
                     if (count == 0)
                     {
                         var permissionToAdd = _systemRolePermissions.GetNewLocalRow();
@@ -475,9 +476,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     }
                 }
 
-                if (_logger is not null)
+                if (_log is not null)
                 {
-                    _logger.LogInformation($"User {userName} added to system role {role.Name}");
+                    _log.Info($"User {userName} added to system role {role.Name}");
                 }
             }
             else

@@ -149,7 +149,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         private Resultset ExecutePlan(QueryPlan plan, TransactionRequest transaction)
         {
-            var resultBuilder = new ResultsetBuilder(DetermineResultsetShape(plan), _db);
+            var resultBuilder = new ResultsetBuilder(DetermineResultsetShape(plan), _db, _log);
             var addresses = new List<ValueAddress>();
             var resultSet = new Resultset();
 

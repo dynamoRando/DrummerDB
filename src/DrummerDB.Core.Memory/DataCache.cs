@@ -10,6 +10,8 @@ using System.Linq;
 using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using System.Diagnostics;
+using Drummersoft.DrummerDB.Core.Diagnostics;
+using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.Memory
 {
@@ -22,6 +24,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         #region Private Fields
         private ConcurrentDictionary<TreeAddress, TreeContainer> _dataCache;
         private List<TreeAddressFriendly> _dataCacheFriendly;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -32,6 +35,13 @@ namespace Drummersoft.DrummerDB.Core.Memory
         {
             _dataCache = new ConcurrentDictionary<TreeAddress, TreeContainer>();
             _dataCacheFriendly = new List<TreeAddressFriendly>();
+        }
+
+        public DataCache(LogService log)
+        {
+            _dataCache = new ConcurrentDictionary<TreeAddress, TreeContainer>();
+            _dataCacheFriendly = new List<TreeAddressFriendly>();
+            _log = log;
         }
         #endregion
 
@@ -71,67 +81,28 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
         public List<ValueAddress> GetValueAddressByRows(TreeAddress address, ITableSchema schema, string columnName, List<RowAddress> rows)
         {
-            var result = new List<ValueAddress>();
-
-            foreach (var row in rows)
+            if (_log is not null)
             {
-                var physicalRow = GetRow(row.RowId, address);
-                if (physicalRow.IsDeleted == false)
-                {
-                    physicalRow.SortBinaryOrder();
-                    var bytes = physicalRow.GetRowInPageBinaryFormat();
-                    schema.SortBinaryOrder();
-
-                    int valueOffset = RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
-                    //int valueOffset = RowConstants.LengthOfPreamble() + row.RowOffset;
-
-                    foreach (var value in physicalRow.Values)
-                    {
-                        if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            var valueAddress =
-                                new ValueAddress
-                                {
-                                    PageId = row.PageId,
-                                    RowId = row.RowId,
-                                    RowOffset = row.RowOffset,
-                                    ValueOffset = valueOffset,
-                                    ParseLength = value.ParseValueLength,
-                                    DatabaseId = address.DatabaseId,
-                                    TableId = address.TableId,
-                                    ColumnName = columnName,
-                                    SchemaId = address.SchemaId
-                                };
-                            result.Add(valueAddress);
-                        }
-                        else
-                        {
-                            // this should return for fixed length values the fixed length of the data type
-                            // or if a fixed nullable length, the fixed length value + 1 byte (bool) for is null or not
-                            // if the value is variable length, this will NOT include the 4 byte leading prefix, it will just return the value
-                            // or if nullable variable length, the value + bool (or just bool if actually null)
-
-                            // basically, this offset needs to reflect the layout of the byte array on the page
-                            if (value.Column.IsFixedBinaryLength)
-                            {
-                                valueOffset += value.BinarySize();
-                            }
-                            else
-                            {
-                                // need to include the leading 4 byte prefix that tells us the size of the item
-                                valueOffset += value.BinarySize() + Constants.SIZE_OF_INT;
-                            }
-                        }
-                    }
-                }
+                var sw = Stopwatch.StartNew();
+                var result = ValueAddressByRows(address, schema, columnName, rows);
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+                return result;
             }
-
-            return result;
+            else
+            {
+                return ValueAddressByRows(address, schema, columnName, rows);
+            }
         }
 
         public List<ValueAddress> GetValueAddresses(TreeAddress address, ITableSchema schema, string columnName)
         {
             var result = new List<ValueAddress>();
+            Stopwatch sw = null;
+            if (_log is not null)
+            {
+                sw = Stopwatch.StartNew();
+            }
 
             if (!HasAddress(address))
             {
@@ -217,6 +188,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
                     }
                 }
             }
+
+            if (_log is not null)
+            {
+                sw.Stop();
+                _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+            }   
 
             return result;
         }
@@ -306,7 +283,16 @@ namespace Drummersoft.DrummerDB.Core.Memory
                 throw new InvalidOperationException("Tree is already loaded in memory");
             }
 
-            var container = new TreeContainer(address, page);
+            TreeContainer container;
+            if (_log is not null)
+            {
+                container = new TreeContainer(address, page, _log);
+            }
+            else
+            {
+                container = new TreeContainer(address, page);
+            }
+
             return _dataCache.TryAdd(address, container);
         }
 
@@ -317,7 +303,15 @@ namespace Drummersoft.DrummerDB.Core.Memory
                 throw new InvalidOperationException("Tree is already loaded in memory");
             }
 
-            var container = new TreeContainer(address, page);
+            TreeContainer container;
+            if (_log is not null)
+            {
+                container = new TreeContainer(address, page, _log);
+            }
+            else
+            {
+                container = new TreeContainer(address, page);
+            }
 
             if (_dataCacheFriendly.Contains(friendly))
             {
@@ -697,6 +691,66 @@ namespace Drummersoft.DrummerDB.Core.Memory
         #endregion
 
         #region Private Methods
+        private List<ValueAddress> ValueAddressByRows(TreeAddress address, ITableSchema schema, string columnName, List<RowAddress> rows)
+        {
+            var result = new List<ValueAddress>();
+
+            foreach (var row in rows)
+            {
+                var physicalRow = GetRow(row.RowId, address);
+                if (physicalRow.IsDeleted == false)
+                {
+                    physicalRow.SortBinaryOrder();
+                    var bytes = physicalRow.GetRowInPageBinaryFormat();
+                    schema.SortBinaryOrder();
+
+                    int valueOffset = RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
+                    //int valueOffset = RowConstants.LengthOfPreamble() + row.RowOffset;
+
+                    foreach (var value in physicalRow.Values)
+                    {
+                        if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var valueAddress =
+                                new ValueAddress
+                                {
+                                    PageId = row.PageId,
+                                    RowId = row.RowId,
+                                    RowOffset = row.RowOffset,
+                                    ValueOffset = valueOffset,
+                                    ParseLength = value.ParseValueLength,
+                                    DatabaseId = address.DatabaseId,
+                                    TableId = address.TableId,
+                                    ColumnName = columnName,
+                                    SchemaId = address.SchemaId
+                                };
+                            result.Add(valueAddress);
+                        }
+                        else
+                        {
+                            // this should return for fixed length values the fixed length of the data type
+                            // or if a fixed nullable length, the fixed length value + 1 byte (bool) for is null or not
+                            // if the value is variable length, this will NOT include the 4 byte leading prefix, it will just return the value
+                            // or if nullable variable length, the value + bool (or just bool if actually null)
+
+                            // basically, this offset needs to reflect the layout of the byte array on the page
+                            if (value.Column.IsFixedBinaryLength)
+                            {
+                                valueOffset += value.BinarySize();
+                            }
+                            else
+                            {
+                                // need to include the leading 4 byte prefix that tells us the size of the item
+                                valueOffset += value.BinarySize() + Constants.SIZE_OF_INT;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Tries to get the container from cache. 
         /// </summary>
