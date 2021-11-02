@@ -4,6 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>Drummersoft.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>Drummersoft.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <UserSecretsId>a51153e0-a345-4c87-a7e4-eab347ff0bce</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
