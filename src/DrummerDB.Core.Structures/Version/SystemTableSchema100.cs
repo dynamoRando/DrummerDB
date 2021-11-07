@@ -80,6 +80,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
             return false;
         }
+
+        public override bool HasAllFixedWithColumns()
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
         #region Private Methods
@@ -87,6 +92,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         {
             return new TreeAddress(_dbId, _Id, _schema.SchemaGUID);
         }
+
+      
         #endregion
 
     }

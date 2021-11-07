@@ -45,5 +45,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         LogicalStoragePolicy StoragePolicy { get; }
 
         Guid ContractGUID { get; set; }
+        bool HasAllFixedWithColumns();
     }
 }

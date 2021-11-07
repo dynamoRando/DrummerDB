@@ -17,6 +17,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract TreeAddress Address { get; }
         public abstract void SortBinaryOrder();
         public abstract bool HasColumn(string columnName);
+        public abstract bool HasAllFixedWithColumns();
         public abstract Guid ObjectId { get; }
         public abstract DatabaseSchemaInfo Schema { get; }
         public abstract string DatabaseName { get; set; }

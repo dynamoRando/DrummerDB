@@ -276,6 +276,11 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public bool HasAllFixedWithColumns()
+        {
+            throw new NotImplementedException();
+        }
+
         public void SetStoragePolicy(LogicalStoragePolicy storagePolicy)
         {
             _storagePolicy = storagePolicy;
