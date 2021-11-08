@@ -84,7 +84,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <param name="dbId">The database id the table is in</param>
         /// <param name="columns">The columns of the table</param>
         /// <param name="schema">The database schema the table belongs to</param>
-        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, DatabaseSchemaInfo schema) 
+        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, DatabaseSchemaInfo schema)
         {
             _Id = id;
             _name = name;
@@ -178,7 +178,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             currentOffset += tableNameLength;
 
             // table schema guid 
-            
+
             tableSchemaGuid = DbBinaryConvert.BinaryToGuid(binaryData.Slice(currentOffset, Constants.SIZE_OF_GUID));
             currentOffset += Constants.SIZE_OF_GUID;
 
@@ -276,6 +276,18 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public bool HasAllFixedLengthColumns()
+        {
+            foreach (var column in _columns)
+            {
+                if (!column.IsFixedBinaryLength)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         public void SetStoragePolicy(LogicalStoragePolicy storagePolicy)
         {
             _storagePolicy = storagePolicy;

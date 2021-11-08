@@ -32,13 +32,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract int TotalRows();
         public abstract PageUpdateRowResult TryUpdateRowData(IRow row, out int updatedOffset);
         public abstract List<RowAddress> GetRowsWithValue(IRowValue value);
-        public abstract List<RowAddress> GetRowIdsOnPage();
+        public abstract List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false);
         public abstract bool HasValue(IRowValue value);
         public abstract RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
         public abstract RowDebug GetDebugRow(int rowId);
         public abstract bool HasRow(int rowId);
-        public abstract List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false);
-        public abstract int GetCountOfRowIdsOnPage();
+        public abstract List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false);
+        public abstract int GetCountOfRowIdsOnPage(bool includeDeletedrows = false);
         public abstract RowAddress[] GetRowAddressesWithValue(IRowValue value);
         public abstract int GetCountOfRowsWithValue(IRowValue value);
         public abstract PageAddress Address { get; }

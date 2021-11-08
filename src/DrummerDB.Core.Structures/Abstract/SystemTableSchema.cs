@@ -22,5 +22,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract string DatabaseName { get; set; }
         public abstract LogicalStoragePolicy StoragePolicy { get; }
         public abstract Guid ContractGUID { get; set; }
+        public abstract bool HasAllFixedLengthColumns();
     }
 }

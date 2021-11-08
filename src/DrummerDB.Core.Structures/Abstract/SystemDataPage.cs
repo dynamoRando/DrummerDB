@@ -24,7 +24,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract void ForwardRows(int rowId, int newPageId, int newPageOffset);
         public abstract IRow GetRow(int rowId);
         public abstract IRow GetRow(RowAddress address);
-        public abstract List<RowAddress> GetRowIdsOnPage();
+        public abstract List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false);
         public abstract PageRowStatus GetRowStatus(int rowId);
         public abstract List<RowAddress> GetRowsWithValue(IRowValue value);
         public abstract bool HasValue(IRowValue value);
@@ -37,8 +37,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
         public abstract RowDebug GetDebugRow(int rowId);
         public abstract bool HasRow(int rowId);
-        public abstract List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false);
-        public abstract int GetCountOfRowIdsOnPage();
+        public abstract List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false);
+        public abstract int GetCountOfRowIdsOnPage(bool includeDeletedRows = false);
         public abstract RowAddress[] GetRowAddressesWithValue(IRowValue value);
         public abstract int GetCountOfRowsWithValue(IRowValue value);
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Drummersoft.DrummerDB.Common;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -110,6 +111,15 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             stopwatch.Stop();
 
             await test.SaveResultToJournal(testId, (int)stopwatch.ElapsedMilliseconds, true);
+
+            start = 0;
+            var resultSet = selectResult.Results.First();
+            foreach (var row in resultSet.Rows)
+            {
+                int value = DbBinaryConvert.BinaryToInt(row.Values[0].Value.ToByteArray());
+                Assert.Equal(start, value);
+                start++;
+            }
         }
     }
 }

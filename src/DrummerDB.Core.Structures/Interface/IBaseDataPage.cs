@@ -84,8 +84,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// Gets all the Row Ids on this page
         /// </summary>
         /// <returns>A list of row ids</returns>
-        List<RowAddress> GetRowIdsOnPage();
-        int GetCountOfRowIdsOnPage();
+        List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false);
+        int GetCountOfRowIdsOnPage(bool includeDeletedRows = false);
 
         bool HasValue(IRowValue value);
         RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
@@ -98,7 +98,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// <returns><c>TRUE</c> if the <see cref="PageRowStatus"/> is <see cref="PageRowStatus.IsOnPage"/> or <see cref="PageRowStatus.IsOnPageAndForwardedOnSamePage"/>
         /// , otherwise <c>FALSE</c></returns>
         bool HasRow(int rowId);
-        List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false);
+        List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false);
         int GetCountOfRowsWithValue(IRowValue value);
     }
 }

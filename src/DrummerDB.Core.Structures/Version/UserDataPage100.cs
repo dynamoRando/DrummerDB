@@ -55,9 +55,9 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
-        public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false)
+        public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false)
         {
-            return _basePage.GetRowOffsets(rowId, stopAtFirstForward);
+            return _basePage.GetRowOffsets(rowId, stopAtFirstForward, includeDeletedRows);
         }
 
         public override bool HasRow(int rowId)
@@ -187,9 +187,9 @@ namespace Drummersoft.DrummerDB.Core.Structures
             return _basePage.GetRowsWithValue(value);
         }
 
-        public override List<RowAddress> GetRowIdsOnPage()
+        public override List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false)
         {
-            return _basePage.GetRowIdsOnPage();
+            return _basePage.GetRowIdsOnPage(includeDeletedRows);
         }
 
         public override bool HasValue(IRowValue value)
@@ -202,7 +202,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             return _basePage.GetValueAtAddress(address,column);
         }
 
-        public override int GetCountOfRowIdsOnPage()
+        public override int GetCountOfRowIdsOnPage(bool includeDeletedRows = false)
         {
             throw new NotImplementedException();
         }

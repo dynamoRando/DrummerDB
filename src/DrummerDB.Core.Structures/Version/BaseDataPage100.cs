@@ -151,21 +151,21 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Public Methods
-        public override int GetCountOfRowIdsOnPage()
+        public override int GetCountOfRowIdsOnPage(bool includeDeletedRows = false)
         {
             int totalCount = 0;
             var action = new ParsePageAction<int>(CountRows);
-            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, -1, false, ref totalCount);
+            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, -1, false, includeDeletedRows, ref totalCount);
 
             return totalCount;
         }
 
-        public override List<RowAddress> GetRowIdsOnPage()
+        public override List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false)
         {
             var addresses = new List<RowAddress>();
             var action = new ParsePageAction<List<RowAddress>>(AddToRowAddresses);
 
-            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, -1, false, ref addresses);
+            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, -1, false, includeDeletedRows, ref addresses);
             return addresses;
         }
 
@@ -376,7 +376,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         public override IRow GetRow(int rowId)
         {
             IRow row = null;
-            List<int> offsets = GetRowOffsets(rowId, true);
+            List<int> offsets = GetRowOffsets(rowId, true, true);
 
             int rowOffset;
             if (offsets.Count == 0)
@@ -640,11 +640,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// i.e. the latest version of the row. Be sure to validate this when calling this function.
         /// 
         /// Note that this returns forwarded rows that may be on other pages.</remarks>
-        public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false)
+        public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false)
         {
             var offsets = new List<int>();
             var action = new ParsePageAction<List<int>>(AddParsedRowToOffsets);
-            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, rowId, stopAtFirstForward, ref offsets);
+            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, rowId, stopAtFirstForward, includeDeletedRows, ref offsets);
 
             return offsets;
         }
