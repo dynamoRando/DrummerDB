@@ -4,7 +4,6 @@ using Drummersoft.DrummerDB.Core.Databases.Version;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
-using Drummersoft.DrummerDB.Core.Tests.Mocks;
 using System;
 using System.IO;
 using Xunit;
@@ -183,7 +182,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var directory = new DirectoryInfo(storageFolder);
             if (directory.Exists)
             {
-                foreach(var f in directory.EnumerateFiles())
+                foreach (var f in directory.EnumerateFiles())
                 {
                     f.Delete();
                 }

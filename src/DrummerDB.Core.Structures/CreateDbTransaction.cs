@@ -1,11 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
@@ -13,7 +9,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
     {
         private string _dbName;
         public override TransactionSchemaOperation Operation => TransactionSchemaOperation.CreateDatabase;
-                
+
         public CreateDbTransaction(string dbName)
         {
             _dbName = dbName;

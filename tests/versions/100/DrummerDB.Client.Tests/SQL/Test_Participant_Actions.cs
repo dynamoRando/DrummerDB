@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
@@ -10,7 +6,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
 {
     public class Test_Participant_Actions
     {
-        [Fact(Skip ="Logical Storage Policy Not Implemented")]
+        [Fact(Skip = "Logical Storage Policy Not Implemented")]
         public void Test_Set_Logical_Storage_Policy()
         {
             string dbName = "TestRemote";

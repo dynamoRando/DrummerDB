@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Drummersoft.DrummerDB.Core.QueryTransaction.Interface
+﻿namespace Drummersoft.DrummerDB.Core.QueryTransaction.Interface
 {
     /// <summary>
     /// Represents a source for a column in an UPDATE statement.

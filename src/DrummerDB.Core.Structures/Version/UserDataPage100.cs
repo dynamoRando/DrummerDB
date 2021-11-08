@@ -199,7 +199,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public override RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column)
         {
-            return _basePage.GetValueAtAddress(address,column);
+            return _basePage.GetValueAtAddress(address, column);
         }
 
         public override int GetCountOfRowIdsOnPage(bool includeDeletedRows = false)

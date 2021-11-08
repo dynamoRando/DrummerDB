@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
+﻿using Antlr4.Runtime;
 using a = Antlr4.Runtime.Misc;
-using Antlr4.Runtime;
 
 // taken from 
 // https://github.com/antlr/antlr4/blob/master/doc/resources/CaseChangingCharStream.cs
@@ -14,10 +8,10 @@ using Antlr4.Runtime;
 namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
 {
 
- /* Copyright (c) 2012-2017 The ANTLR Project. All rights reserved.
-  * Use of this file is governed by the BSD 3-clause license that
-  * can be found in the LICENSE.txt file in the project root.
-  */
+    /* Copyright (c) 2012-2017 The ANTLR Project. All rights reserved.
+     * Use of this file is governed by the BSD 3-clause license that
+     * can be found in the LICENSE.txt file in the project root.
+     */
 
     /// <summary>
     /// This class supports case-insensitive lexing by wrapping an existing

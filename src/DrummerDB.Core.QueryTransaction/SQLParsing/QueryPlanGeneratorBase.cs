@@ -1,23 +1,16 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Drummersoft.DrummerDB.Core.Databases;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
-using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using a = Antlr4.Runtime.Misc;
-using System.Reflection;
-using Drummersoft.DrummerDB.Core.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
 {

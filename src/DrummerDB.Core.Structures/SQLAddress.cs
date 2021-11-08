@@ -9,7 +9,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
     /// <summary>
     ///  Identifies the full location of a row. DatabaseId, TableId, PageId, RowId, RowOffset
     /// </summary>
-    internal record SQLAddress 
+    internal record SQLAddress
     {
         public Guid DatabaseId { get; init; }
         public int TableId { get; init; }

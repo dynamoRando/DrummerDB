@@ -4,7 +4,6 @@ using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Factory;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
-using Drummersoft.DrummerDB.Core.Structures.Version;
 using Drummersoft.DrummerDB.Core.Tests.Mocks;
 using System;
 using System.Collections.Generic;

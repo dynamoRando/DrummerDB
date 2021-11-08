@@ -1,9 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
@@ -36,7 +33,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                 return false;
             }
 
-            return (this.ValueOffset == other.ValueOffset) && 
+            return (this.ValueOffset == other.ValueOffset) &&
                 (this.RowId == other.RowId) &&
                 (this.PageId == other.PageId) &&
                 (this.RowOffset == other.RowOffset) &&

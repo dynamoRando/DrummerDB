@@ -10,7 +10,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
     internal class MockCacheManager : ICacheManager
     {
         int _rowId = 0;
-    
+
         public void AddSystemDbSystemPage(ISystemPage page)
         {
             throw new NotImplementedException();

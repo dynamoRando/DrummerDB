@@ -25,7 +25,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
         public override SystemTableSchema GetUserTableSchema(Guid dbId, string dbName)
         {
-            var schema =  new SystemTableSchema100(SystemSchemaConstants100.Tables.UserTable.TABLE_ID,
+            var schema = new SystemTableSchema100(SystemSchemaConstants100.Tables.UserTable.TABLE_ID,
                 SystemSchemaConstants100.Tables.UserTable.TABLE_NAME,
                 dbId,
                 SystemSchemaConstants100.Tables.UserTable.GetColumns());
@@ -47,7 +47,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
         public override SystemTableSchema GetUserTableSchemaSchema(Guid dbId, string dbName)
         {
-            var schema =  new SystemTableSchema100(SystemSchemaConstants100.Tables.UserTableSchema.TABLE_ID,
+            var schema = new SystemTableSchema100(SystemSchemaConstants100.Tables.UserTableSchema.TABLE_ID,
                 SystemSchemaConstants100.Tables.UserTableSchema.TABLE_NAME,
                 dbId,
                 SystemSchemaConstants100.Tables.UserTableSchema.GetColumns());
@@ -77,7 +77,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
         public override SystemTableSchema GetUsersSchema(Guid dbId, string dbName)
         {
-            var schema =  new SystemTableSchema100(SystemSchemaConstants100.Tables.Users.TABLE_ID,
+            var schema = new SystemTableSchema100(SystemSchemaConstants100.Tables.Users.TABLE_ID,
                 SystemSchemaConstants100.Tables.Users.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.Users.GetColumns());
             schema.DatabaseName = dbName;
             return schema;

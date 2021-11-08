@@ -1,5 +1,4 @@
 ﻿using Drummersoft.DrummerDB.Common;
-using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;

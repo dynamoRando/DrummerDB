@@ -1,5 +1,4 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
@@ -8,8 +7,6 @@ using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -157,7 +154,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         }
                     }
                 }
-            }            
+            }
         }
 
         static public void EvalutateQueryPlanForDelete(DeleteStatement statement, QueryPlan plan, IDbManager dbManager, IDatabase db, LogService log)

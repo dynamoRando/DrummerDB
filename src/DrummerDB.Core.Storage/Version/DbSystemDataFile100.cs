@@ -72,7 +72,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                 });
 
                 int runningLength = 0;
-                pages.ForEach(page => 
+                pages.ForEach(page =>
                 {
                     order++;
 

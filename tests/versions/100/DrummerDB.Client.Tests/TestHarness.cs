@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Drummersoft.DrummerDB.Common.Communication.SQLService;
+using Microsoft.Extensions.Configuration;
+using PerfJournal.Client;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using drummer = Drummersoft.DrummerDB.Core.Systems;
-using Drummersoft.DrummerDB.Common;
-using Drummersoft.DrummerDB.Common.Communication.SQLService;
-using System.IO;
-using PerfJournal.Client;
-using Microsoft.Extensions.Configuration;
 
 namespace Drummersoft.DrummerDB.Client.Tests
 {

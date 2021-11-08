@@ -1,17 +1,10 @@
 ﻿using Drummersoft.DrummerDB.Common;
-using Drummersoft.DrummerDB.Common.Communication.SQLService;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
-using System.Reflection;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace Drummersoft.DrummerDB.Client.Tests.SQL
 {

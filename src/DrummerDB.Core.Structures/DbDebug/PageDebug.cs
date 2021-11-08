@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.Structures.DbDebug
 {
@@ -39,7 +35,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.DbDebug
 
         public string DebugSlice(int index, int length)
         {
-            var slice = new ReadOnlySpan<byte>(_data, index, length); 
+            var slice = new ReadOnlySpan<byte>(_data, index, length);
             return BitConverter.ToString(slice.ToArray());
         }
 

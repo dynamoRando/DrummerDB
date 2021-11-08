@@ -1,23 +1,21 @@
 ﻿using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.LoginTable.Columns;
-using Microsoft.Extensions.Logging;
-using Drummersoft.DrummerDB.Core.Structures.Version;
-using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
-using Drummersoft.DrummerDB.Core.Structures.Enum;
-using Drummersoft.DrummerDB.Core.Diagnostics;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
+using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.LoginTable.Columns;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {

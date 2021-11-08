@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Factory;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
@@ -12,8 +13,6 @@ using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
-using Drummersoft.DrummerDB.Core.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {

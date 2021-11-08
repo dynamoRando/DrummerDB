@@ -1,6 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Core.Systems;
-using System.IO;
 using System;
+using System.IO;
 
 namespace DrummerDB.ConsoleServer
 {
@@ -9,7 +9,7 @@ namespace DrummerDB.ConsoleServer
         static void Main(string[] args)
         {
             string TEST_TEMP_FOLDER = Path.Combine(Path.GetTempPath(), "DrummerDB");
-            
+
             string userName = "TestSystemLogin1";
             string pw = "PwTestSystemLogin1";
             Guid guid = Guid.NewGuid();

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 using drummer = Drummersoft.DrummerDB.Core.Systems;

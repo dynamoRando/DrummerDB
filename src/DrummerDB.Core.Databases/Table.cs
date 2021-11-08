@@ -9,7 +9,6 @@ using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
-using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -68,7 +67,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _schema = schema;
             _storage = storage;
             _xEntryManager = xEntryManager;
-            _log = log; 
+            _log = log;
             BringTreeOnline();
         }
 
@@ -812,7 +811,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                 items = _cache.GetValues(Address, columnName, _schema);
+                items = _cache.GetValues(Address, columnName, _schema);
             }
 
             return items;
@@ -918,7 +917,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                             else
                             {
                                 if (!_cache.HasUserDataPage(diskPage.Address))
-                                { 
+                                {
                                     _cache.UserDataAddPageToContainer(diskPage, Address);
                                 }
                             }

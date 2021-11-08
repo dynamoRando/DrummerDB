@@ -14,14 +14,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
+using dbs = Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables.DatabaseSchemas.Columns;
 using u = Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables.Users.Columns;
 using uo = Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables.UserObjects.Columns;
 using uop = Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables.UserObjectPermissions.Columns;
 using ut = Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables.UserTable.Columns;
 using uts = Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables.UserTableSchema.Columns;
-using dbs = Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables.DatabaseSchemas.Columns;
-using dbsp = Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables.DatabaseSchemaPermissions.Columns;
-using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -97,9 +96,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 int count = _databaseSchemas.CountOfRowsWithValue(schema);
 
                 if (count > 0)
-                { 
+                {
                     var records = _databaseSchemas.GetRowsWithValue(schema);
-                
+
                     foreach (var record in records)
                     {
                         var recordSchemaName = record.GetValueInString(DatabaseSchemas.Columns.SchemaName);
@@ -289,7 +288,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             if (_userTable.HasValue(tableSearch))
             {
                 int count = _userTable.CountOfRowsWithValue(tableSearch);
-                
+
                 if (count == 1)
                 {
                     var schemaRowData = _userTable.GetRowsWithValue(tableSearch);
@@ -433,11 +432,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     var recordSchemaName = RowValueMaker.Create(_databaseSchemas, DatabaseSchemas.Columns.SchemaGUID, table.GetValueInString(ut.SchemaGUID));
 
                     int count = _databaseSchemas.CountOfRowsWithValue(recordSchemaName);
-                    
+
                     if (count > 0)
-                    { 
+                    {
                         var schemas = _databaseSchemas.GetRowsWithValue(recordSchemaName);
-                    
+
                         foreach (var schema in schemas)
                         {
                             var schemaName = schema.GetValueInString(DatabaseSchemas.Columns.SchemaName);
@@ -664,8 +663,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             RowValue[] searchItems = new RowValue[2];
             searchItems[0] = sv1;
             searchItems[1] = sv2;
-            
-            int count = _userObjects.CountOfRowsWithAllValues(searchItems); 
+
+            int count = _userObjects.CountOfRowsWithAllValues(searchItems);
 
             if (count > 0)
             {
@@ -837,7 +836,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (schema.Columns.Any(col => col.Name == ut.ContractGUID))
             {
-                row.SetValue(ut.ContractGUID, schema.ContractGUID.ToString());  
+                row.SetValue(ut.ContractGUID, schema.ContractGUID.ToString());
             }
             else
             {
@@ -953,7 +952,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var search = RowValueMaker.Create(_userTableSchema, uts.TableId, schema.Id.ToString());
 
             int count = _userTableSchema.CountOfRowsWithValue(search);
-           
+
             // if we haven't added any columns to the table
             if (schema.Columns.Count() == count)
             {

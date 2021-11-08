@@ -9,9 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
@@ -38,9 +35,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // ---  ARRANGE
             string sqlStatement = "THE QUICK BROWN FOX";
 
-         
 
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestInvalidSyntax"); 
+
+            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestInvalidSyntax");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
             string logDbExtension = ".drumlog";

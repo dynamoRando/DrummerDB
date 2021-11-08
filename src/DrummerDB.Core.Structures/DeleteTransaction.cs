@@ -18,7 +18,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public DeleteTransaction(Guid databaseId, int tableId, int rowId, int pageId, int rowOffset, IRow rowToBeDeleted, Guid schemaId) : base(databaseId, tableId)
         {
-            _address = new SQLAddress { DatabaseId = databaseId, TableId = tableId, PageId = pageId, RowId = rowId, RowOffset =  rowOffset, SchemaId = schemaId };
+            _address = new SQLAddress { DatabaseId = databaseId, TableId = tableId, PageId = pageId, RowId = rowId, RowOffset = rowOffset, SchemaId = schemaId };
             _rowToBeDeleted = rowToBeDeleted;
         }
 

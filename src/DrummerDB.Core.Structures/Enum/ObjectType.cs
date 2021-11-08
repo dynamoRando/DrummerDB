@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Drummersoft.DrummerDB.Core.Structures.Enum
+﻿namespace Drummersoft.DrummerDB.Core.Structures.Enum
 {
     /// <summary>
     /// An enum defining the type of database object (Table, Column, StoredProcedure, etc.)

@@ -34,7 +34,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
             // for some reason this bombs in .NET when using the IP Address instead of the domain
             // will need to consider how this will work moving forward
             string url = "http://localhost";
-            
+
 
             var client = new DrummerSQLClient(url, portNumber);
             var result = await client.IsClientOnlineAsync();
@@ -68,7 +68,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
             // for some reason this bombs in .NET when using the IP Address instead of the domain
             // will need to consider how this will work moving forward
             string url = "http://localhost";
-            
+
 
             var client = new DrummerInfoClient(url, portNumber);
             var result = await client.IsClientOnlineAsync();
@@ -104,7 +104,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
             // for some reason this bombs in .NET when using the IP Address instead of the domain
             // will need to consider how this will work moving forward
             string url = "http://localhost";
-           
+
             var client = new DrummerDatabaseClient(url, portNumber);
             var result = await client.IsClientOnlineAsync();
 

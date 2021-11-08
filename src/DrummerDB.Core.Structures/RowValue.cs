@@ -5,7 +5,6 @@ using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Structures.SQLType.Interface;
 using System;
 using System.Diagnostics;
-using System.Text;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {

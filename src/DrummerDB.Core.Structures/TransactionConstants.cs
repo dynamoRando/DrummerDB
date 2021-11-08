@@ -17,7 +17,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                         SIZE_OF_COMPLETED_TIME_UTC(version) +
                         SIZE_OF_TRANSACTION_ACTION_TYPE(version) +
                         SIZE_OF_TRANSACTION_ACTION_VERSION(version) +
-                        SIZE_OF_ACTION_BINARY_LENGTH(version) + 
+                        SIZE_OF_ACTION_BINARY_LENGTH(version) +
                         SIZE_OF_IS_DELETED(version) +
                         SIZE_OF_USER_NAME_LENGTH(version)
                         ;
@@ -269,7 +269,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                        SIZE_OF_ENTRY_TIME_UTC(version) +
                        SIZE_OF_COMPLETED_TIME_UTC(version) +
                        SIZE_OF_TRANSACTION_ACTION_TYPE(version) +
-                       SIZE_OF_TRANSACTION_ACTION_VERSION(version) + SIZE_OF_IS_COMPLETED(version)  +
+                       SIZE_OF_TRANSACTION_ACTION_VERSION(version) + SIZE_OF_IS_COMPLETED(version) +
                        SIZE_OF_ACTION_BINARY_LENGTH(version)
                        ;
                 default:

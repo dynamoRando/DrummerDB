@@ -1,5 +1,5 @@
-﻿using System;
-using Drummersoft.DrummerDB.Core.Structures.Enum;
+﻿using Drummersoft.DrummerDB.Core.Structures.Enum;
+using System;
 
 namespace Drummersoft.DrummerDB.Core.Structures.Interface
 {

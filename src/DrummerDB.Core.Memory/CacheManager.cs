@@ -11,7 +11,6 @@ using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.Memory

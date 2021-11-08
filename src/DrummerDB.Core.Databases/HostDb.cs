@@ -49,7 +49,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _log = log;
         }
 
-        internal HostDb(DatabaseMetadata metadata, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) : 
+        internal HostDb(DatabaseMetadata metadata, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
             this(metadata, xEntryManager)
         {
             _settings = settings;
@@ -120,7 +120,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     {
                         result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
                     }
-                    
+
                     _inMemoryTables.Add(result);
                 }
             }
@@ -193,10 +193,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     {
                         result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
                     }
-                    
+
                     _inMemoryTables.Add(result);
                 }
-            
+
             }
 
             return result;

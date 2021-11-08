@@ -23,7 +23,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static ITableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema =  new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -69,7 +69,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 8, true);
                     result.Add(contractGuid);
 
-                    var storagePolicy = new ColumnSchema(Columns.LogicalStoragePolicy, new SQLInt(), 9, true) ;
+                    var storagePolicy = new ColumnSchema(Columns.LogicalStoragePolicy, new SQLInt(), 9, true);
                     result.Add(storagePolicy);
 
                     return result;

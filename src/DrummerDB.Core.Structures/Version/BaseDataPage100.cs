@@ -4,7 +4,6 @@ using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
-using Drummersoft.DrummerDB.Core.Structures.SQLType.Interface;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

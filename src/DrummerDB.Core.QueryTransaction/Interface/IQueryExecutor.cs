@@ -1,5 +1,4 @@
-﻿using Drummersoft.DrummerDB.Core.QueryTransaction;
-using Drummersoft.DrummerDB.Core.Structures;
+﻿using Drummersoft.DrummerDB.Core.Structures;
 using System;
 using System.Threading.Tasks;
 

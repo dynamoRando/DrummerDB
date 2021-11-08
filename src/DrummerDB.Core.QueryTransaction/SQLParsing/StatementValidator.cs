@@ -1,14 +1,11 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
-using System;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Drummersoft.DrummerDB.Core.Databases.Interface;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
-using System.Collections.Generic;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
-using Drummersoft.DrummerDB.Core.Databases;
 using a = Antlr4.Runtime.Misc;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
@@ -59,7 +56,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 List<string> errors;
 
                 if (!statement.TryValidateColumnList(new ContextWrapper(context, _charStream), Database, out errors))
-                { 
+                {
                     StatementReport.Errors.AddRange(errors);
                     StatementReport.IsValid = false;
                 }

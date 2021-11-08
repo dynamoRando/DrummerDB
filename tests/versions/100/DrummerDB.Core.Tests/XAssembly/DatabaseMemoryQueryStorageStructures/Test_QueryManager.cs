@@ -1,24 +1,20 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Cryptography;
 using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Version;
 using Drummersoft.DrummerDB.Core.IdentityAccess;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
 using System.IO;
-using Drummersoft.DrummerDB.Core.Tests.Mocks;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
+using System.Linq;
+using Xunit;
 
 namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 {
@@ -325,7 +321,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string sqlStatement = $"CREATE DATABASE {createdDbName}";
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            
+
             // --- ACT
             string errorMessage = string.Empty;
             var isStatementValid = queryManager.IsStatementValid(sqlStatement, userDbName, out errorMessage);
@@ -451,7 +447,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             ";
 
             string sqlSelectFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName}";
-            
+
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
             var dbExists = _dbManager.HasUserDatabase(userDbName);
 
@@ -773,7 +769,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var brandonReturnedHireDate = selectEmployeesResult2.Rows[0][2].Value;
             var brandonRevisedHireDate = DbBinaryConvert.BinaryToDateTime(brandonReturnedHireDate);
-            
+
             // -- ASSERT
             Assert.True(isCreateStatementValid);
             Assert.True(tableWasCreated);
@@ -952,19 +948,19 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             Assert.Equal(2, selectStarResult.Rows.Count());
         }
 
-        [Fact(Skip ="Drop table operator not written yet")]
+        [Fact(Skip = "Drop table operator not written yet")]
         public void Test_Generate_Execute_Drop_Table_Query_Plan()
         {
             throw new NotImplementedException();
         }
 
-        [Fact(Skip ="System schema not implemented yet")]
+        [Fact(Skip = "System schema not implemented yet")]
         public void Test_Generate_Select_Databases_From_System_Schema_Query_Plan()
         {
             throw new NotImplementedException();
         }
 
-        [Fact(Skip ="System schema not implemented yet")]
+        [Fact(Skip = "System schema not implemented yet")]
         public void Test_Generate_Select_Tables_From_System_Schema_Query_Plan()
         {
             throw new NotImplementedException();
@@ -1070,7 +1066,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var auth = new AuthenticationManager(dbManager);
 
             dbManager.LoadSystemDatabases(cache, storage, crypto);
-            
+
             dbManager.TryCreateNewHostDatabase(userDbName, out _);
             dbManager.TryCreateNewHostDatabase("TestDb2", out _);
             dbManager.TryCreateNewHostDatabase("TestDb3", out _);
@@ -1090,7 +1086,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var isSelectDatabasesValid = queryManager.IsStatementValid(sqlSelectDatabasesStatement, dbName, out errorSelectDatabases);
             var selectDatabasesResult = queryManager.ExecuteValidatedStatement(sqlSelectDatabasesStatement, dbName, userName, password, userSessionId);
 
-            foreach(var row in selectDatabasesResult.Rows)
+            foreach (var row in selectDatabasesResult.Rows)
             {
                 string result = DbBinaryConvert.BinaryToString(row[0].Value);
                 Debug.WriteLine(result);

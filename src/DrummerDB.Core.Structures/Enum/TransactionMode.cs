@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Drummersoft.DrummerDB.Core.Structures.Enum
+﻿namespace Drummersoft.DrummerDB.Core.Structures.Enum
 {
     /*
      * brainstorming ideas. thinking that this would be a parameter to anything at the database or lower level. The mode would determine

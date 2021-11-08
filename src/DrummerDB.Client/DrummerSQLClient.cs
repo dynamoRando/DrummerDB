@@ -82,7 +82,7 @@ namespace Drummersoft.DrummerDB.Client
             request.Authentication = auth;
             request.SqlStatement = sqlStatement;
             request.UserSessionId = userSession.ToString();
-            
+
             return await _client.ExecuteSQLQueryAsync(request);
         }
         #endregion

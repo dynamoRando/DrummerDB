@@ -1,9 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -13,7 +10,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public readonly Guid PlanId;
         public List<IQueryPlanPart> Parts { get; set; }
         public LockObjectRequestCollection LockObjectRequests { get; set; }
-        public TransactionPlan TransactionPlan {  get; set; }
+        public TransactionPlan TransactionPlan { get; set; }
         public string SqlStatement => _sqlStatement;
 
         public QueryPlan(string sqlStatement)

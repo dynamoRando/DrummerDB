@@ -2,9 +2,9 @@
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
-   /// <summary>
-   /// Provides network services for metadata about the database system. For more information, see INetworkManager.md
-   /// </summary>
+    /// <summary>
+    /// Provides network services for metadata about the database system. For more information, see INetworkManager.md
+    /// </summary>
     internal class InfoServiceHandler
     {
         #region Private Fields

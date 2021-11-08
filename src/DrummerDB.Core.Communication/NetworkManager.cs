@@ -1,9 +1,8 @@
 ﻿using Drummersoft.DrummerDB.Core.Communication.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using Drummersoft.DrummerDB.Core.Diagnostics;
-using System;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {

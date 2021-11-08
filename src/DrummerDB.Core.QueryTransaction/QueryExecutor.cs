@@ -1,23 +1,19 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
-using Drummersoft.DrummerDB.Core.IdentityAccess;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using Drummersoft.DrummerDB.Core.Structures.Interface;
-using Drummersoft.DrummerDB.Core.Diagnostics;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -203,7 +199,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             var result = new List<ValueAddress>();
             var messages = new List<string>();
-            var errors = new List<string>();    
+            var errors = new List<string>();
 
             // begin transaction
             foreach (var part in plan.Parts)

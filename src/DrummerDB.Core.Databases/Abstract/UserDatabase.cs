@@ -30,7 +30,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         {
         }
 
-        
+
         #endregion
 
         #region Public Methods        

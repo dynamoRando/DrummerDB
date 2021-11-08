@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Drummersoft.DrummerDB.Core.Structures.Interface;
+﻿using Drummersoft.DrummerDB.Core.Structures.Interface;
+using System;
 
 // will be upgraded to record struct
 namespace Drummersoft.DrummerDB.Core.Structures
@@ -13,7 +9,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
     /// DatabaseId, TableId, ColumnName, PageId, RowId, RowOffset, ValueOffset, ParseLength, ColumnId
     /// </summary>
     /// <remarks>This object is used to point directly to a value held on a page</remarks>
-    internal record ValueAddress 
+    internal record ValueAddress
     {
         /// <summary>
         /// The database of the value

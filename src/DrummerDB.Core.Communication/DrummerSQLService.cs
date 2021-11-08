@@ -66,7 +66,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                     }
                 }
             }
-          
+
             if (result is not null)
             {
                 if (!result.HasAuthenticationErrors() && !result.HasExecutionErrors())

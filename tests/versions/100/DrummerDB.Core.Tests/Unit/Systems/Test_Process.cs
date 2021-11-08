@@ -16,7 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Unit.Systems
 
             if (directoryInfo.Exists)
             {
-                foreach(var file in directoryInfo.EnumerateFiles())
+                foreach (var file in directoryInfo.EnumerateFiles())
                 {
                     file.Delete();
                 }
