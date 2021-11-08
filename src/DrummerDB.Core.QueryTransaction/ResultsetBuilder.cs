@@ -3,10 +3,12 @@ using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -40,14 +42,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (_log is not null)
             {
                 sw = Stopwatch.StartNew();
+                _log.Info($"{LogService.GetCurrentMethod()} - Total Addresses: {addresses.Count.ToString()}");
             }
 
             if (_layout is not null)
             {
                 _layout.Columns.OrderBy(column => column.Order);
                 resultColumns = new List<ColumnSchemaStruct>(_layout.Columns.Count);
-                ;
-
+                
                 // build out the columns first
                 foreach (var column in _layout.Columns)
                 {
@@ -227,6 +229,19 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
 
             var result = new List<ValueAddress>();
+
+            /*
+            var result = new ConcurrentBag<ValueAddress>();
+
+            Parallel.ForEach(addresses, address => 
+            {
+                if (IsAddressOfTable(table, address))
+                {
+                    result.Add(address);
+                }
+            });
+            */
+
             foreach (var address in addresses)
             {
                 if (address.DatabaseId == table.DatabaseId && address.TableId == table.TableId)
@@ -234,14 +249,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     result.Add(address);
                 }
             }
-
-
+           
             if (_log is not null)
             {
                 sw.Stop();
                 _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
             }
 
+            //var x = result.OrderBy(r => r.ColumnId).ToList();
+            //return x;
             return result;
         }
 
@@ -311,6 +327,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
 
             return result;
+        }
+
+        private bool IsAddressOfTable(TreeAddress table, ValueAddress address)
+        {
+            if (address.DatabaseId == table.DatabaseId && address.TableId == table.TableId)
+            {
+                return true;
+            }
+            return false;
         }
         #endregion
 

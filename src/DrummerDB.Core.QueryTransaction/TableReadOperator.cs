@@ -67,19 +67,25 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             if (_filter is null && _filters is null)
             {
-                _result.AddRange(ExecuteNoFilter(transaction, transactionMode));
+                var result = ExecuteNoFilter(transaction, transactionMode);
+                _result.AddRange(result);
+
                 return Result.List();
             }
 
             if (_filter is not null && _filters is null)
             {
-                _result.AddRange(ExecuteWithFilter());
+                var result = ExecuteWithFilter();
+                _result.AddRange(result);
+
                 return Result.List();
             }
 
             if (_filters is not null && _filter is null)
             {
-                _result.AddRange(ExecuteWithFilters(transaction, transactionMode));
+                var result = ExecuteWithFilters(transaction, transactionMode);
+                _result.AddRange(result);
+
                 return Result.List();
             }
 
@@ -117,7 +123,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                 foreach (var column in _columnNames)
                 {
-                    result.AddRange(table.GetValuesForColumnByRows(rows, column, transaction, transactionMode));
+                    var results = table.GetValuesForColumnByRows(rows, column, transaction, transactionMode);
+                    result.AddRange(results);
                 }
             }
 
@@ -144,7 +151,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 }
                 else
                 {
-                    result.AddRange(table.GetAllValuesForColumn(column, transaction, transactionMode));
+                    var results = table.GetAllValuesForColumn(column, transaction, transactionMode);
+                    result.AddRange(results);
                 }
             }
 

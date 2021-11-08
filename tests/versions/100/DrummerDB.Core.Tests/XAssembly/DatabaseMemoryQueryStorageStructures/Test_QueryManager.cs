@@ -448,6 +448,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             string sqlSelectFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName}";
 
+            string sqlSelectBrandonFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName} WHERE EMPLOYEENAME = 'Brandon'";
+
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
             var dbExists = _dbManager.HasUserDatabase(userDbName);
 
@@ -467,6 +469,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var isSelectStatementValid = queryManager.IsStatementValid(sqlSelectFromTable, userDbName, out errorSelectMessage);
             var selectTableResult = queryManager.ExecuteValidatedStatement(sqlSelectFromTable, userDbName, userName, password, userSessionId);
 
+            string errorBrandonSelectMessage = string.Empty;
+            var isSelectBranodnStatementValid = queryManager.IsStatementValid(sqlSelectBrandonFromTable, userDbName, out errorSelectMessage);
+            var selectBrandonTableResult = queryManager.ExecuteValidatedStatement(sqlSelectBrandonFromTable, userDbName, userName, password, userSessionId);
+
             // -- ASSERT
             Assert.True(isCreateStatementValid);
             Assert.True(isInsertStatementValid);
@@ -475,7 +481,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             Assert.InRange(selectTableResult.Columns.Count(), 4, 4);
 
             var brandonHireBinary = DbBinaryConvert.DateTimeToBinary("2021-09-13");
-            var returnedBrandonHireDate = selectTableResult.Rows[0][2].Value;
+            var returnedBrandonHireDate = selectBrandonTableResult.Rows[0][2].Value;
 
             Assert.Equal(brandonHireBinary, returnedBrandonHireDate);
         }

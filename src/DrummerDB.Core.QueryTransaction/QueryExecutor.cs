@@ -209,7 +209,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     if (operation is ISQLQueryable)
                     {
                         var op = operation as ISQLQueryable;
-                        result.AddRange(op.Execute(transaction, TransactionMode.Try));
+                        // don't need to add the results here, just attempt it
+                        op.Execute(transaction, TransactionMode.Try);
+
+                        //result.AddRange(op.Execute(transaction, TransactionMode.Try));
                     }
                     else if (operation is ISQLNonQueryable)
                     {
@@ -227,7 +230,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     if (operation is ISQLQueryable)
                     {
                         var op = operation as ISQLQueryable;
-                        result.AddRange(op.Execute(transaction, TransactionMode.Commit));
+                        var results = op.Execute(transaction, TransactionMode.Commit);
+                        result.AddRange(results.Distinct());
                     }
                     else if (operation is ISQLNonQueryable)
                     {
