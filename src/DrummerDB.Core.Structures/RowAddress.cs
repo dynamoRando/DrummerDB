@@ -1,13 +1,11 @@
 ﻿using System;
 
-// will be upgraded in .net 6 to a record struct
 namespace Drummersoft.DrummerDB.Core.Structures
 {
     /// <summary>
     /// A structure for identifying the location of a Row: PageId, RowId, RowOffset
     /// </summary>
-    /// <seealso cref="System.IEquatable{Drummersoft.DrummerDB.Core.Structures.RowAddress}" />
-    internal record RowAddress : IEquatable<RowAddress>
+    internal record struct RowAddress 
     {
         public int PageId { get; init; }
         public int RowId { get; init; }

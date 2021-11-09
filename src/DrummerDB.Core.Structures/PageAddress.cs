@@ -1,12 +1,11 @@
 ﻿using System;
 
-// will be upgraded to record struct
 namespace Drummersoft.DrummerDB.Core.Structures
 {
     /// <summary>
     /// A structure for identifying a page's location: DatabaseId, TableId, and PageId
     /// </summary>
-    internal record PageAddress
+    internal record struct PageAddress
     {
         public Guid DatabaseId { get; init; }
         public int TableId { get; init; }
