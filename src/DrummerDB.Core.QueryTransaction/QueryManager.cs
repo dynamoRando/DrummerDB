@@ -21,6 +21,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         // internal objects
         private IQueryExecutor _queryExecutor;
         private IQueryParser _queryParser;
+        private IQueryParser _drummerQueryParser;
         private IQueryPlanGenerator _queryPlanGenerator;
         private LogService _log;
         #endregion
@@ -38,6 +39,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _queryParser = new QueryParser(_statementHandler);
             _queryPlanGenerator = new QueryPlanGenerator(_statementHandler);
             _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager);
+
+            _drummerQueryParser = new DrummerQueryParser();
         }
 
         public QueryManager(DbManager dbManager, IAuthenticationManager authManager, ITransactionEntryManager entryManager, LogService log)
@@ -46,9 +49,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _authManager = authManager;
 
             _statementHandler = new StatementHandler(_dbManager, log);
-            _queryParser = new QueryParser(_statementHandler);
+            _queryParser = new QueryParser(_statementHandler, log);
             _queryPlanGenerator = new QueryPlanGenerator(_statementHandler);
             _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager, log);
+
+            _drummerQueryParser = new DrummerQueryParser(log);
 
             _log = log;
         }
@@ -64,38 +69,70 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <returns><c>TRUE</c> if the SQL query can be executed, otherwise <c>FALSE</c></returns>
         public bool IsStatementValid(string sqlStatement, out string errorMessage)
         {
+            bool isStatementValid = false;
+
             if (_log is not null)
             {
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
-                var result = _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                if (ContainsDrummerKeywords(sqlStatement))
+                {
+                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                }
+                else
+                {
+                    isStatementValid = _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                }
                 sw.Stop();
                 _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
-                return result;
+
+                return isStatementValid;
             }
             else
             {
-                return _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                if (ContainsDrummerKeywords(sqlStatement))
+                {
+                    return _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                }
+                else
+                {
+                    return _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                }
             }
-
         }
 
         public bool IsStatementValid(string sqlStatement, string dbName, out string errorMessage)
         {
             errorMessage = string.Empty;
+            bool isStatementValid = false;
 
             if (_log is not null)
             {
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
-                var result = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                if (ContainsDrummerKeywords(sqlStatement))
+                {
+                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                }
+                else
+                {
+                    isStatementValid = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                }
+
                 sw.Stop();
                 _log.Performance(LogService.GetCurrentMethod(), sw.Elapsed.TotalMilliseconds);
-                return result;
+                return isStatementValid;
             }
             else
             {
-                return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                if (ContainsDrummerKeywords(sqlStatement))
+                {
+                    return _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                }
+                else
+                {
+                    return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                }
             }
         }
 
@@ -222,6 +259,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private string RemoveUsingStatement(string statement, string dbName)
         {
             return statement.Replace(SQLGeneralKeywords.USE + $" {dbName};", string.Empty).Trim();
+        }
+
+        private bool ContainsDrummerKeywords(string statement)
+        {
+            return statement.Contains(DrummerKeywords.DRUMMER_BEGIN);
         }
         #endregion
 

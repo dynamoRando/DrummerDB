@@ -14,6 +14,8 @@
             public const string PARTICIPANT_OWNED = "Participant_Owned";
             public const string SHARED = "Shared";
             public const string MIRROR = "Mirror";
+
+            public static string[] StoragePolicies = new string[] { NONE, HOST_ONLY, PARTICIPANT_OWNED, SHARED, MIRROR };
         }
     }
 }

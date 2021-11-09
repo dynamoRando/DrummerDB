@@ -1,5 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using System;
@@ -14,6 +15,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     {
         #region Private Fields
         private StatementHandler _statementHandler;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -23,6 +25,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public QueryParser(StatementHandler statementHandler)
         {
             _statementHandler = statementHandler;
+        }
+
+        public QueryParser(StatementHandler statementHandler, LogService log)
+        {
+            _statementHandler = statementHandler;
+            _log = log;
         }
         #endregion
 
