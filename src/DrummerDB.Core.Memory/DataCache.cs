@@ -767,7 +767,8 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                     DatabaseId = address.DatabaseId,
                                     TableId = address.TableId,
                                     ColumnName = columnName,
-                                    SchemaId = address.SchemaId
+                                    SchemaId = address.SchemaId,
+                                    ColumnId = value.Column.Id
                                 };
                             result.Add(valueAddress);
                         }

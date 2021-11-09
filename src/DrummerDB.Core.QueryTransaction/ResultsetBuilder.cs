@@ -2,6 +2,7 @@
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -49,7 +50,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 _layout.Columns.OrderBy(column => column.Order);
                 resultColumns = new List<ColumnSchemaStruct>(_layout.Columns.Count);
-                
+
                 // build out the columns first
                 foreach (var column in _layout.Columns)
                 {
@@ -67,7 +68,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                 if (tables.Count == 1)
                 {
-                    resultRows = GetRowsForSingleTable(addresses, transaction, tables);
+                    resultRows = GetRowsForSingleTable(addresses, transaction, tables, _layout.Columns);
                 }
                 else if (tables.Count > 1)
                 {
@@ -102,7 +103,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
-        private List<ResultsetValue[]> GetRowsForSingleTable(List<ValueAddress> addresses, TransactionRequest transaction, List<TreeAddress> tables)
+        private List<ResultsetValue[]> GetRowsForSingleTable(List<ValueAddress> addresses, TransactionRequest transaction, List<TreeAddress> tables, List<IResultsetSource> columns)
         {
             Stopwatch sw = null;
             if (_log is not null)
@@ -113,6 +114,25 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             List<ResultsetValue[]> resultRows;
             var tableAddress = tables.First();
             List<int> rows = GetRowsForTable(tableAddress, addresses);
+
+            rows.Sort();
+            columns.OrderBy(o => o.Order);
+
+            foreach (var c in columns)
+            {
+                if (c is ResultsetSourceTable)
+                {
+                    var t = c as ResultsetSourceTable;
+                    foreach(var addy in addresses)
+                    {
+                        if (addy.ColumnId == t.ColumnId)
+                        {
+                            addresses.OrderBy(a => t.ColumnId).ThenBy(a => a.RowId);   
+                        }
+                    }
+                }
+            }
+
             resultRows = new List<ResultsetValue[]>(rows.Count);
 
             foreach (var row in rows)
@@ -150,6 +170,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     Table table = _db.GetTable(rsColumn.Table);
 
                     List<ValueAddress> rowValues = GetValuesForRow(tableAddress, row, addresses);
+                    rowValues.OrderBy(v => v.ColumnId).ThenBy(r => r.RowId);
 
                     foreach (var value in rowValues)
                     {
@@ -201,7 +222,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         result.Add(value);
                     }
-
                 }
             }
 
@@ -222,43 +242,51 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <returns>A list of values filtered down for the specified table</returns>
         private List<ValueAddress> GetAddressesForTable(TreeAddress table, List<ValueAddress> addresses)
         {
+            bool runInParallel = false;
+
+            List<ValueAddress> items = null;
+
             Stopwatch sw = null;
             if (_log is not null)
             {
                 sw = Stopwatch.StartNew();
             }
 
-            var result = new List<ValueAddress>();
-
-            /*
-            var result = new ConcurrentBag<ValueAddress>();
-
-            Parallel.ForEach(addresses, address => 
+            if (runInParallel)
             {
-                if (IsAddressOfTable(table, address))
-                {
-                    result.Add(address);
-                }
-            });
-            */
+                var result = new ConcurrentBag<ValueAddress>();
 
-            foreach (var address in addresses)
-            {
-                if (address.DatabaseId == table.DatabaseId && address.TableId == table.TableId)
+                Parallel.ForEach(addresses, address =>
                 {
-                    result.Add(address);
-                }
+                    if (IsAddressOfTable(table, address))
+                    {
+                        result.Add(address);
+                    }
+                });
+
+                items = result.OrderBy(r => r.ColumnId).ThenBy(a => a.RowId).ToList();
             }
-           
+            else
+            {
+                var result = new List<ValueAddress>();
+                foreach (var address in addresses)
+                {
+                    if (address.DatabaseId == table.DatabaseId && address.TableId == table.TableId)
+                    {
+                        result.Add(address);
+                    }
+                }
+
+                items = result;
+            }
+
             if (_log is not null)
             {
                 sw.Stop();
                 _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
             }
 
-            //var x = result.OrderBy(r => r.ColumnId).ToList();
-            //return x;
-            return result;
+            return items;
         }
 
         /// <summary>
@@ -291,6 +319,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 sw.Stop();
                 _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
             }
+
+            result.Sort();
 
             return result;
         }
