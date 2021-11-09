@@ -88,6 +88,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
+        public LogicalStoragePolicy GetLogicalStoragePolicy()
+        {
+            if (_schema is TableSchema)
+            {
+                var schema = _schema as TableSchema;
+                return schema.StoragePolicy;
+            }
+
+            return LogicalStoragePolicy.None;
+        }
+
         /// <summary>
         /// Returns the value addresses for all the rows specified, for the specified column
         /// </summary>

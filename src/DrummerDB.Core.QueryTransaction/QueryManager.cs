@@ -23,6 +23,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private IQueryParser _queryParser;
         private IQueryParser _drummerQueryParser;
         private IQueryPlanGenerator _queryPlanGenerator;
+        private DrummerQueryPlanGenerator _drummerPlanGenerator;
         private LogService _log;
         #endregion
 
@@ -41,6 +42,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager);
 
             _drummerQueryParser = new DrummerQueryParser();
+            _drummerPlanGenerator = new DrummerQueryPlanGenerator();
         }
 
         public QueryManager(DbManager dbManager, IAuthenticationManager authManager, ITransactionEntryManager entryManager, LogService log)
@@ -54,6 +56,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager, log);
 
             _drummerQueryParser = new DrummerQueryParser(log);
+            _drummerPlanGenerator = new DrummerQueryPlanGenerator(log);
 
             _log = log;
         }
@@ -179,7 +182,17 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (_dbManager.HasDatabase(dbName))
                 {
                     db = _dbManager.GetDatabase(dbName);
-                    return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+
+                    // need to see if this has drummer keywords
+                    if (ContainsDrummerKeywords(sqlStatement))
+                    {
+                        var database = _dbManager.GetHostDatabase(dbName);
+                        return _drummerPlanGenerator.GetQueryPlan(sqlStatement, database, _dbManager);
+                    }
+                    else
+                    {
+                        return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                    }
                 }
             }
             else
@@ -211,19 +224,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 {
                     // default to system database if the user database was not supplied. This usually happens when the user is creating a new database
                     db = _dbManager.GetSystemDatabase();
+                    QueryPlan result = null;
 
                     if (_log is not null)
                     {
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
-                        var result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+
+                        // need to see if this has drummer keywords
+                        if (ContainsDrummerKeywords(sqlStatement))
+                        {
+                            var database = _dbManager.GetHostDatabase(dbName);
+                            result = _drummerPlanGenerator.GetQueryPlan(sqlStatement, database, _dbManager);
+                        }
+                        else
+                        {
+                            result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        }
+
                         sw.Stop();
                         _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
                         return result;
-
                     }
 
-                    return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                    if (ContainsDrummerKeywords(sqlStatement))
+                    {
+                        var database = _dbManager.GetHostDatabase(dbName);
+                        return _drummerPlanGenerator.GetQueryPlan(sqlStatement, database, _dbManager);
+                    }
+                    else
+                    {
+                        return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                    }
+                    
                 }
             }
 

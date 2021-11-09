@@ -472,6 +472,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
+        public HostDb GetHostDatabase(string dbName)
+        {
+            return _userDatabases.GetUserDatabase(dbName) as HostDb;
+        }
+
         /// <summary>
         /// Returns a database from the in memory collection
         /// </summary>
