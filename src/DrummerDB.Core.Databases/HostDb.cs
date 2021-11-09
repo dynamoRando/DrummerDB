@@ -74,6 +74,23 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
+        public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (HasTable(tableName))
+            {
+                var table = GetTable(tableName);
+                table.SetLogicalStoragePolicy(policy, transaction, transactionMode);
+
+                var schema = _metaData.GetSchema(tableName, Name) as TableSchema;
+                schema.SetStoragePolicy(policy);
+                _metaData.UpdateTableSchema(schema);
+
+                return true;
+            }
+
+            return false;
+        }
+
         public override DatabaseSchemaInfo GetSchemaInformation(string schemaName)
         {
             if (_metaData.HasSchema(schemaName))
@@ -170,6 +187,46 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             return false;
+        }
+
+
+        public override Table GetTable(string tableName, string schemaName)
+        {
+            Table result = null;
+
+            if (HasTable(tableName, schemaName))
+            {
+                if (
+                    _inMemoryTables.Any(table => string.Equals(table.Schema().Name, tableName, StringComparison.OrdinalIgnoreCase))
+                && _inMemoryTables.Any(table => string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
+                )
+                {
+                    foreach (var table in _inMemoryTables)
+                    {
+                        if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase) && string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return table;
+                        }
+                    }
+                }
+                else
+                {
+                    var item = GetTableSchema(tableName);
+                    if (_log is not null)
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                    }
+                    else
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    }
+
+                    _inMemoryTables.Add(result);
+                }
+
+            }
+
+            return result;
         }
 
         public override Table GetTable(string tableName)

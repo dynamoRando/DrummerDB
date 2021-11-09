@@ -2,16 +2,18 @@
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
-    internal class DrummerQueryPlanGenerator 
+    internal class DrummerQueryPlanGenerator
     {
         #region Private Fields
         private LogService _log;
@@ -50,6 +52,67 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private void EvaluateLine(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
             EvaluateForLogicalStoragePolicy(line, database, dbManager, ref plan);
+            EvaluateForReviewLogicalStoragePolicy(line, database, dbManager, ref plan);
+        }
+
+        private void EvaluateForReviewLogicalStoragePolicy(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            // example:
+            //REVIEW LOGICAL STORAGE FOR Products;
+            string keywords = DrummerKeywords.REVIEW_LOGICAL_STORAGE + " " + DrummerKeywords.FOR;
+            if (line.StartsWith(keywords))
+            {
+                string tableName = line.Replace(keywords, string.Empty).Trim();
+                tableName = tableName.Replace(";", string.Empty).Trim();
+
+                if (database.HasTable(tableName))
+                {
+                    // need to get a logical policy operator
+
+
+                    // this needs to translate to a SELECT LogicalStoragePolicy FROM sys.UserTables WHERE TableName = TableName
+                    // in the target HostDb
+
+                    // we need to make sure the query plan has a SelectQueryPlanPart
+                    // and ensure that SELECT part has a Layout with the above schema
+
+                    // need a new set policy operator in the plan
+                    if (!plan.Parts.Any(part => part is SelectQueryPlanPart))
+                    {
+                        plan.Parts.Add(new SelectQueryPlanPart());
+                    }
+
+                    foreach (var part in plan.Parts)
+                    {
+                        if (part is SelectQueryPlanPart)
+                        {
+                            var selectPart = part as SelectQueryPlanPart;
+                            var layout = new ResultsetLayout();
+                            ResultsetSourceTable sourceTable = new ResultsetSourceTable();
+
+                            Table userTable = database.GetTable(UserTable.TABLE_NAME, Constants.SYS_SCHEMA);
+
+                            sourceTable.Table = userTable.Address;
+                            sourceTable.ColumnId = UserTable.GetColumns().Where(c => c.Name == UserTable.Columns.LogicalStoragePolicy).FirstOrDefault().Id;
+                            sourceTable.Order = 1;
+
+                            layout.Columns.Add(sourceTable);
+                            selectPart.Layout = layout;
+                            var columns = new string[] { UserTable.Columns.LogicalStoragePolicy };
+
+                            var value = RowValueMaker.Create(userTable, UserTable.Columns.LogicalStoragePolicy, tableName);
+                            var trv = new TableRowValue(value, userTable.Address.TableId, userTable.Address.DatabaseId, userTable.Address.SchemaId);
+                            TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
+
+                            TableReadOperator readTable = new TableReadOperator(dbManager, sourceTable.Table, columns, filter, _log);
+                            selectPart.Operations.Add(readTable);
+                        }
+                    }
+                }
+
+            }
+
+            throw new NotImplementedException();
         }
 
         private void EvaluateForLogicalStoragePolicy(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -61,6 +124,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (line.StartsWith(keywords))
             {
                 string tablePolicy = line.Replace(keywords, string.Empty).Trim();
+                tablePolicy = tablePolicy.Replace(";", string.Empty);
                 string[] items = tablePolicy.Split(" ");
 
                 string tableName = items[0].Trim();

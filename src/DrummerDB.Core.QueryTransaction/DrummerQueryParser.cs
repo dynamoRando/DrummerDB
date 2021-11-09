@@ -63,6 +63,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForLogicalStoragePolicy(statement, out errorMessage);
                     }
+
+                    if (HasReviewLogicalStoryagePolicyKeyword(statement))
+                    {
+                        return ParseForReviewLogicalStoragePolicy(statement, out errorMessage);
+                    }
                 }
             }
 
@@ -86,6 +91,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 {
                     string keywords = DrummerKeywords.SET_LOGICAL_STORAGE + " " + DrummerKeywords.FOR;
                     var tablePolicy = line.Replace(keywords, string.Empty).Trim();
+                    tablePolicy = tablePolicy.Replace(";", string.Empty);
                     var items = tablePolicy.Split(" ");
                     string tableName = items[0];
                     string policy = items[1];
@@ -114,6 +120,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             errorMesssage = string.Empty;
             return true;
+        }
+
+        private bool ParseForReviewLogicalStoragePolicy(string statement, out string errorMesssage)
+        {
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                if (line.StartsWith(DrummerKeywords.REVIEW_LOGICAL_STORAGE))
+                {
+                    string keywords = DrummerKeywords.REVIEW_LOGICAL_STORAGE + " " + DrummerKeywords.FOR;
+                    var tableName = line.Replace(keywords, string.Empty).Trim();
+                    tableName = tableName.Replace(";", string.Empty);
+
+                    if (_db.HasTable(tableName))
+                    {
+                        errorMesssage = string.Empty;
+                        return true;
+                    }
+                    else
+                    {
+                        errorMesssage = $"Table {tableName} was not found";
+                        return false;
+                    }
+                }
+            }
+
+            errorMesssage = string.Empty;
+            return true;
+        }
+
+        private bool HasReviewLogicalStoryagePolicyKeyword(string statement)
+        {
+            return statement.Contains(DrummerKeywords.REVIEW_LOGICAL_STORAGE);
         }
 
         private string GetDatabaseName(string input)

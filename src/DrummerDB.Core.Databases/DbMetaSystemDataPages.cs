@@ -201,6 +201,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             UpdateUserTableSchemaValues100(schema);
         }
 
+        public void UpdateTableSchema(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            UpdateUserTable100(schema, transaction, transactionMode);
+            UpdateUserTableSchemaValues100(schema, transaction, transactionMode);
+        }
+
         /// <summary>
         /// Creates a user in the database and generates hash information.
         /// </summary>
@@ -857,6 +863,52 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _userTable.TryUpdateRow(row);
         }
 
+        private void UpdateUserTable100(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            Row row = null;
+
+            var search = RowValueMaker.Create(_userTable, ut.TableName, schema.Name, true);
+
+            int count = _userTable.CountOfRowsWithValue(search);
+
+            var searchResult = _userTable.GetRowsWithValue(search);
+            if (count > 1)
+            {
+                throw new InvalidOperationException("Multiple tables found with same name");
+            }
+
+            row = searchResult.First() as Row;
+
+            row.SetValue(ut.TableId, schema.Id.ToString());
+            row.SetValue(ut.TableName, schema.Name);
+            row.SetValue(ut.TotalRows, 0.ToString());
+            row.SetValue(ut.TotalLogicalRows, 0.ToString());
+            row.SetValue(ut.IsDeleted, false.ToString());
+            row.SetValue(ut.UserObjectId, schema.ObjectId.ToString());
+
+            if (schema.Columns.Any(col => col.Name == ut.ContractGUID))
+            {
+                row.SetValue(ut.ContractGUID, schema.ContractGUID.ToString());
+            }
+            else
+            {
+                row.SetValueAsNullForColumn(ut.ContractGUID);
+            }
+
+            row.SetValue(ut.LogicalStoragePolicy, Convert.ToInt32(schema.StoragePolicy).ToString());
+
+            if (schema.Schema is null)
+            {
+                row.SetValueAsNullForColumn(ut.SchemaGUID);
+            }
+            else
+            {
+                row.SetValue(ut.SchemaGUID, schema.Schema.SchemaGUID.ToString());
+            }
+
+            _userTable.TryUpdateRow(row, transaction, transactionMode);
+        }
+
         private Guid SetUserTableValue100(ITableSchema schema)
         {
             var tableObjectId = Guid.NewGuid();
@@ -978,6 +1030,60 @@ namespace Drummersoft.DrummerDB.Core.Databases
                                 value.SetValueAsNullForColumn(uts.ContractGUID);
 
                                 _userTableSchema.TryUpdateRow(value);
+                            }
+                        }
+                    }
+                }
+            }
+            // we've added a column to the table
+            else if (schema.Columns.Count() > count)
+            {
+                // we need to figure out what to do here, because then we're going to need to change 
+                // all page structures in cache and on disk
+                throw new NotImplementedException();
+            }
+            // we'ev removed a column from the table
+            else if (schema.Columns.Count() < count)
+            {
+                // we need to figure out what to do here, because then we're going to need to change 
+                // all page structures in cache and on disk
+                throw new NotImplementedException();
+            }
+        }
+
+        private void UpdateUserTableSchemaValues100(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            string tableId = schema.Id.ToString();
+
+            var search = RowValueMaker.Create(_userTableSchema, uts.TableId, schema.Id.ToString());
+
+            int count = _userTableSchema.CountOfRowsWithValue(search);
+
+            // if we haven't added any columns to the table
+            if (schema.Columns.Count() == count)
+            {
+                var results = _userTableSchema.GetRowsWithValue(search);
+                foreach (var value in results)
+                {
+                    int iterValue = DbBinaryConvert.BinaryToInt(value.GetValueInByte(uts.TableId));
+                    // make sure we're updating a column of the table we're sending
+                    if (iterValue == schema.Id)
+                    {
+                        foreach (var column in schema.Columns)
+                        {
+                            var iterColId = DbBinaryConvert.BinaryToInt(value.GetValueInByte(uts.ColumnId));
+                            if (iterColId == column.Id)
+                            {
+                                value.SetValue(uts.ColumnName, column.Name);
+                                value.SetValue(uts.ColumnType, GetColumnType(column.DataType).ToString());
+                                value.SetValue(uts.ColumnLength, column.Length.ToString());
+                                value.SetValue(uts.ColumnOrdinal, column.Ordinal.ToString());
+                                value.SetValue(uts.ColumnIsNullable, column.IsNullable.ToString());
+                                value.SetValue(uts.ColumnBinaryOrder, column.Id.ToString());
+                                value.SetValue(uts.UserObjectId, Guid.NewGuid().ToString());
+                                value.SetValueAsNullForColumn(uts.ContractGUID);
+
+                                _userTableSchema.TryUpdateRow(value, transaction, transactionMode);
                             }
                         }
                     }

@@ -254,6 +254,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
+        public bool UpdateTableSchema(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (_systemDataPages.HasTable(schema.Name))
+            {
+                _systemDataPages.UpdateTableSchema(schema, transaction, transactionMode);
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Adds the specified table to the metadata's collection of tables
         /// </summary>

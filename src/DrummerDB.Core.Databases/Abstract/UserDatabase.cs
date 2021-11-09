@@ -72,6 +72,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         /// <param name="tableName">The name of table to find</param>
         /// <returns>The table specified</returns>
         public abstract Table GetTable(string tableName);
+        public abstract Table GetTable(string tableName, string schemaName);
         public abstract Table GetTable(int tableId);
         public abstract List<TransactionEntry> GetOpenTransactions();
 

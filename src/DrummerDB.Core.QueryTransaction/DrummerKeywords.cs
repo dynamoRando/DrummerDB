@@ -5,6 +5,7 @@
         public const string DRUMMER_BEGIN = "DRUMMER BEGIN";
         public const string DRUMMER_END = "DRUMMER END";
         public const string SET_LOGICAL_STORAGE = "SET LOGICAL STORAGE";
+        public const string REVIEW_LOGICAL_STORAGE = "REVIEW LOGICAL STORAGE";
         public const string FOR = "FOR";
 
         internal static class LogicalStoragePolicyKeywords

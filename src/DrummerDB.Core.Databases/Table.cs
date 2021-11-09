@@ -88,6 +88,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
+        public void SetLogicalStoragePolicy(LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (_schema is TableSchema)
+            {
+                var schema = _schema as TableSchema;
+                schema.SetStoragePolicy(policy);
+            }
+        }
+
         public LogicalStoragePolicy GetLogicalStoragePolicy()
         {
             if (_schema is TableSchema)
