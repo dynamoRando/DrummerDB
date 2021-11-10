@@ -93,7 +93,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             Table userTable = database.GetTable(UserTable.TABLE_NAME, Constants.SYS_SCHEMA);
 
                             sourceTable.Table = userTable.Address;
-                            sourceTable.ColumnId = UserTable.GetColumns().Where(c => c.Name == UserTable.Columns.LogicalStoragePolicy).FirstOrDefault().Id;
+                            sourceTable.ColumnId = UserTable.GetColumns().
+                                Where(c => c.Name == UserTable.Columns.LogicalStoragePolicy).FirstOrDefault().Id;
+
                             sourceTable.Order = 1;
 
                             layout.Columns.Add(sourceTable);

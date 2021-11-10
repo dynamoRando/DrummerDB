@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\DrummerDB.Client\DrummerDB.Client.csproj" />
     <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Databases\DrummerDB.Core.Databases.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Structures\DrummerDB.Core.Structures.csproj" />
     <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Systems\DrummerDB.Core.Systems.csproj" />
   </ItemGroup>
 
