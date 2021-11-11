@@ -1123,7 +1123,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string sqlSelectFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName}";
 
             string sqlDropTableStatement = $@"
-            DROP TABLE IF EXISTS{createdTableName}
+            DROP TABLE IF EXISTS {createdTableName}
             ";
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);

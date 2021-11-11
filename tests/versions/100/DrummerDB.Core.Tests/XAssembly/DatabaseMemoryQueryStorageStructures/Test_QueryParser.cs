@@ -371,7 +371,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var createTableResult = db.AddTable(tableSchema, out _);
 
             string sqlDropTableStatement = $@"
-            DROP TABLE IF EXISTS{tbName}
+            DROP TABLE IF EXISTS {tbName}
             ";
 
             // -- ACT
