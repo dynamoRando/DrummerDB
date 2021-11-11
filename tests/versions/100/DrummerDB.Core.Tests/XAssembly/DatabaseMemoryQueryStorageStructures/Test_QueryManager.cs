@@ -1154,7 +1154,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var tableWasDropped = db.HasTable(createdTableName);
 
-            Assert.False(tableWasCreated);
+            Assert.False(tableWasDropped);
         }
     }
 }
