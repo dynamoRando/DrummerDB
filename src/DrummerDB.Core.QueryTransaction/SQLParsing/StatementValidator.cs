@@ -43,6 +43,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Public Methods
+        public override void EnterDrop_table([NotNull] TSqlParser.Drop_tableContext context)
+        {
+            base.EnterDrop_table(context);
+            DebugContext(context);
+
+            _statement = new DropTableStatement(GetWhiteSpaceFromCurrentContext(context), Database);
+            DropTableStatement drop = _statement as DropTableStatement;
+
+            if (!drop.IsValidated)
+            {
+                StatementReport.Errors.Add($"Table {drop.TableName} not found in database {Database.Name}");
+                StatementReport.IsValid = false;
+            }
+        }
 
         public override void EnterColumn_name_list(TSqlParser.Column_name_listContext context)
         {

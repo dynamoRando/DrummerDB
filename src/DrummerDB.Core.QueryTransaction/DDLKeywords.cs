@@ -8,6 +8,8 @@
         public const string ALTER = "ALTER";
         public const string DROP = "DROP";
         public const string TRUNCATE = "TRUNCATE";
+        public const string TABLE = "TABLE";
+        public const string IF_EXISTS = "IF EXISTS";
 
         public static string[] Get()
         {

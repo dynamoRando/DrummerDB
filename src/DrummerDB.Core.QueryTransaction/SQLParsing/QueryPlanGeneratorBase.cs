@@ -66,6 +66,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
         #endregion
 
         #region Public Methods
+        public override void EnterDrop_table([NotNull] TSqlParser.Drop_tableContext context)
+        {
+            base.EnterDrop_table(context);
+            DebugContext(context);
+
+            _statement = new DropTableStatement(GetWhiteSpaceFromCurrentContext(context), Database);
+        }
+
+        public override void ExitDrop_table([NotNull] TSqlParser.Drop_tableContext context)
+        {
+            base.ExitDrop_table(context);
+            throw new NotImplementedException("Need to write drop table operators and add to _plan");
+        }
+
         public override void EnterColumn_definition([NotNull] TSqlParser.Column_definitionContext context)
         {
             base.EnterColumn_definition(context);
