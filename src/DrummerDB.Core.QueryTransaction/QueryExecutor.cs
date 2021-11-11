@@ -429,6 +429,48 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
 
                     break;
+                case LogicalStoragePolicyOperator i:
+
+                    var lspOp = operation as LogicalStoragePolicyOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    db = _db.GetUserDatabase(lspOp.DatabaseName);
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Set_Logical_Storage_Policy, db.Id))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case ReviewLogicalStoragePolicyOperator j:
+
+                    var rlspOp = operation as ReviewLogicalStoragePolicyOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    db = _db.GetUserDatabase(rlspOp.DatabaseName);
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Review_Logical_Storage_Policy, db.Id))
+                    {
+                        return true;
+                    }
+
+                    break;
                 default:
                     throw new InvalidOperationException("Unknown operator type");
             }

@@ -39,6 +39,22 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _metaData = metadata;
             _xEntryManager = xEntryManager;
             _inMemoryTables = new List<Table>();
+
+            foreach (var table in _metaData.Tables)
+            {
+                Table newTable = null;
+                if (_log is not null)
+                {
+                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                }
+                else
+                {
+                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager); ;
+                }
+
+                _inMemoryTables.Add(newTable);
+            }
+
         }
 
         internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
@@ -47,6 +63,21 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _xEntryManager = xEntryManager;
             _inMemoryTables = new List<Table>();
             _log = log;
+
+            foreach (var table in _metaData.Tables)
+            {
+                Table newTable = null;
+                if (_log is not null)
+                {
+                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                }
+                else
+                {
+                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager); ;
+                }
+
+                _inMemoryTables.Add(newTable);
+            }
         }
 
         internal HostDb(DatabaseMetadata metadata, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
@@ -276,7 +307,24 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public override bool AddTable(ITableSchema schema, out Guid tableObjectId)
         {
-            return _metaData.AddTable(schema, out tableObjectId);
+            var result = _metaData.AddTable(schema, out tableObjectId);
+            if (!_inMemoryTables.Any(m => string.Equals(m.Name, schema.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                Table physicalTable = null;
+
+                if (_log is not null)
+                {
+                    physicalTable = new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                }
+                else
+                {
+                    physicalTable = new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                }
+
+                _inMemoryTables.Add(physicalTable);
+            }
+
+            return result;
         }
 
         public override bool TryAddTable(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
@@ -301,6 +349,22 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         _xEntryManager.AddEntry(xact);
                         storage.LogOpenTransaction(_metaData.Id, xact);
                         _metaData.AddTable(schema, out tableObjectId);
+
+                        Table newTable = null;
+
+                        if (_log is not null)
+                        {
+                            newTable = new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                        }
+                        else
+                        {
+                            newTable = new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                        }
+
+                        if (!_inMemoryTables.Any(m => string.Equals(m.Name, schema.Name, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            _inMemoryTables.Add(newTable as Table);
+                        }
 
                         //storage.SavePageDataToDisk(null, null, PageType.Data);
                         return true;
@@ -342,11 +406,24 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public override bool HasTable(string tableName)
         {
-            foreach (var item in _metaData.Tables)
+
+            if (_inMemoryTables is null)
             {
-                if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException();
+            }
+
+            if (_inMemoryTables.Any(table => string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+            else
+            {
+                foreach (var item in _metaData.Tables)
                 {
-                    return true;
+                    if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
                 }
             }
 

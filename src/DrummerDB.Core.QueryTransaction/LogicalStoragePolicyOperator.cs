@@ -16,15 +16,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private HostDb _db;
         private Table _table;
         private LogicalStoragePolicy _policy;
+        private string _dbName;
 
         public IQueryPlanPartOperator PreviousOperation { get; set; }
         public IQueryPlanPartOperator NextOperation { get; set; }
+        public string DatabaseName => _dbName;
 
-        public LogicalStoragePolicyOperator(HostDb db, Table table, LogicalStoragePolicy policy)
+        public LogicalStoragePolicyOperator(HostDb db, Table table, LogicalStoragePolicy policy, string dbName)
         {
             _db = db;
             _table = table;
             _policy = policy;
+            _dbName = dbName;
         }
 
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)

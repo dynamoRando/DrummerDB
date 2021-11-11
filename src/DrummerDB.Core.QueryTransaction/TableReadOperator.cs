@@ -75,7 +75,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             if (_filter is not null && _filters is null)
             {
-                var result = ExecuteWithFilter();
+                var result = ExecuteWithFilter(transaction, transactionMode);
                 _result.AddRange(result);
 
                 return Result.List();
@@ -95,9 +95,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
-        private List<ValueAddress> ExecuteWithFilter()
+        private List<ValueAddress> ExecuteWithFilter(TransactionRequest transaction, TransactionMode transactionMode)
         {
-            throw new NotImplementedException();
+            var result = new List<ValueAddress>();
+            List<RowAddress> rows = _filter.GetRows(_db, transaction, transactionMode);
+            Table table = _db.GetTable(Address);
+
+            foreach (var column in _columnNames)
+            {
+                var results = table.GetValuesForColumnByRows(rows, column, transaction, transactionMode);
+                result.AddRange(results);
+            }
+
+            var item = result.Distinct().ToList();
+            return item;
         }
 
         private List<ValueAddress> ExecuteWithFilters(TransactionRequest transaction, TransactionMode transactionMode)

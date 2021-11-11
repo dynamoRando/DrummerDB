@@ -20,11 +20,11 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             return callerName;
         }
 
-        [Fact(Skip = "Logical Storage Policy Not Implemented")]
+        [Fact]
         public void Test_Set_Review_LogicalStoragePolicy()
         {
             string dbName = "TestLSP";
-            string tableName = "Customers";
+            string tableName = "CUSTOMERS";
             string storageFolder = "TestLSPx";
             var test = new TestHarness();
 
@@ -86,36 +86,37 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             // should assert policy == Host_Only;
             var policyForProducts = test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            REVIEW LOGICAL STORAGE FOR Products;
+            REVIEW LOGICAL STORAGE FOR PRODUCTS;
             DRUMMER END;
             ", dbName);
 
-            int convertedProductPolicy = DbBinaryConvert.BinaryToInt(
-                policyForProducts.Results.First().Rows[0].Values[0].Value.ToByteArray());
+            byte[] byteProductPolicy = policyForProducts.Results.First().Rows[0].Values[0].Value.ToByteArray();
+            int convertedProductPolicy = DbBinaryConvert.BinaryToInt(new Span<byte>(byteProductPolicy).Slice(1, 4));
 
             Assert.Equal((int)LogicalStoragePolicy.HostOnly, convertedProductPolicy);
 
             // should assert policy == Participant_Owned;
             var policyForCustomers = test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            REVIEW LOGICAL STORAGE FOR Customers;
+            REVIEW LOGICAL STORAGE FOR CUSTOMERS;
             DRUMMER END;
             ", dbName);
 
-            int convertedCustomersPolicy = DbBinaryConvert.BinaryToInt(
-              policyForCustomers.Results.First().Rows[0].Values[0].Value.ToByteArray());
+            byte[] byteCustomerPolicy = policyForCustomers.Results.First().Rows[0].Values[0].Value.ToByteArray();
+            int convertedCustomersPolicy = DbBinaryConvert.BinaryToInt(new Span<byte>(byteCustomerPolicy).Slice(1, 4));
 
             Assert.Equal((int)LogicalStoragePolicy.ParticipantOwned, convertedCustomersPolicy);
 
             // should assert policy == Shared;
             var policyForOrders = test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            REVIEW LOGICAL STORAGE FOR Orders;
+            REVIEW LOGICAL STORAGE FOR ORDERS;
             DRUMMER END;
             ", dbName);
 
-            int convertedOrdersPolicy = DbBinaryConvert.BinaryToInt(
-             policyForOrders.Results.First().Rows[0].Values[0].Value.ToByteArray());
+
+            byte[] byteOrdersPolicy = policyForOrders.Results.First().Rows[0].Values[0].Value.ToByteArray();
+            int convertedOrdersPolicy = DbBinaryConvert.BinaryToInt(new Span<byte>(byteOrdersPolicy).Slice(1, 4));
 
             Assert.Equal((int)LogicalStoragePolicy.Shared, convertedOrdersPolicy);
         }

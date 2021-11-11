@@ -1,6 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
@@ -41,7 +42,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             var lines = statement.Split(";");
             foreach (var line in lines)
             {
-                EvaluateLine(line, database, dbManager, ref plan);
+                string trimLine = line.Trim();
+                EvaluateLine(trimLine, database, dbManager, ref plan);
             }
 
             return plan;
@@ -93,6 +95,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             Table userTable = database.GetTable(UserTable.TABLE_NAME, Constants.SYS_SCHEMA);
 
                             sourceTable.Table = userTable.Address;
+
+                            // return the LogicalStoragePolicy column
                             sourceTable.ColumnId = UserTable.GetColumns().
                                 Where(c => c.Name == UserTable.Columns.LogicalStoragePolicy).FirstOrDefault().Id;
 
@@ -102,7 +106,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             selectPart.Layout = layout;
                             var columns = new string[] { UserTable.Columns.LogicalStoragePolicy };
 
-                            var value = RowValueMaker.Create(userTable, UserTable.Columns.LogicalStoragePolicy, tableName);
+                            // filter by the table name
+                            var value = RowValueMaker.Create(userTable, UserTable.Columns.TableName, tableName, true);
                             var trv = new TableRowValue(value, userTable.Address.TableId, userTable.Address.DatabaseId, userTable.Address.SchemaId);
                             TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
 
@@ -111,10 +116,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         }
                     }
                 }
-
             }
 
-            throw new NotImplementedException();
+            if (plan.TransactionPlan is null)
+            {
+                var xplan = new TransactionPlan();
+                xplan.Behavior = TransactionBehavior.Normal;
+                plan.TransactionPlan = xplan;
+            }
         }
 
         private void EvaluateForLogicalStoragePolicy(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -174,7 +183,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                         throw new InvalidOperationException("Unknown storage policy");
                                 }
 
-                                var op = new LogicalStoragePolicyOperator(database, table, enumPolicy);
+                                var op = new LogicalStoragePolicyOperator(database, table, enumPolicy, database.Name);
                                 item.Operations.Add(op);
                             }
                         }

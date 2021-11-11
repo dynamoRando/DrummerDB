@@ -21,6 +21,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public IQueryPlanPartOperator NextOperation { get; set; }
         public ValueAddressCollection Result => _result;
         public int Order { get; set; }
+        public string DatabaseName => _db.Name;
 
         public ReviewLogicalStoragePolicyOperator(HostDb db, Table table)
         {
