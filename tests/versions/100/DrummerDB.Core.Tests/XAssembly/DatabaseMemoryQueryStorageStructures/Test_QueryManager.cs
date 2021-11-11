@@ -1104,7 +1104,57 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
         [Fact(Skip = "If Exists Operator Not Written")]
         public void Test_IfTableExistsOperator()
         {
-            throw new NotImplementedException();
+            // -- ARRANGE
+            string userName = "Tester";
+            string password = "TestPass";
+            string userDbName = "TestCreateT";
+            Guid userSessionId = Guid.NewGuid();
+            string createdTableName = "PEOPLE";
+            string sqlCreateTableStatement = $@"
+            CREATE TABLE {createdTableName}
+            (
+                ID INT IDENTITY(1,1),
+                EMPLOYEENAME NVARCHAR(25) NOT NULL,
+                HIREDATE DATETIME NOT NULL,
+                TERMDATE DATETIME NULL
+            );
+            ";
+
+            string sqlSelectFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName}";
+
+            string sqlDropTableStatement = $@"
+            DROP TABLE IF EXISTS{createdTableName}
+            ";
+
+            var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
+
+            var dbExists = _dbManager.HasUserDatabase(userDbName);
+
+            // --- ACT
+            string errorCreateMessage = string.Empty;
+            var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
+            var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
+
+            var db = _dbManager.GetUserDatabase(userDbName);
+            var tableWasCreated = db.HasTable(createdTableName);
+
+            string errorSelectMessage = string.Empty;
+            var isSelectStatementValid = queryManager.IsStatementValid(sqlSelectFromTable, userDbName, out errorSelectMessage);
+            var selectTableResult = queryManager.ExecuteValidatedStatement(sqlSelectFromTable, userDbName, userName, password, userSessionId);
+
+            // -- ASSERT
+            Assert.True(isCreateStatementValid);
+            Assert.True(tableWasCreated);
+            Assert.InRange(selectTableResult.Rows.Count, 0, 0);
+            Assert.InRange(selectTableResult.Columns.Count(), 4, 4);
+
+            string errorDropMessage = string.Empty;
+            var isDropStatementValid = queryManager.IsStatementValid(sqlDropTableStatement, userDbName, out errorDropMessage);
+            var dropTableResult = queryManager.ExecuteValidatedStatement(sqlDropTableStatement, userDbName, userName, password, userSessionId);
+
+            var tableWasDropped = db.HasTable(createdTableName);
+
+            Assert.False(tableWasCreated);
         }
     }
 }
