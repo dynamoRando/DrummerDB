@@ -323,7 +323,63 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
         [Fact(Skip ="If Exists Operator Not Written")]
         public void Test_Valid_IfTableExists()
         {
-            throw new NotImplementedException();
+            // -- ARRANGE
+            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestDropTableExist");
+            string hostDbExtension = ".drum";
+            string partDbExtension = ".drumpart";
+            string logDbExtension = ".drumlog";
+            string systemDbExtension = ".drumsys";
+            var dbName = "TestDropTable";
+
+            var directory = new DirectoryInfo(storageFolder);
+
+            if (directory.Exists)
+            {
+                foreach (var file in directory.EnumerateFiles())
+                {
+                    file.Delete();
+                }
+            }
+
+            string dbFilePath = Path.Combine(storageFolder, dbName + hostDbExtension);
+
+            if (File.Exists(dbFilePath))
+            {
+                File.Delete(dbFilePath);
+            }
+
+            var tbName = "TESTTABLE";
+            var tbId = 1;
+            var dbId = Guid.NewGuid();
+            var cols = new List<ColumnSchema>();
+            var col1 = new ColumnSchema("COL", new SQLInt(), 1);
+            cols.Add(col1);
+
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var cache = new CacheManager();
+            var mockCrypto = new MockCryptoManager();
+            var xManager = new TransactionEntryManager();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+
+            var statementHandler = new StatementHandler(manager);
+            var parser = new QueryParser(statementHandler);
+
+            manager.TryCreateNewHostDatabase(dbName, out _);
+            var db = manager.GetUserDatabase(dbName);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var createTableResult = db.AddTable(tableSchema, out _);
+
+            string sqlDropTableStatement = $@"
+            DROP TABLE IF EXISTS{tbName}
+            ";
+
+            // -- ACT
+            string errorDropMessage = string.Empty;
+            var isDropStatementValid = parser.IsStatementValid(sqlDropTableStatement, manager, out errorDropMessage);
+
+            /// -- ASSERT
+            Assert.True(isDropStatementValid);
         }
     }
 }
