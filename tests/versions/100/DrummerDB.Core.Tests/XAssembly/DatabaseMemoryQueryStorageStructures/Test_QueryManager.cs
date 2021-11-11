@@ -1100,5 +1100,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             Assert.InRange(selectDatabasesResult.Rows.Count(), 4, 4);
         }
+
+        [Fact(Skip = "If Exists Operator Not Written")]
+        public void Test_IfTableExistsOperator()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

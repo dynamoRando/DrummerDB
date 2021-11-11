@@ -319,6 +319,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // ---  ASSERT
             Assert.False(result);
         }
+
+        [Fact(Skip ="If Exists Operator Not Written")]
+        public void Test_Valid_IfTableExists()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 
