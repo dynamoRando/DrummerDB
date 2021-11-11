@@ -20,7 +20,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             return callerName;
         }
 
-        [Fact]
+        [Fact(Skip = "Logical Storage Policy Not Implemented")]
         public void Test_Set_Review_LogicalStoragePolicy()
         {
             string dbName = "TestLSP";
