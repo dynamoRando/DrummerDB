@@ -118,5 +118,6 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType);
         int TotalSystemDatabasesOnDisk();
         int TotalUserDatabasesOnDisk();
+        bool MarkPageAsDeleted(PageAddress address);
     }
 }

@@ -57,6 +57,10 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         Guid DbId();
         int TableId();
 
+        bool IsDeleted();
+        void Delete();
+        void UnDelete();
+
         /// <summary>
         /// Used to determine the status of a row on a page
         /// </summary>

@@ -26,7 +26,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public void Dispose()
         {
-            throw new NotImplementedException();
         }
 
         public bool MoveNext()

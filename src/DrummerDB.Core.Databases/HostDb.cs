@@ -40,21 +40,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _xEntryManager = xEntryManager;
             _inMemoryTables = new TableCollection();
 
-            foreach (var table in _metaData.Tables)
-            {
-                Table newTable = null;
-                if (_log is not null)
-                {
-                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
-                }
-                else
-                {
-                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager); ;
-                }
-
-                _inMemoryTables.Add(newTable);
-            }
-
+            LoadTablesIntoMemory();
         }
 
         internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
@@ -64,20 +50,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _inMemoryTables = new TableCollection();
             _log = log;
 
-            foreach (var table in _metaData.Tables)
-            {
-                Table newTable = null;
-                if (_log is not null)
-                {
-                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
-                }
-                else
-                {
-                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager); ;
-                }
-
-                _inMemoryTables.Add(newTable);
-            }
+            LoadTablesIntoMemory();
         }
 
         internal HostDb(DatabaseMetadata metadata, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
@@ -90,17 +63,21 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Public Methods
         public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
-
             switch (transactionMode)
             {
                 case TransactionMode.None:
 
                     if (HasTable(tableName))
                     {
-
+                        _inMemoryTables.Remove(tableName);
+                        _metaData.DropTable(tableName);
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
                     }
 
-                    break;
                 case TransactionMode.Try:
                     break;
                 case TransactionMode.Rollback:
@@ -206,48 +183,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public override int GetMaxTableId()
         {
-            int maxId = 0;
-
-            foreach (var table in _metaData.Tables)
-            {
-                if (table.Id > maxId)
-                {
-                    maxId = table.Id;
-                }
-            }
-
-            return maxId;
+            return _metaData.GetMaxTableId();
         }
 
         public override bool HasTable(int tableId)
         {
-            foreach (var item in _metaData.Tables)
-            {
-                if (item.Address.TableId == tableId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _metaData.HasTable(tableId);
         }
 
         public override bool HasTable(string tableName, string schemaName)
         {
-            foreach (var table in _metaData.Tables)
-            {
-                if (table.Schema is not null)
-                {
-                    if (string.Equals(tableName, table.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(schemaName, table.Schema.SchemaName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return _metaData.HasTable(tableName, schemaName);
         }
-
 
         public override Table GetTable(string tableName, string schemaName)
         {
@@ -445,13 +392,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                foreach (var item in _metaData.Tables)
-                {
-                    if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
+                _metaData.HasTable(tableName);
             }
 
             return false;
@@ -491,20 +432,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Private Methods
         private TableSchema GetTableSchema(string tableName)
         {
-            foreach (var item in _metaData.Tables)
-            {
-                if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (string.IsNullOrEmpty(item.DatabaseName))
-                    {
-                        item.DatabaseName = _metaData.Name;
-                    }
-
-                    return item;
-                }
-            }
-
-            return null;
+            return _metaData.GetTableSchema(tableName);
         }
 
         private Table MakeTable(TableSchema schema)
@@ -519,15 +447,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private TableSchema GetTableSchema(int tableId)
         {
-            foreach (var item in _metaData.Tables)
-            {
-                if (item.Address.TableId == tableId)
-                {
-                    return item;
-                }
-            }
-
-            return null;
+            return _metaData.GetTableSchema(tableId);
         }
 
         private CreateTableTransaction GetCreateTableTransaction(TableSchema schema)
@@ -545,6 +465,24 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 );
 
             return entry;
+        }
+
+        private void LoadTablesIntoMemory()
+        {
+            foreach (var table in _metaData.Schemas())
+            {
+                Table newTable = null;
+                if (_log is not null)
+                {
+                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                }
+                else
+                {
+                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager); ;
+                }
+
+                _inMemoryTables.Add(newTable);
+            }
         }
         #endregion
 

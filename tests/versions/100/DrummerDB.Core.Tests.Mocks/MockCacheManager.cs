@@ -82,6 +82,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             return _rowId;
         }
 
+        public List<PageAddress> GetPageAddressesForTree(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
         public IRow GetRow(int rowId, TreeAddress address)
         {
             throw new NotImplementedException();
@@ -168,6 +173,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         }
 
         public bool HasValue(TreeAddress address, RowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool RemoveTree(TreeAddress address)
         {
             throw new NotImplementedException();
         }

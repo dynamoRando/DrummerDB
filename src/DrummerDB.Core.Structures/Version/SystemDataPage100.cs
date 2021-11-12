@@ -213,6 +213,21 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         {
             return _basePage.GetCountOfRowsWithValue(value);
         }
+
+        public override bool IsDeleted()
+        {
+            return _basePage.IsDeleted();
+        }
+
+        public override void Delete()
+        {
+            _basePage.Delete();
+        }
+
+        public override void UnDelete()
+        {
+            _basePage.UnDelete();
+        }
         #endregion
 
         #region Private Methods

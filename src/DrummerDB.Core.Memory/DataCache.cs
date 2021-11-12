@@ -45,6 +45,20 @@ namespace Drummersoft.DrummerDB.Core.Memory
         #endregion
 
         #region Public Methods
+        public List<PageAddress> GetPageAddressesForTree(TreeAddress address)
+        {
+            var addresses = new List<PageAddress>();
+
+            TreeContainer container = GetContainer(address);
+            foreach (var pageId in container.Pages())
+            {
+                var a = new PageAddress { DatabaseId = address.DatabaseId, PageId = pageId, TableId = address.TableId, SchemaId = address.SchemaId };
+                addresses.Add(a);
+            }
+
+            return addresses;
+        }
+
         public RowAddress GetRowAddress(TreeAddress treeAddress, int rowId)
         {
             TreeContainer container = GetContainer(treeAddress);

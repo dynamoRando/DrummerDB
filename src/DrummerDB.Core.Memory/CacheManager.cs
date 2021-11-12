@@ -58,6 +58,15 @@ namespace Drummersoft.DrummerDB.Core.Memory
         #endregion
 
         #region Public Methods
+        public bool RemoveTree(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<PageAddress> GetPageAddressesForTree(TreeAddress address)
+        {
+            return _userDataCache.GetPageAddressesForTree(address);
+        }
 
         public void AddSystemDbSystemPage(ISystemPage page)
         {
@@ -517,6 +526,8 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
             */
         }
+
+
 
 
 

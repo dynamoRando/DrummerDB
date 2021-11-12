@@ -41,6 +41,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract int GetCountOfRowIdsOnPage(bool includeDeletedrows = false);
         public abstract RowAddress[] GetRowAddressesWithValue(IRowValue value);
         public abstract int GetCountOfRowsWithValue(IRowValue value);
+        public abstract bool IsDeleted();
+        public abstract void Delete();
+        public abstract void UnDelete();
         public abstract PageAddress Address { get; }
     }
 }

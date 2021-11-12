@@ -31,6 +31,23 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public TableSchema Get(string tableName)
+        {
+            foreach (var table in _tables)
+            {
+                if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return table;
+                }
+            }
+            return null;
+        }
+
+        public List<TableSchema> GetAll()
+        {
+            return _tables;
+        }
+
         public void Add(TableSchema item)
         {
             if (!Contains(item.Name))

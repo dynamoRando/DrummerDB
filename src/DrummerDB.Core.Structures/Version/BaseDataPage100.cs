@@ -16,7 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
     {
         /*
          * Page Byte Array Layout:
-         * PageId PageType - page preamble
+         * PageId PageType IsDeleted - page preamble
          * PageId PageType || TotalBytesUsed TotalRows DatabaseId TableId DataPageType - total data page premable
          * <rowDataStart> [row] [row] [row] [row] <rowDataEnd>
          * <rowDataEnd == [rowId = -1, IsLocal = true]>
@@ -150,6 +150,26 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Public Methods
+        public override bool IsDeleted()
+        {
+            var dataSpan = new ReadOnlySpan<byte>(_data);
+            ReadOnlySpan<byte> isDeletedSpan = dataSpan.Slice(PageConstants.PageIsDeletedOffset(), PageConstants.SIZE_OF_IS_DELETED(_V100));
+            var result = DbBinaryConvert.BinaryToBoolean(isDeletedSpan);
+
+            return result;
+        }
+
+        public override void Delete()
+        {
+            var bDelete = BitConverter.GetBytes(true);
+            bDelete.CopyTo(_data, PageConstants.PageIsDeletedOffset(_V100));
+        }
+
+        public override void UnDelete()
+        {
+            var bDelete = BitConverter.GetBytes(false);
+            bDelete.CopyTo(_data, PageConstants.PageIsDeletedOffset(_V100));
+        }
         public override int GetCountOfRowIdsOnPage(bool includeDeletedRows = false)
         {
             int totalCount = 0;
@@ -915,9 +935,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 throw new InvalidOperationException("Unknown Page Type");
             }
         }
-
-
-
 
         #endregion
     }

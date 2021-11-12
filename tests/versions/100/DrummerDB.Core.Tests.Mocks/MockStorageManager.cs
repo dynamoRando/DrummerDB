@@ -272,5 +272,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public bool MarkPageAsDeleted(PageAddress address)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

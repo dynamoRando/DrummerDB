@@ -44,14 +44,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public ITransactionEntryManager TransactionEntryManager => _xEntryManager;
 
         /// <summary>
-        /// The tables in the database
-        /// </summary>
-        public TableSchemaCollection Tables
-        {
-            get { return _tables; }
-        }
-
-        /// <summary>
         /// The users of the database
         /// </summary>
         internal IUser[] Users { get; set; }
@@ -102,6 +94,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var userTables = _systemDataPages.GetTables(page.DatabaseName);
             var systemTables = _systemDataPages.SystemTables;
 
+            _tables = new TableSchemaCollection();
+
             foreach (var table in userTables)
             {
                 _tables.Add(table);
@@ -125,6 +119,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _dbId = dbId;
             _version = version;
             _dbName = dbName;
+
+            _tables = new TableSchemaCollection();
 
             var userTables = _systemDataPages.GetTables(_dbName);
 
@@ -163,6 +159,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _dbId = dbId;
             _version = version;
 
+            _tables = new TableSchemaCollection();
+
             var userTables = _systemDataPages.GetTables(dbName);
             var systemTables = _systemDataPages.SystemTables;
 
@@ -184,6 +182,86 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public TableSchema GetTableSchema(string tableName)
+        {
+            foreach (var item in _tables)
+            {
+                if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (string.IsNullOrEmpty(item.DatabaseName))
+                    {
+                        item.DatabaseName = GetDatabaseName();
+                    }
+
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        public TableSchema GetTableSchema(int tableId)
+        {
+            foreach (var item in _tables)
+            {
+                if (item.Address.TableId == tableId)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        public int GetMaxTableId()
+        {
+            int maxId = 0;
+            foreach (var table in _tables)
+            {
+                if (table.Id > maxId)
+                {
+                    maxId = table.Id;
+                }
+            }
+
+            return maxId;
+        }
+
+        public bool HasTable(int tableId)
+        {
+            foreach (var item in _tables)
+            {
+                if (item.Address.TableId == tableId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool HasTable(string tableName, string schemaName)
+        {
+            foreach (var table in _tables)
+            {
+                if (table.Schema is not null)
+                {
+                    if (string.Equals(tableName, table.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(schemaName, table.Schema.SchemaName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
+        public List<TableSchema> Schemas()
+        {
+            return _tables.GetAll();
+        }
+
         public DatabaseSchemaInfo GetSchemaInfo(string schemaName)
         {
             if (HasSchema(schemaName))
@@ -289,6 +367,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool DropTable(string tableName)
         {
+            var table = _tables.Get(tableName);
+            var pageAddresses = CacheManager.GetPageAddressesForTree(table.Address);
+
+            foreach (var pageAddress in pageAddresses)
+            {
+                StorageManager.MarkPageAsDeleted(pageAddress);
+            }
+
+            CacheManager.RemoveTree(table.Address);
+            _tables.Remove(tableName);
+
+            // is this it?
             throw new NotImplementedException();
         }
 

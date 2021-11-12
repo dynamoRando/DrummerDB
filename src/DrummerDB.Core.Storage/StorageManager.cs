@@ -58,6 +58,11 @@ namespace Drummersoft.DrummerDB.Core.Storage
         #endregion
 
         #region Public Methods
+        public bool MarkPageAsDeleted(PageAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Creates the needed database structures on disk for a system database
         /// </summary>

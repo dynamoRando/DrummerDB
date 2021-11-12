@@ -2,6 +2,7 @@
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
+using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.Memory.Interface
 {
@@ -24,6 +25,9 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         int[] UserDataGetContainerPages(TreeAddress address);
         IBaseDataPage UserDataGetPage(PageAddress address);
         bool UserSystemCacheHasDatabase(Guid dbId);
+
+        bool RemoveTree(TreeAddress address);
+        List<PageAddress> GetPageAddressesForTree(TreeAddress address);
 
     }
 }
