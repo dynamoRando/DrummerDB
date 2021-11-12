@@ -15,6 +15,10 @@ namespace Drummersoft.DrummerDB.Core.Structures
         private ITable _table;
         private List<IPage> _pages;
 
+        public TableSchema Schema => _schema;
+        public ITable Table => _table;
+        public List<IPage> Pages => _pages;
+
         public DropTableTransaction(TableSchema schema, ITable table, List<IPage> pages)
         {
             _schema = schema;

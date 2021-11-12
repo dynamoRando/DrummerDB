@@ -370,9 +370,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var table = _tables.Get(tableName);
             var pageAddresses = CacheManager.GetPageAddressesForTree(table.Address);
 
-            foreach (var pageAddress in pageAddresses)
+            foreach (var address in pageAddresses)
             {
-                StorageManager.MarkPageAsDeleted(pageAddress);
+                var page = CacheManager.UserDataGetPage(address);
+                page.Delete();
+                StorageManager.SavePageDataToDisk(address, page.Data, page.Type, page.DataPageType(), page.IsDeleted());
             }
 
             CacheManager.RemoveTree(table.Address);

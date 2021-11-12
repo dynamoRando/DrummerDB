@@ -558,8 +558,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public PageType Type;
                 public DataPageType DataPageType;
                 public int Offset;
+                public bool IsDeleted;
 
-                public PageItem(int pageId, PageType type, DataPageType dataPageType, int order, int tableId, int offset)
+                public PageItem(int pageId, PageType type, DataPageType dataPageType, int order, int tableId, int offset, bool isDelted)
                 {
                     PageId = pageId;
                     Type = type;
@@ -567,6 +568,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     DataPageType = dataPageType;
                     TableId = tableId;
                     Offset = offset;
+                    IsDeleted = isDelted;
                 }
             }
         }

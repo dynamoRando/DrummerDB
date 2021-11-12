@@ -277,5 +277,33 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType, bool isDeleted)
+        {
+            IBaseDataPage page = null;
+            var treeAddress = new TreeAddress(address.DatabaseId, address.TableId, address.SchemaId);
+            var file = _files.Where(f => f.Address == treeAddress).FirstOrDefault();
+            if (!(file is null))
+            {
+                page = file.Pages.Where(p => p.PageId() == address.PageId).FirstOrDefault();
+                if (!(page is null))
+                {
+                    page = new UserDataPage100(data, _schema);
+                    if (isDeleted)
+                    {
+                        page.Delete();
+                    }
+                }
+                else
+                {
+                    var x = new UserDataPage100(data, _schema);
+                    if (isDeleted)
+                    {
+                        x.Delete();
+                    }
+                    file.Pages.Add(x);
+                }
+            }
+        }
     }
 }

@@ -10,5 +10,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
     {
         string Name { get; }
         TreeAddress Address { get; }
+        void BringTreeOnline();
     }
 }

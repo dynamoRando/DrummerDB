@@ -12,7 +12,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         UserDataPage GetUserDataPage(int id);
         UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, int tableId);
         List<UserDataPage> GetAllUserDataPages(TreeAddress address, ITableSchema schema);
-        void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType);
+        void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType, bool isDeleted);
         Guid DbId { get; }
         int Version { get; }
         ISystemPage GetSystemPage();

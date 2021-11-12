@@ -63,6 +63,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Public Methods
         public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
+            var storage = _metaData.StorageManager;
+            TransactionEntry xact = null;
+            var cache = _metaData.CacheManager;
+            Table table;
+            TableSchema schema;
+            List<IPage> pages;
+
             switch (transactionMode)
             {
                 case TransactionMode.None:
@@ -79,13 +86,92 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     }
 
                 case TransactionMode.Try:
-                    break;
+
+                    if (HasTable(tableName))
+                    {
+                        table = _inMemoryTables.Get(tableName);
+                        schema = _metaData.GetTableSchema(tableName);
+                        var addresses = _metaData.CacheManager.GetPageAddressesForTree(table.Address);
+                        pages = new List<IPage>();
+
+                        foreach (var address in addresses)
+                        {
+                            var page = _metaData.CacheManager.UserDataGetPage(address);
+                            pages.Add(page as IPage);
+                        }
+
+                        // record the data in the transaction entry
+                        xact = GetTransactionEntryForDropTable(GetDropTableTransaction(schema, table, pages), transaction);
+                        _xEntryManager.AddEntry(xact);
+
+                        // save the transaction to disk
+                        storage.LogOpenTransaction(_metaData.Id, xact);
+
+                        // remove the actual table
+                        _inMemoryTables.Remove(tableName);
+                        _metaData.DropTable(tableName);
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
                 case TransactionMode.Rollback:
-                    break;
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+
+                    // need to get the data back to revert the changes
+                    // need to load the pages back into cache
+                    // and need to make sure the pages are not deleted on disk
+                    var xactData = xact.GetActionAsDropTable();
+
+                    table = xactData.Table as Table;
+                    schema = xactData.Schema;
+                    pages = xactData.Pages;
+
+                    _inMemoryTables.Add(table as Table);
+                    _metaData.AddTable(schema, out _);
+
+                    foreach (var page in pages)
+                    {
+                        if (page is IBaseDataPage)
+                        {
+                            // note - we might be duplicating pages; because we just mark the pages as deleted
+                            // and here we are trying to save the pages back to disk as undeleted
+                            // we might be better off just marking the pages as undeleted directly on disk
+                            var dataPage = page as IBaseDataPage;
+                            storage.SavePageDataToDisk(new PageAddress
+                            {
+                                PageId = dataPage.PageId(),
+                                DatabaseId = table.Address.DatabaseId,
+                                TableId = table.Address.TableId,
+                                SchemaId = table.Address.SchemaId
+                            }, dataPage.Data, dataPage.Type, dataPage.DataPageType(), page.IsDeleted());
+                        }
+                    }
+
+                    // load Cache back with data from disk
+                    table.BringTreeOnline();
+
+                    // once done restoring data, need to clean up transaction
+                    xact.MarkDeleted();
+                    storage.RemoveOpenTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+
                 case TransactionMode.Commit:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkComplete();
+                    storage.LogCloseTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
                     break;
                 case TransactionMode.Unknown:
-                    break;
+                    throw new InvalidOperationException("Unknown transaction type");
                 default:
                     throw new InvalidOperationException("Unknown transaction type");
             }
@@ -455,6 +541,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new CreateTableTransaction(schema);
         }
 
+        private DropTableTransaction GetDropTableTransaction(TableSchema schema, Table table, List<IPage> pages)
+        {
+            return new DropTableTransaction(schema, table, pages);
+        }
+
         private TransactionEntry GetTransactionEntryForCreateTable(CreateTableTransaction transaction, TransactionRequest request)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
@@ -463,6 +554,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 (request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
                 transaction, request.UserName, false, sequenceId
                 );
+
+            return entry;
+        }
+
+        private TransactionEntry GetTransactionEntryForDropTable(DropTableTransaction transaction, TransactionRequest request)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
+            var entry = new TransactionEntry(request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
+                transaction, request.UserName, false, sequenceId);
 
             return entry;
         }

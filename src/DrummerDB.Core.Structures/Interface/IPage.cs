@@ -7,5 +7,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         byte[] Data { get; }
         int PageId();
         PageType Type { get; }
+        bool IsDeleted();
     }
 }

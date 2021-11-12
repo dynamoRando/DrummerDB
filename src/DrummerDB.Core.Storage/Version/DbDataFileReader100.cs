@@ -90,6 +90,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
 
                 int iPageId = DbBinaryConvert.BinaryToInt(span.Slice(PageConstants.PageIdOffset(), PageConstants.SIZE_OF_PAGE_ID(Constants.DatabaseVersions.V100)));
                 int iPageType = DbBinaryConvert.BinaryToInt(span.Slice(PageConstants.PageTypeOffset(), PageConstants.SIZE_OF_PAGE_TYPE(Constants.DatabaseVersions.V100)));
+                bool isDeleted = DbBinaryConvert.BinaryToBoolean(span.Slice(PageConstants.PageIsDeletedOffset(), PageConstants.SIZE_OF_IS_DELETED(Constants.DatabaseVersions.V100)));
 
                 var pageType = (PageType)iPageType;
 
@@ -105,7 +106,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                         var iDbId = DbBinaryConvert.BinaryToGuid(span.Slice(DataPageConstants.DatabaseIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_DATABASE_ID(Constants.DatabaseVersions.V100)));
                         var iTableId = DbBinaryConvert.BinaryToInt(span.Slice(DataPageConstants.TableIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_TABLE_ID(Constants.DatabaseVersions.V100)));
 
-                        var pageItem = new PageItem(iPageId, PageType.Data, dataPageType, order, iTableId, position);
+                        var pageItem = new PageItem(iPageId, PageType.Data, dataPageType, order, iTableId, position, isDeleted);
 
                         if (!result.Contains(pageItem))
                         {
@@ -128,7 +129,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                         var iTableId = DbBinaryConvert.BinaryToInt(span.Slice(DataPageConstants.TableIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_TABLE_ID(Constants.DatabaseVersions.V100)));
 
 
-                        var pageItem = new PageItem(iPageId, pageType, dataPageType, order, iTableId, position);
+                        var pageItem = new PageItem(iPageId, pageType, dataPageType, order, iTableId, position, isDeleted);
                         result.Add(pageItem);
 
                         order++;
@@ -138,7 +139,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                 else
                 {
                     // is the first system page
-                    var pageItem = new PageItem(iPageId, pageType, DataPageType.NotApplicable, order, 0, position);
+                    var pageItem = new PageItem(iPageId, pageType, DataPageType.NotApplicable, order, 0, position, isDeleted);
                     result.Add(pageItem);
 
                     order++;

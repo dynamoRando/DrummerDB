@@ -21,5 +21,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         /// </summary>
         /// <returns>The number of bytes until the first system page offset</returns>
         public abstract int FirstSystemDataPageOffset();
+        public abstract bool IsDeleted();
     }
 }

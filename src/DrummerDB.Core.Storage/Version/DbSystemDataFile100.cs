@@ -83,7 +83,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                             var pData = page as SystemDataPage;
                             var pDataType = pData.DataPageType();
                             runningLength += page.Data.Length;
-                            var item = new PageItem(page.PageId(), page.Type, pDataType, order, pData.TableId(), runningLength);
+                            var item = new PageItem(page.PageId(), page.Type, pDataType, order, pData.TableId(), runningLength, page.IsDeleted());
                             _map.AddItem(item);
                         }
 
@@ -92,14 +92,14 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                             var pData = page as UserDataPage;
                             var pDataType = pData.DataPageType();
                             runningLength += page.Data.Length;
-                            var item = new PageItem(page.PageId(), page.Type, pDataType, order, pData.TableId(), runningLength);
+                            var item = new PageItem(page.PageId(), page.Type, pDataType, order, pData.TableId(), runningLength, page.IsDeleted());
                             _map.AddItem(item);
                         }
                     }
                     else
                     {
                         runningLength += page.Data.Length;
-                        var item = new PageItem(page.PageId(), page.Type, DataPageType.Unknown, order, 0, runningLength);
+                        var item = new PageItem(page.PageId(), page.Type, DataPageType.Unknown, order, 0, runningLength, page.IsDeleted());
                         _map.AddItem(item);
                     }
                 });
@@ -156,7 +156,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                         _locker.ExitReadLock();
 
                         result = searchResult.UserDataPage;
-                        var item = new PageItem(searchResult.UserDataPage.PageId(), PageType.Data, DataPageType.User, searchResult.Order, searchResult.UserDataPage.TableId(), searchResult.Offset);
+                        var item = new PageItem(searchResult.UserDataPage.PageId(), PageType.Data, DataPageType.User, searchResult.Order, searchResult.UserDataPage.TableId(), searchResult.Offset, result.IsDeleted());
                         _map.AddItem(item);
                     }
                 }
@@ -171,7 +171,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                 if (searchResult is not null)
                 {
                     result = searchResult.UserDataPage;
-                    var item = new PageItem(searchResult.UserDataPage.PageId(), PageType.Data, DataPageType.User, searchResult.Order, searchResult.UserDataPage.TableId(), searchResult.Offset);
+                    var item = new PageItem(searchResult.UserDataPage.PageId(), PageType.Data, DataPageType.User, searchResult.Order, searchResult.UserDataPage.TableId(), searchResult.Offset, result.IsDeleted());
                     if (!_map.HasItem(item))
                     {
                         _map.AddItem(item);
@@ -233,7 +233,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             throw new NotImplementedException();
         }
 
-        public override void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType)
+        public override void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType, bool isDeleted)
         {
             long offset = 0;
             if (_map.HasPage(address.PageId, address.TableId, type))
@@ -254,7 +254,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             {
                 checked
                 {
-                    var pageItem = new PageItem(address.PageId, type, dataPageType, _map.GetMaxOrder() + 1, address.TableId, (int)offset);
+                    var pageItem = new PageItem(address.PageId, type, dataPageType, _map.GetMaxOrder() + 1, address.TableId, (int)offset, isDeleted);
                     _map.AddItem(pageItem);
                 }
             }

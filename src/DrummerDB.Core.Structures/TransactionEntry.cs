@@ -271,6 +271,16 @@ namespace Drummersoft.DrummerDB.Core.Structures
             UserName = DbBinaryConvert.BinaryToString(data.Slice(0, UserNameLength));
         }
 
+        public DropTableTransaction GetActionAsDropTable()
+        {
+            if (Action is DropTableTransaction)
+            {
+                return Action as DropTableTransaction;
+            }
+
+            return null;
+        }
+
         public DeleteTransaction GetActionAsDelete()
         {
             if (Action is DeleteTransaction)

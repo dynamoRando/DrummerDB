@@ -339,7 +339,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var deleteAction = xact.GetActionAsDelete();
                         xact.MarkComplete();
                         IBaseDataPage pageToSave = _cache.UserDataGetPage(deleteAction.Address.ToPageAddress());
-                        _storage.SavePageDataToDisk(deleteAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType());
+                        _storage.SavePageDataToDisk(deleteAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
                         _storage.LogCloseTransaction(_schema.DatabaseId, xact);
                         _xEntryManager.RemoveEntry(xact);
 
@@ -405,7 +405,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                             var updateAction = xact.GetActionAsUpdate();
                             xact.MarkComplete();
                             IBaseDataPage pageToSave = _cache.UserDataGetPage(updateAction.Address.ToPageAddress());
-                            _storage.SavePageDataToDisk(updateAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType());
+                            _storage.SavePageDataToDisk(updateAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, 
+                                pageToSave.DataPageType(), pageToSave.IsDeleted());
                             _storage.LogCloseTransaction(_schema.DatabaseId, xact);
                             _xEntryManager.RemoveEntry(xact);
 
@@ -475,7 +476,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                         string pageData = BitConverter.ToString(pageToSave.Data);
 
-                        _storage.SavePageDataToDisk(pageAddress, pageToSave.Data, pageToSave.Type, pageToSave.DataPageType());
+                        _storage.SavePageDataToDisk(pageAddress, pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
 
                         return true;
                     }
@@ -541,7 +542,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var debug = new PageDebug(pageToSave.Data);
                         string dataString = debug.DebugData();
 
-                        _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType());
+                        _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
+                            pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),
+                            pageToSave.IsDeleted()
+                            );
                         _storage.LogCloseTransaction(_schema.DatabaseId, xact);
                         _xEntryManager.RemoveEntry(xact);
 

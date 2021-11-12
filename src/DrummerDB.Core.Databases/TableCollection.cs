@@ -26,6 +26,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public Table Get(string tableName)
+        {
+            foreach(var table in _tables)
+            {
+                if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return table;
+                }
+            }
+
+            return null;
+        }
+
         public void Add(Table item)
         {
             if (!Contains(item.Name))

@@ -137,7 +137,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                     _locker.ExitReadLock();
 
                     result = searchResult.UserDataPage;
-                    var item = new PageItem(searchResult.UserDataPage.PageId(), PageType.Data, DataPageType.User, searchResult.Order, searchResult.UserDataPage.TableId(), searchResult.Offset);
+                    var item = new PageItem(searchResult.UserDataPage.PageId(), PageType.Data, DataPageType.User, searchResult.Order, searchResult.UserDataPage.TableId(), searchResult.Offset, result.IsDeleted());
                     _map.AddItem(item);
                 }
             }
@@ -173,7 +173,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             return page;
         }
 
-        public void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType)
+        public void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType, bool isDeleted)
         {
             long offset = 0;
 
@@ -197,7 +197,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             {
                 checked
                 {
-                    var pageItem = new PageItem(address.PageId, type, dataPageType, _map.GetMaxOrder() + 1, address.TableId, (int)offset);
+                    var pageItem = new PageItem(address.PageId, type, dataPageType, _map.GetMaxOrder() + 1, address.TableId, (int)offset, isDeleted);
                     _map.AddItem(pageItem);
                 }
             }

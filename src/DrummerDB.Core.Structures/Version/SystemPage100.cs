@@ -65,6 +65,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Public Methods
+        public override bool IsDeleted()
+        {
+            var span = new ReadOnlySpan<byte>(_data);
+            bool isDeleted = DbBinaryConvert.BinaryToBoolean(span.Slice(PageConstants.PageIsDeletedOffset(_V100), PageConstants.SIZE_OF_IS_DELETED(_V100)));
+            return isDeleted;
+        }
+
         /// <summary>
         /// Returns the maximum System Data Page in this database, based on the System Page's Data
         /// </summary>

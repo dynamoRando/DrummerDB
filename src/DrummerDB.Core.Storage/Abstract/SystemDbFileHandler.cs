@@ -12,7 +12,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Abstract
         public abstract int Version { get; }
         public abstract Guid DbId { get; }
         public abstract UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, int tableId);
-        public abstract void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType);
+        public abstract void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType, bool isDeleted);
         public abstract int GetTotalPages();
         public abstract int GetTotalPages(TreeAddress address);
         public abstract int GetMaxPageId(TreeAddress address);
