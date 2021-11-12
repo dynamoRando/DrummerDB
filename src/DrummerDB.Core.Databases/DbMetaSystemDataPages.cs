@@ -178,6 +178,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _users.HasAllValues(values);
         }
 
+        /// <summary>
+        /// Adds the schema to the sys tables and saves the result to disk
+        /// </summary>
+        /// <param name="schema">The schema of the table</param>
+        /// <param name="tableObjectId">The new table object id</param>
+        /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
         public bool AddTable(ITableSchema schema, out Guid tableObjectId)
         {
             bool result = false;
@@ -413,10 +419,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <returns>The schemas for the user defined tables in the database.</returns>
         /// <exception cref="InvalidOperationException">Unknown column type</exception>
-        public ITableSchema[] GetTables(string dbName)
+        public TableSchema[] GetTables(string dbName)
         {
             var rows = _userTable.GetRows();
-            var result = new ITableSchema[rows.Count];
+            var result = new TableSchema[rows.Count];
             int i = 0;
 
             foreach (var row in rows)

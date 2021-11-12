@@ -77,7 +77,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
         public override void ExitDrop_table([NotNull] TSqlParser.Drop_tableContext context)
         {
             base.ExitDrop_table(context);
-            throw new NotImplementedException("Need to write drop table operators and add to _plan");
+
+            var dropPart = new DropTablePlanPart();
+            
+            _plan.Parts.Add(dropPart);
+
         }
 
         public override void EnterColumn_definition([NotNull] TSqlParser.Column_definitionContext context)

@@ -28,7 +28,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.LOGIN_TABLE;
                 public const string TABLE_NAME = "SystemLogins";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -83,7 +83,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.LOGIN_ROLE_TABLE;
                 public const string TABLE_NAME = "SystemLoginRoles";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -126,7 +126,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.SYSTEM_ROLE_TABLE;
                 public const string TABLE_NAME = "SystemRoles";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -162,7 +162,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.SYSTEM_ROLE_PERMISSIONS_TABLE;
                 public const string TABLE_NAME = "SystemRolesPermissions";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -204,7 +204,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASES_TABLE;
                 public const string TABLE_NAME = "Databases";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;

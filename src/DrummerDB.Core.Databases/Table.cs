@@ -15,10 +15,10 @@ using System.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
-    internal class Table
+    internal class Table : ITable
     {
         #region Private Fields
-        private ITableSchema _schema;
+        private TableSchema _schema;
         private ICacheManager _cache;
         private IRemoteDataManager _remoteManager;
         private IStorageManager _storage;
@@ -40,19 +40,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Constructors
-        public Table(ITableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager) :
+        public Table(TableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager) :
             this(schema, cache, storage, xEntryManager)
         {
             _remoteManager = remoteManager;
         }
 
-        public Table(ITableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log) :
+        public Table(TableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log) :
          this(schema, cache, storage, xEntryManager, log)
         {
             _remoteManager = remoteManager;
         }
 
-        public Table(ITableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager)
+        public Table(TableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager)
         {
             _cache = cache;
             _schema = schema;
@@ -61,7 +61,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             BringTreeOnline();
         }
 
-        public Table(ITableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log)
+        public Table(TableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log)
         {
             _cache = cache;
             _schema = schema;
@@ -71,7 +71,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             BringTreeOnline();
         }
 
-        public Table(ITableSchema schema, ICacheManager cache, IStorageManager storage, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
+        public Table(TableSchema schema, ICacheManager cache, IStorageManager storage, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
             this(schema, cache, storage, xEntryManager)
         {
             _settings = settings;
@@ -255,7 +255,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new ColumnSchemaStruct();
         }
 
-        public ITableSchema Schema()
+        public TableSchema Schema()
         {
             return _schema;
         }

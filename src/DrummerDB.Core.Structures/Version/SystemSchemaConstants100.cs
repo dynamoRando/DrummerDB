@@ -21,7 +21,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_TABLES;
                 public const string TABLE_NAME = "UserTables";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -85,7 +85,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_TABLE_SCHEMAS;
                 public const string TABLE_NAME = "UserTableSchemas";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -193,7 +193,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_OBJECTS;
                 public const string TABLE_NAME = "UserObjects";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -233,7 +233,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USERS;
                 public const string TABLE_NAME = "Users";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -290,7 +290,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_OBJECT_PERMISSIONS;
                 public const string TABLE_NAME = "UserObjectPermissions";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -331,7 +331,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASE_SCHEMAS;
                 public const string TABLE_NAME = "DatabaseSchemas";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -367,7 +367,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASE_SCHEMA_PERMISSIONS;
                 public const string TABLE_NAME = "DatabaseSchemaPermissions";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -407,7 +407,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.PARTICIPANTS;
                 public const string TABLE_NAME = "Participants";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -467,7 +467,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.TENANTS;
                 public const string TABLE_NAME = "Tenants";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -505,7 +505,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASE_CONTRACTS;
                 public const string TABLE_NAME = "DatabaseContracts";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;

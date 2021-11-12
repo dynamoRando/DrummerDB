@@ -21,7 +21,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Private Fields
         // TODO - the metadata objects should talk to cache to get things they need, example system data tables should talk to cache to get data
         // from system data pages, etc.
-        private ITableSchema[] _tables;
+        private TableSchemaCollection _tables;
         private DbMetaSystemDataPages _systemDataPages;
         private DbMetaSystemPage _systemPage;
         private string _dbName;
@@ -46,7 +46,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <summary>
         /// The tables in the database
         /// </summary>
-        public ITableSchema[] Tables
+        public TableSchemaCollection Tables
         {
             get { return _tables; }
         }
@@ -102,15 +102,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var userTables = _systemDataPages.GetTables(page.DatabaseName);
             var systemTables = _systemDataPages.SystemTables;
 
-            var tables = new List<ITableSchema>();
-            tables.AddRange(userTables);
+            foreach (var table in userTables)
+            {
+                _tables.Add(table);
+            }
 
             foreach (var table in systemTables)
             {
-                tables.Add(table.Schema());
+                _tables.Add(table.Schema());
             }
-
-            _tables = tables.ToArray();
         }
 
         public DatabaseMetadata(ICacheManager cache, Guid dbId, int version, ICryptoManager crypt, IStorageManager storage, string dbName)
@@ -128,17 +128,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var userTables = _systemDataPages.GetTables(_dbName);
 
-            var tables = new List<ITableSchema>();
-            tables.AddRange(userTables);
+            foreach (var table in userTables)
+            {
+                _tables.Add(table);
+            }
 
             var systemTables = _systemDataPages.SystemTables;
 
             foreach (var table in systemTables)
             {
-                tables.Add(table.Schema());
+                _tables.Add(table.Schema());
             }
-
-            _tables = tables.ToArray();
 
             if (!cache.UserSystemCacheHasDatabase(dbId))
             {
@@ -166,15 +166,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var userTables = _systemDataPages.GetTables(dbName);
             var systemTables = _systemDataPages.SystemTables;
 
-            var tables = new List<ITableSchema>();
-            tables.AddRange(userTables);
+            foreach (var table in userTables)
+            {
+                _tables.Add(table);
+            }
 
             foreach (var table in systemTables)
             {
-                tables.Add(table.Schema());
+                _tables.Add(table.Schema());
             }
-
-            _tables = tables.ToArray();
 
             _dbName = dbName;
 
@@ -271,17 +271,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <param name="schema">The schema of the table to add</param>
         /// <remarks>Note that adding the table to this object is only to maintain what is presented to other databases. 
         /// To actually add the table to Cache and Storage, use <seealso cref="IDbMetaSystemDataPages.AddTable(ITableSchema)"/></remarks>
-        public bool AddTable(ITableSchema schema, out Guid tableObjectId)
+        public bool AddTable(TableSchema schema, out Guid tableObjectId)
         {
             bool result = false;
 
             if (!_systemDataPages.HasTable(schema.Name))
             {
                 _systemDataPages.AddTable(schema, out tableObjectId);
-                int oldSize = _tables.Length;
-                int newSize = oldSize + 1;
-                Array.Resize<ITableSchema>(ref _tables, newSize);
-                _tables[newSize - 1] = schema;
+                _tables.Add(schema);
                 result = true;
                 return result;
             }

@@ -487,21 +487,21 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void SetupSystemLoginsTable()
         {
-            _systemLogins = new Table(SystemDatabaseConstants100.Tables.LoginTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _systemLogins = new Table(LoginTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemLogins);
         }
 
         private void SetupSystemLoginsRolesTable()
         {
-            _systemLoginRoles = new Table(SystemDatabaseConstants100.Tables.LoginRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _systemLoginRoles = new Table(LoginRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemLoginRoles);
         }
 
         private void SetupSystemRolesTable()
         {
-            _systemRoles = new Table(SystemDatabaseConstants100.Tables.SystemRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _systemRoles = new Table(SystemRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemRoles);
 
@@ -509,7 +509,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void SetupSystemRolePermisionsTable()
         {
-            _systemRolePermissions = new Table(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _systemRolePermissions = new Table(SystemRolesPermissions.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemRolePermissions);
         }

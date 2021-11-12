@@ -26,11 +26,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         #endregion
 
         #region Constructors
-        public UserDatabase(DatabaseMetadata metadata)
-        {
-        }
-
-
+        public UserDatabase(DatabaseMetadata metadata) { }
         #endregion
 
         #region Public Methods        
@@ -39,8 +35,9 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         /// </summary>
         /// <param name="schema">The schema of the table to add</param>
         /// <returns><c>true</c> if successful, otherwise <c>false</c></returns>
-        public abstract bool AddTable(ITableSchema schema, out Guid tableObjectId);
-        public abstract bool TryAddTable(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId);
+        public abstract bool AddTable(TableSchema schema, out Guid tableObjectId);
+        public abstract bool TryAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId);
+        public abstract bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode);
 
         /// <summary>
         /// Checks the db's <seealso cref="DatabaseMetadata"/> (and therefore the System Data Pages) to see if the database has the specified table
