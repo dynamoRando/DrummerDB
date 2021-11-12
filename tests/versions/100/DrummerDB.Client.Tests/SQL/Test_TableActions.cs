@@ -37,7 +37,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
                 throw new InvalidOperationException("Unable to configure test");
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            //Stopwatch stopwatch = Stopwatch.StartNew();
 
             // --- ARRANGE
             test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.CREATE_TABLE_DROP);
@@ -56,9 +56,20 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             );
             ", dbName);
 
+            // should return 1 table
+            var oneTable = test.ExecuteSQL($@"
+            SELECT * FROM sys.UserTables
+            ;
+            ", dbName);
 
             test.ExecuteSQL($@"
             DROP TABLE IF EXISTS {tableName}
+            ;
+            ", dbName);
+
+            // should return no tables
+            var noTable = test.ExecuteSQL($@"
+            SELECT * FROM sys.UserTables
             ;
             ", dbName);
 
