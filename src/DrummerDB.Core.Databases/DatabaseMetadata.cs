@@ -367,7 +367,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
 
         /// <summary>
-        /// Marks the pages for the table in memory as deleted and saves those pages to disk. Then unloads those pages from Cache. 
+        /// Marks the pages for the table in memory as deleted and saves those pages to disk. 
+        /// Then unloads those pages from Cache. 
+        /// Then removes the table references from the metadata tables.
         /// Also removes the schema from the metadata collection.
         /// </summary>
         /// <param name="tableName">The name of the table to delete</param>
@@ -384,6 +386,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 page.Delete();
                 StorageManager.SavePageDataToDisk(address, page.Data, page.Type, page.DataPageType(), page.IsDeleted());
             }
+
+            _systemDataPages.DropTable(tableName);
 
             CacheManager.RemoveTree(table.Address);
             _tables.Remove(tableName);

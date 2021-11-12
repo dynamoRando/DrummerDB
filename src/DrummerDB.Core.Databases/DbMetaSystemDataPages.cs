@@ -87,6 +87,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public void DropTable(string tableName)
+        {
+            // need to remove the specified table from all the metadata tables
+
+            // user tables
+            // user table schemas,
+            // etc
+            throw new NotImplementedException();
+        }
+
         public DatabaseSchemaInfo GetSchemaInfo(string schemaName)
         {
             if (HasDbSchema((schemaName)))

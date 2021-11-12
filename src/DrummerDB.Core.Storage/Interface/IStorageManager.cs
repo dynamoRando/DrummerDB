@@ -80,6 +80,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         bool IsSystemDatabase(Guid databaseId);
 
         bool IsUserDatabase(Guid databaseId);
+
         void LoadSystemDatabaseFilesIntoMemory();
 
         void LoadUserDatabaseFilesIntoMemory();

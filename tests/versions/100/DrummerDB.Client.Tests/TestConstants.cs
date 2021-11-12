@@ -23,6 +23,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
             public const int SQL_ONLINE = 6000;
             public const int INFO_ONLINE = 6010;
             public const int DATABASE_ONLINE = 6020;
+            public const int CREATE_TABLE_DROP = 6030;
         }
     }
 }
