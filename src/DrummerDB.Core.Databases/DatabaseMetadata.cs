@@ -365,6 +365,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
+
+        /// <summary>
+        /// Marks the pages for the table in memory as deleted and saves those pages to disk. Then unloads those pages from Cache. 
+        /// Also removes the schema from the metadata collection.
+        /// </summary>
+        /// <param name="tableName">The name of the table to delete</param>
+        /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public bool DropTable(string tableName)
         {
             var table = _tables.Get(tableName);

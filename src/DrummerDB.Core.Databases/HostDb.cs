@@ -94,6 +94,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var addresses = _metaData.CacheManager.GetPageAddressesForTree(table.Address);
                         pages = new List<IPage>();
 
+                        // get the pages for the tree (table) from memory before we mark them as deleted
+                        // and save them to disk
                         foreach (var address in addresses)
                         {
                             var page = _metaData.CacheManager.UserDataGetPage(address);
@@ -107,8 +109,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         // save the transaction to disk
                         storage.LogOpenTransaction(_metaData.Id, xact);
 
-                        // remove the actual table
+                        // -- remove the actual table
+                        // remove from our in memory collection
                         _inMemoryTables.Remove(tableName);
+                        // remove all the table infastructure (schema, data pages in cache, data pages on disk)
                         _metaData.DropTable(tableName);
 
                         return true;
