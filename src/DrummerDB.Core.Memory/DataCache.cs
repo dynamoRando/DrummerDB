@@ -45,6 +45,11 @@ namespace Drummersoft.DrummerDB.Core.Memory
         #endregion
 
         #region Public Methods
+        public bool TryRemoveTree(TreeAddress address)
+        {
+            return _dataCache.Remove(address, out _);
+        }
+
         public List<PageAddress> GetPageAddressesForTree(TreeAddress address)
         {
             var addresses = new List<PageAddress>();

@@ -21,9 +21,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public DropTableStatement(string fullText, IDatabase db)
         {
-            FullText = FullText;
-            ParseText();
+            FullText = fullText;
             _db = db;
+            ParseText();
         }
 
         private void ParseText()
@@ -40,6 +40,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
 
             text = text.Replace(DDLKeywords.IF_EXISTS, string.Empty).Trim();
+            text = text.Replace(";", string.Empty);
             TableName = text;
 
             if (_db.HasTable(TableName))

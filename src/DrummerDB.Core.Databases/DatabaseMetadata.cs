@@ -375,7 +375,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <param name="tableName">The name of the table to delete</param>
         /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public bool DropTable(string tableName)
+        public bool DropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             var table = _tables.Get(tableName);
             var pageAddresses = CacheManager.GetPageAddressesForTree(table.Address);
@@ -387,13 +387,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 StorageManager.SavePageDataToDisk(address, page.Data, page.Type, page.DataPageType(), page.IsDeleted());
             }
 
-            _systemDataPages.DropTable(tableName);
+            _systemDataPages.DropTable(tableName, transaction, transactionMode);
 
-            CacheManager.RemoveTree(table.Address);
+            CacheManager.TryRemoveTree(table.Address);
             _tables.Remove(tableName);
 
             // is this it?
-            throw new NotImplementedException();
+            return true;
         }
 
         /// <summary>

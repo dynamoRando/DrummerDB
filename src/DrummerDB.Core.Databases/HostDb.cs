@@ -77,7 +77,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     if (HasTable(tableName))
                     {
                         _inMemoryTables.Remove(tableName);
-                        _metaData.DropTable(tableName);
+                        _metaData.DropTable(tableName, transaction, transactionMode);
                         return true;
                     }
                     else
@@ -113,7 +113,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         // remove from our in memory collection
                         _inMemoryTables.Remove(tableName);
                         // remove all the table infastructure (schema, data pages in cache, data pages on disk)
-                        _metaData.DropTable(tableName);
+                        _metaData.DropTable(tableName, transaction, transactionMode);
 
                         return true;
                     }
@@ -443,7 +443,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     {
                         xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
                         xact.MarkDeleted();
-                        _metaData.DropTable(schema.Name);
+                        _metaData.DropTable(schema.Name, transaction, transactionMode);
                         storage.RemoveOpenTransaction(_metaData.Id, xact);
                         _xEntryManager.RemoveEntry(xact);
 

@@ -18,7 +18,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             return callerName;
         }
 
-        [Fact(Skip ="Drop table operator not written yet")]
+        [Fact]
         public async Task Test_CreateDropTable()
         {
             string testName = GetCurrentMethod();
@@ -63,10 +63,11 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             ;
             ", dbName);
 
+            Assert.InRange(oneTable.Results.First().Rows.Count(), 1, 1);
+
             // --- ACT
             test.ExecuteSQL($@"
-            DROP TABLE IF EXISTS {tableName}
-            ;
+            DROP TABLE IF EXISTS {tableName};
             ", dbName);
 
             // --- ASSERT
@@ -76,7 +77,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             ;
             ", dbName);
 
-            throw new NotImplementedException();
+            Assert.Equal("No rows found", noTable.Results.First().ResultMessage);
         }
     }
 }

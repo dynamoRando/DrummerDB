@@ -25,8 +25,6 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         int[] UserDataGetContainerPages(TreeAddress address);
         IBaseDataPage UserDataGetPage(PageAddress address);
         bool UserSystemCacheHasDatabase(Guid dbId);
-
-        bool RemoveTree(TreeAddress address);
         List<PageAddress> GetPageAddressesForTree(TreeAddress address);
 
     }

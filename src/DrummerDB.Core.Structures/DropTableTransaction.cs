@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.Abstract;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
@@ -30,7 +31,15 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public override byte[] GetDataInTransactionBinaryFormat()
         {
-            throw new NotImplementedException();
+            var arrays = new List<byte[]>();
+            arrays.Add(_schema.ToBinaryFormat());
+
+            foreach(var page in _pages)
+            {
+                arrays.Add(page.Data);
+            }
+
+            return DbBinaryConvert.ArrayStitch(arrays);
         }
     }
 }

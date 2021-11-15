@@ -232,6 +232,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var op = operation as ISQLQueryable;
                         var results = op.Execute(transaction, TransactionMode.Commit);
                         result.AddRange(results.Distinct());
+
+                        if (results.Distinct().Count() == 0)
+                        {
+                            resultSet.NonQueryMessages.Add($"No rows found");
+                        }
+
                     }
                     else if (operation is ISQLNonQueryable)
                     {
@@ -466,6 +472,26 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
 
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Review_Logical_Storage_Policy, db.Id))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case DropTableOperator k:
+                    var dtOp = operation as DropTableOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    db = _db.GetUserDatabase(dtOp.Database.Name);
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Drop_Table, db.Id))
                     {
                         return true;
                     }

@@ -78,10 +78,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
         {
             base.ExitDrop_table(context);
 
-            var dropPart = new DropTablePlanPart();
-            
-            _plan.Parts.Add(dropPart);
+            if (_statement is DropTableStatement)
+            {
+                var dropStatement = _statement as DropTableStatement;
+                var dropPart = new DropTablePlanPart();
+                var dropOp = new DropTableOperator(Database, dropStatement.TableName);
+                dropPart.Operations.Add(dropOp);
 
+                _plan.Parts.Add(dropPart);
+            }
         }
 
         public override void EnterColumn_definition([NotNull] TSqlParser.Column_definitionContext context)

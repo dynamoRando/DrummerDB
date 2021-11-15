@@ -8,6 +8,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
 {
     internal interface IMemoryData
     {
+        bool TryRemoveTree(TreeAddress address);
         bool DeleteRow(IRow row, TreeAddress address);
 
         bool DeleteRow(int rowId, TreeAddress address);

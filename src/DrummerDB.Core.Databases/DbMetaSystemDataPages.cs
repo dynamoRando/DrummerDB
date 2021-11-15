@@ -87,14 +87,45 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
-        public void DropTable(string tableName)
+        public void DropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             // need to remove the specified table from all the metadata tables
-
             // user tables
-            // user table schemas,
+            // user table schemas
             // etc
-            throw new NotImplementedException();
+
+            var ut_value = RowValueMaker.Create(_userTable, ut.TableName, tableName, true);
+            var ut_results = _userTable.GetRowsWithValue(ut_value);
+
+            foreach (var row in ut_results)
+            {
+                _userTable.TryDeleteRow(row, transaction, transactionMode);
+            }
+
+            var uts_value = RowValueMaker.Create(_userTableSchema, uts.TableId, ut_results.First().GetValueInString(ut.TableId), true);
+            var uts_results = _userTableSchema.GetRowsWithValue(uts_value);
+
+            foreach (var row in uts_results)
+            {
+                _userTableSchema.TryDeleteRow(row, transaction, transactionMode);
+            }
+
+            var uto_value = RowValueMaker.Create(_userObjects, uo.ObjectId, ut_results.First().GetValueInString(ut.UserObjectId), true);
+            var uto_results = _userObjects.GetRowsWithValue(uto_value);
+
+            foreach (var row in uto_results)
+            {
+                _userObjects.TryDeleteRow(row, transaction, transactionMode);
+            }
+
+            var uop_value = RowValueMaker.Create(_userObjectPermissions, uop.ObjectId, ut_results.First().GetValueInString(ut.UserObjectId), true);
+            var uop_results = _userObjectPermissions.GetRowsWithValue(uop_value);
+
+            foreach (var row in uop_results)
+            {
+                _userObjectPermissions.TryDeleteRow(row, transaction, transactionMode);
+            }
+
         }
 
         public DatabaseSchemaInfo GetSchemaInfo(string schemaName)

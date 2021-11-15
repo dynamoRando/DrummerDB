@@ -30,24 +30,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
-            if (_db.HasTable(_tableName))
+            if (transactionMode != TransactionMode.Commit)
             {
-                if (_db is HostDb)
+                if (_db.HasTable(_tableName))
                 {
-                    var db = _db as HostDb;
-                    if (db.TryDropTable(_tableName, transaction, transactionMode))
+                    if (_db is HostDb)
                     {
-                        messages.Add($"Table {_tableName} was dropped successfully");
-                    }
-                    else
-                    {
-                        errorMessages.Add($"Unable to remove table {_tableName} from {_db.Name}");
+                        var db = _db as HostDb;
+                        if (db.TryDropTable(_tableName, transaction, transactionMode))
+                        {
+                            messages.Add($"Table {_tableName} was dropped successfully");
+                        }
+                        else
+                        {
+                            errorMessages.Add($"Unable to remove table {_tableName} from {_db.Name}");
+                        }
                     }
                 }
+                else
+                {
+                    errorMessages.Add($"Database {_db.Name} does not have table {_tableName}");
+                }
             }
-            else
+
+            if (transactionMode == TransactionMode.Commit)
             {
-                errorMessages.Add($"Database {_db.Name} does not have table {_tableName}");
+                if (!_db.HasTable(_tableName))
+                {
+                    messages.Add($"Table {_tableName} was dropped successfully");
+                }
+                else
+                {
+                    errorMessages.Add($"Unable to remove table {_tableName} from {_db.Name}");
+                }
             }
         }
     }
