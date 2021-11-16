@@ -4,6 +4,16 @@
     <TargetFramework>net6.0</TargetFramework>
       <AssemblyName>Drummersoft.DrummerDB.Common</AssemblyName>
     <RootNamespace>Drummersoft.DrummerDB.Common</RootNamespace>
+	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
+	  <FileVersion>1.0.0.0</FileVersion>
+	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	  <Authors>dynamoRando</Authors>
+	  <Company>Drummersoft</Company>
+	  <Version>1.0.0.0</Version>
+	  <Description>A library for common DrummerDB objects.</Description>
+	  <PackageProjectUrl>https://github.com/dynamoRando/DrummerDB</PackageProjectUrl>
+	  <RepositoryType>git</RepositoryType>
+	  <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
