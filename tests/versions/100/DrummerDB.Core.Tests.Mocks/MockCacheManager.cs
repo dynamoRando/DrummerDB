@@ -187,6 +187,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public bool TryRemoveTree(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
         public void UpdateRow(IRow row, TreeAddress address, ITableSchema schema, out int pageId)
         {
             throw new NotImplementedException();
