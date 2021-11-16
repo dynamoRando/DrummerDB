@@ -151,7 +151,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var valueUserName = RowValueMaker.Create(_systemLogins, login.UserName, userName);
             values.Add(valueUserName);
 
-            var valueUserId = RowValueMaker.Create(_systemLogins, login.UserGUID, userId.ToString());
+            var valueUserId = RowValueMaker.Create(_systemLogins, login.UserGUID, userId.ToString().ToUpper());
             values.Add(valueUserId);
 
             return _systemLogins.HasAllValues(values);
@@ -178,7 +178,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var row = _systemLogins.GetNewLocalRow();
             row.SetValue(login.UserName, userName);
-            row.SetValue(login.UserGUID, Guid.NewGuid().ToString());
+            row.SetValue(login.UserGUID, userGUID.ToString().ToUpper());
             row.SetValue(login.Salt, salt);
             row.SetValue(login.ByteLength, length.ToString());
             row.SetValue(login.Hash, hash);
