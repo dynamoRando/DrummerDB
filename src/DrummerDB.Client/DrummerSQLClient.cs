@@ -85,6 +85,21 @@ namespace Drummersoft.DrummerDB.Client
 
             return await _client.ExecuteSQLQueryAsync(request);
         }
+
+        public async Task<SQLQueryReply> ExecuteSQLAsync(string sqlStatement, string databaseName, string userName, string pw, Guid userSession)
+        {
+            var auth = new AuthRequest();
+            auth.UserName = userName;
+            auth.Pw = pw;
+
+            var request = new SQLQueryRequest();
+            request.Authentication = auth;
+            request.SqlStatement = sqlStatement;
+            request.UserSessionId = userSession.ToString();
+            request.DatabaseName = databaseName;
+
+            return await _client.ExecuteSQLQueryAsync(request);
+        }
         #endregion
 
         #region Private Methods
