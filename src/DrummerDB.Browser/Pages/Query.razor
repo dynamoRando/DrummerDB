@@ -5,8 +5,27 @@
 @using Services
 <h1>Query</h1>
 
-<textarea id="queryText" name="queryText" rows="10" cols="100" @bind="QueryText">
-</textarea>
+<table class="table">
+	<tr>
+		<th></th>
+	</tr>
+	<tr>
+		<td>
+			<h3>Current Database:</h3>
+			<textarea id="currentDb" name="curentDb" rows="1" cols="20" @bind="selectedDb">
+			</textarea>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<h3>Query Text:</h3>
+			<textarea id="queryText" name="queryText" rows="10" cols="100" @bind="QueryText">
+			</textarea>
+		</td>
+	</tr>
+</table>
+
+
 
 <table class="table">
 	<tr>
@@ -30,7 +49,7 @@
 			<input type="button" @onclick="LoadDatabases" value="Load Databases" />
 		</td>
 		<td>
-			<select id="databaseNames" value="connection.CurrentDatabaseName" @onchange="GetTableNamesForDatabase" @onclick="OnDatabaseClickCallback">
+			<select id="databaseNames" @onchange="SetDb">
 				@foreach (var db in connection.CurrentDatabaseNames)
 				{
 					<option value="@db">@db</option>
@@ -53,21 +72,21 @@
 </textarea>
 
 @code {
-	[Parameter]
-	public EventCallback<MouseEventArgs> OnDatabaseClickCallback { get; set; }
 	private string QueryText = string.Empty;
 	private string QueryResult = string.Empty;
 	private string QueryMessages = string.Empty;
 	private string UserName = string.Empty;
 	private string Password = string.Empty;
+	string selectedDb = string.Empty;
 
-	private void GetTableNamesForDatabase()
+	private void SetDb(ChangeEventArgs args)
 	{
-
-	}
-
-	private void SetCurrentDatabase(MouseEventArgs e)
-	{
+		string db = args.Value.ToString();
+		if (!string.IsNullOrEmpty(db))
+		{
+			connection.CurrentDatabaseName = db;
+			selectedDb = db;
+		}
 	}
 
 	private void LoadDatabases()
@@ -89,6 +108,8 @@
 						if (dataResult is not null)
 						{
 							connection.CurrentDatabaseNames.Clear();
+							connection.CurrentDatabaseNames.Add("-- SELECT ONE ---");
+							connection.CurrentDatabaseNames.Add("drumSystem");
 
 							foreach (var row in dataResult.Rows)
 							{
@@ -108,27 +129,35 @@
 
 	private void ExecuteQuery()
 	{
-		QueryMessages = string.Empty;
-
-		// must change function to async void for this to work
-		//var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, UserName, Password, connection.UserSession);
-
-		var result = connection.SQLClient.ExecuteSQL(QueryText, UserName, Password, connection.UserSession);
-		var queryResult = result.Results.First();
-
-		if (!result.AuthenticationResult.IsAuthenticated)
+		try
 		{
-			QueryMessages += result.AuthenticationResult.AuthenticationMessage + Environment.NewLine;
-		}
+			QueryMessages = string.Empty;
 
-		if (queryResult.IsError)
-		{
-			QueryMessages += queryResult.ExecutionErrorMessage + Environment.NewLine;
-		}
+			// must change function to async void for this to work
+			//var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, UserName, Password, connection.UserSession);
 
-		if (!string.IsNullOrEmpty(queryResult.ResultMessage))
-		{
-			QueryMessages += queryResult.ResultMessage + Environment.NewLine;
+			var result = connection.SQLClient.ExecuteSQL(QueryText, UserName, Password, connection.UserSession);
+			var queryResult = result.Results.First();
+
+			if (!result.AuthenticationResult.IsAuthenticated)
+			{
+				QueryMessages += result.AuthenticationResult.AuthenticationMessage + Environment.NewLine;
+			}
+
+			if (queryResult.IsError)
+			{
+				QueryMessages += queryResult.ExecutionErrorMessage + Environment.NewLine;
+			}
+
+			if (!string.IsNullOrEmpty(queryResult.ResultMessage))
+			{
+				QueryMessages += queryResult.ResultMessage + Environment.NewLine;
+			}
 		}
+		catch(Exception ex)
+		{
+			QueryMessages += $"ERROR: {ex.ToString()}";
+		}
+		
 	}
 }

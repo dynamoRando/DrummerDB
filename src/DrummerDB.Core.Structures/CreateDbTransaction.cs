@@ -19,7 +19,12 @@ namespace Drummersoft.DrummerDB.Core.Structures
         {
             var arrays = new List<byte[]>();
             arrays.Add(DbBinaryConvert.IntToBinary((int)Operation));
-            arrays.Add(DbBinaryConvert.StringToBinary(_dbName));
+
+            var bDbName = DbBinaryConvert.StringToBinary(_dbName);
+            int dbLength = bDbName.Length;
+
+            arrays.Add(DbBinaryConvert.IntToBinary(dbLength));
+            arrays.Add(bDbName);
             return DbBinaryConvert.ArrayStitch(arrays);
         }
     }

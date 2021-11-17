@@ -55,6 +55,8 @@ namespace Drummersoft.DrummerDB.Browser.Services
             CurrentDatabaseNames = new List<string>();
             CurrentDatabaseName = string.Empty;
             CurrrentTableNames = new List<string>();
+
+            CurrentDatabaseNames.Add("-- SELECT ONE ---");
         }
     }
 }
