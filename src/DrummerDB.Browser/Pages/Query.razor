@@ -1,65 +1,66 @@
 ﻿@page "/query"
 @inject Services.Connection connection
 
+@using Drummersoft.DrummerDB.Browser.Format
 @using Drummersoft.DrummerDB.Common
 @using Services
 <h1>Query</h1>
 
 <table class="table">
-	<tr>
-		<th></th>
-	</tr>
-	<tr>
-		<td>
-			<h3>Current Database:</h3>
-			<textarea id="currentDb" name="curentDb" rows="1" cols="20" @bind="selectedDb">
+    <tr>
+        <th></th>
+    </tr>
+    <tr>
+        <td>
+            <h3>Current Database:</h3>
+            <textarea id="currentDb" name="curentDb" rows="1" cols="20" @bind="selectedDb">
 			</textarea>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<h3>Query Text:</h3>
-			<textarea id="queryText" name="queryText" rows="10" cols="100" @bind="QueryText">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <h3>Query Text:</h3>
+            <textarea id="queryText" name="queryText" rows="10" cols="100" @bind="QueryText">
 			</textarea>
-		</td>
-	</tr>
+        </td>
+    </tr>
 </table>
 
 
 
 <table class="table">
-	<tr>
-		<th>User Name</th>
-		<th>Password</th>
-	</tr>
-	<tr>
-		<td><input type="text" id="userName" @bind="UserName" /></td>
-		<td><input type="text" id="password" @bind="Password" /></td>
-	</tr>
+    <tr>
+        <th>User Name</th>
+        <th>Password</th>
+    </tr>
+    <tr>
+        <td><input type="text" id="userName" @bind="UserName" /></td>
+        <td><input type="text" id="password" @bind="Password" /></td>
+    </tr>
 </table>
 
 <table class="table">
-	<tr>
-		<th>Load</th>
-		<th>Databases</th>
-		<th>Execute</th>
-	</tr>
-	<tr>
-		<td>
-			<input type="button" @onclick="LoadDatabases" value="Load Databases" />
-		</td>
-		<td>
-			<select id="databaseNames" @onchange="SetDb">
-				@foreach (var db in connection.CurrentDatabaseNames)
-				{
-					<option value="@db">@db</option>
-				}
-			</select>
-		</td>
-		<td>
-			<input type="button" @onclick="ExecuteQuery" value="Execute Query" />
-		</td>
-	</tr>
+    <tr>
+        <th>Load</th>
+        <th>Databases</th>
+        <th>Execute</th>
+    </tr>
+    <tr>
+        <td>
+            <input type="button" @onclick="LoadDatabases" value="Load Databases" />
+        </td>
+        <td>
+            <select id="databaseNames" @onchange="SetDb">
+                @foreach (var db in connection.CurrentDatabaseNames)
+                {
+                    <option value="@db">@db</option>
+                }
+            </select>
+        </td>
+        <td>
+            <input type="button" @onclick="ExecuteQuery" value="Execute Query" />
+        </td>
+    </tr>
 </table>
 
 
@@ -72,92 +73,106 @@
 </textarea>
 
 @code {
-	private string QueryText = string.Empty;
-	private string QueryResult = string.Empty;
-	private string QueryMessages = string.Empty;
-	private string UserName = string.Empty;
-	private string Password = string.Empty;
-	string selectedDb = string.Empty;
+    private string QueryText = string.Empty;
+    private string QueryResult = string.Empty;
+    private string QueryMessages = string.Empty;
+    private string UserName = string.Empty;
+    private string Password = string.Empty;
+    string selectedDb = string.Empty;
 
-	private void SetDb(ChangeEventArgs args)
-	{
-		string db = args.Value.ToString();
-		if (!string.IsNullOrEmpty(db))
-		{
-			connection.CurrentDatabaseName = db;
-			selectedDb = db;
-		}
-	}
+    private void SetDb(ChangeEventArgs args)
+    {
+        string db = args.Value.ToString();
+        if (!string.IsNullOrEmpty(db))
+        {
+            connection.CurrentDatabaseName = db;
+            selectedDb = db;
+        }
+    }
 
-	private void LoadDatabases()
-	{
-		var result = connection.SQLClient.ExecuteSQL(Connection.DATABASE_QUERY, UserName, Password, connection.UserSession);
+    private void LoadDatabases()
+    {
+        var result = connection.SQLClient.ExecuteSQL(Connection.DATABASE_QUERY, UserName, Password, connection.UserSession);
 
-		if (result is not null)
-		{
-			var queryResult = result.Results.FirstOrDefault();
+        if (result is not null)
+        {
+            var queryResult = result.Results.FirstOrDefault();
 
-			if (result.AuthenticationResult.IsAuthenticated)
-			{
-				if (queryResult is not null)
-				{
-					if (!queryResult.IsError)
-					{
+            if (result.AuthenticationResult.IsAuthenticated)
+            {
+                if (queryResult is not null)
+                {
+                    if (!queryResult.IsError)
+                    {
 
-						var dataResult = result.Results.FirstOrDefault();
-						if (dataResult is not null)
-						{
-							connection.CurrentDatabaseNames.Clear();
-							connection.CurrentDatabaseNames.Add("-- SELECT ONE ---");
-							connection.CurrentDatabaseNames.Add("drumSystem");
+                        var dataResult = result.Results.FirstOrDefault();
+                        if (dataResult is not null)
+                        {
+                            connection.CurrentDatabaseNames.Clear();
+                            connection.CurrentDatabaseNames.Add("-- SELECT ONE ---");
+                            connection.CurrentDatabaseNames.Add("drumSystem");
 
-							foreach (var row in dataResult.Rows)
-							{
-								foreach (var value in row.Values)
-								{
-									string databaseName = DbBinaryConvert.BinaryToString(value.Value.ToByteArray());
-									connection.CurrentDatabaseNames.Add(databaseName);
-								}
-							}
-						}
+                            foreach (var row in dataResult.Rows)
+                            {
+                                foreach (var value in row.Values)
+                                {
+                                    string databaseName = DbBinaryConvert.BinaryToString(value.Value.ToByteArray());
+                                    connection.CurrentDatabaseNames.Add(databaseName);
+                                }
+                            }
+                        }
 
-					}
-				}
-			}
-		}
-	}
+                    }
+                }
+            }
+        }
+    }
 
-	private void ExecuteQuery()
-	{
-		try
-		{
-			QueryMessages = string.Empty;
+    private async Task ExecuteQuery()
+    {
+        try
+        {
+            QueryMessages = string.Empty;
 
-			// must change function to async void for this to work
-			//var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, UserName, Password, connection.UserSession);
+            // must change function to async void for this to work
+            //var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, UserName, Password, connection.UserSession);
 
-			var result = connection.SQLClient.ExecuteSQL(QueryText, UserName, Password, connection.UserSession);
-			var queryResult = result.Results.First();
+            var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, selectedDb, UserName, Password, connection.UserSession);
+            var queryResult = result.Results.FirstOrDefault();
 
-			if (!result.AuthenticationResult.IsAuthenticated)
-			{
-				QueryMessages += result.AuthenticationResult.AuthenticationMessage + Environment.NewLine;
-			}
+            if (result is not null)
+            {
+                if (result.AuthenticationResult is not null)
+                {
+                    if (!result.AuthenticationResult.IsAuthenticated)
+                    {
+                        QueryMessages += result.AuthenticationResult.AuthenticationMessage + Environment.NewLine;
+                    }
+                }
+            }
 
-			if (queryResult.IsError)
-			{
-				QueryMessages += queryResult.ExecutionErrorMessage + Environment.NewLine;
-			}
+            if (queryResult is not null)
+            {
+                if (queryResult.IsError)
+                {
+                    QueryMessages += queryResult.ExecutionErrorMessage + Environment.NewLine;
+                }
 
-			if (!string.IsNullOrEmpty(queryResult.ResultMessage))
-			{
-				QueryMessages += queryResult.ResultMessage + Environment.NewLine;
-			}
-		}
-		catch(Exception ex)
-		{
-			QueryMessages += $"ERROR: {ex.ToString()}";
-		}
-		
-	}
+                if (!string.IsNullOrEmpty(queryResult.ResultMessage))
+                {
+                    QueryMessages += queryResult.ResultMessage + Environment.NewLine;
+                }
+
+                if (queryResult is not null)
+                {
+                    QueryResult += ResultTableFormatter.ToTextTable(result);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            QueryMessages += $"ERROR: {ex.ToString()}";
+        }
+
+    }
 }

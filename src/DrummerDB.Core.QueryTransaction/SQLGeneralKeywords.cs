@@ -12,6 +12,7 @@
         {
             public const string INT = "INT";
             public const string NVARCHAR = "NVARCHAR";
+            public const string VARCHAR = "VARCHAR";
             public const string CHAR = "CHAR";
             public const string DATETIME = "DATETIME";
             public const string BIT = "BIT";

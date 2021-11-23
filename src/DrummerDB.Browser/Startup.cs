@@ -1,4 +1,4 @@
-using Drummersoft.DrummerDB.Browser.Data;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +22,6 @@ namespace Drummersoft.DrummerDB.Browser
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<WeatherForecastService>();
             services.AddScoped<Services.Connection>();
         }
 

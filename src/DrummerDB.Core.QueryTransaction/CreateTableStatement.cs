@@ -158,10 +158,19 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
 
                     // try to account for VARCHAR containing the word CHAR
-                    if (unparsedDataType.Contains(SQLGeneralKeywords.DataTypes.NVARCHAR))
+                    if (unparsedDataType.Contains(SQLGeneralKeywords.DataTypes.NVARCHAR) || unparsedDataType.Contains(SQLGeneralKeywords.DataTypes.VARCHAR))
                     {
+                        string parsedLength = string.Empty;
                         // need to parse length from the string
-                        var parsedLength = unparsedDataType.Replace(SQLGeneralKeywords.DataTypes.NVARCHAR, string.Empty);
+                        if (unparsedDataType.Contains(SQLGeneralKeywords.DataTypes.NVARCHAR))
+                        {
+                            parsedLength = unparsedDataType.Replace(SQLGeneralKeywords.DataTypes.NVARCHAR, string.Empty);
+                        }
+                        else
+                        {
+                            parsedLength = unparsedDataType.Replace(SQLGeneralKeywords.DataTypes.VARCHAR, string.Empty);
+                        }
+                        
                         parsedLength = parsedLength.Replace("(", string.Empty);
                         parsedLength = parsedLength.Replace(")", string.Empty);
 

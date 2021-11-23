@@ -188,26 +188,29 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                 List<string> errors;
 
-                if (!statement.TryValidateEnterTableNameOrCreateTable(new ContextWrapper(context, _charStream), Database, out errors))
+                if (!StatementReport.OriginalStatement.Contains(DDLKeywords.CREATE) && Type != StatementType.DDL)
                 {
-                    StatementReport.Errors.AddRange(errors);
-                    StatementReport.IsValid = false;
-                }
-
-                if (_statement is IContextSelectListElement)
-                {
-                    var state = _statement as IContextSelectListElement;
-
-                    List<string> colErrors = new List<string>();
-                    if (!state.TryValidateSelectListElement(Database, out colErrors))
+                    if (!statement.TryValidateEnterTableNameOrCreateTable(new ContextWrapper(context, _charStream), Database, out errors))
                     {
-                        if (errors is not null)
-                        {
-                            errors.AddRange(colErrors);
-                        }
-
                         StatementReport.Errors.AddRange(errors);
                         StatementReport.IsValid = false;
+                    }
+
+                    if (_statement is IContextSelectListElement)
+                    {
+                        var state = _statement as IContextSelectListElement;
+
+                        List<string> colErrors = new List<string>();
+                        if (!state.TryValidateSelectListElement(Database, out colErrors))
+                        {
+                            if (errors is not null)
+                            {
+                                errors.AddRange(colErrors);
+                            }
+
+                            StatementReport.Errors.AddRange(errors);
+                            StatementReport.IsValid = false;
+                        }
                     }
                 }
             }
