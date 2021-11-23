@@ -13,7 +13,7 @@ Generally, most tests in this suite need to:
 - instantiate a DrummerDB.Process object in a temp directory to prevent database file naming collisions
 - delete all files in that temp directory if it already exists to prevent inaccurate test results
 - configure an admin login/password for the DrummerDB.Process
-- configure that DrummerDB.Process's SQL url and port number
+- configure that DrummerDB.Process's SQL Service url and port number
 
 ### For a Client
 - instatiate a DrummerSQLClient object with the DrummerDB.Process SQL Service url and port number
