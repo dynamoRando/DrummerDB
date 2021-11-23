@@ -18,6 +18,9 @@ Generally, most tests in this suite need to:
 ### For a Client
 - instatiate a DrummerSQLClient object with the DrummerDB.Process SQL Service url and port number
 
+## Arrange, Act, Assert
+This testing suite loosely follows the ARRANGE / ACT / ASSERT testing pattern.
+
 ## TestHarness.cs
 
 To ease some of the setup, there is a TestHarness.cs class that is used in some tests. This class abstracts away some of the boilerplate code
