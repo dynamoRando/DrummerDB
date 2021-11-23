@@ -29,11 +29,11 @@ namespace Drummersoft.DrummerDB.Browser.Format
                 int totalColumns = GetNumberOfColumns(result);
                 if (totalColumns > 0)
                 {
-                    var columns = GetColumns(result);
-                    var formattedColumns = GetColumnTextFormatters(columns, result);
+                    List<ColumnSchema> columns = GetColumns(result);
+                    List<ColumnTextFormatter> formattedColumns = GetColumnTextFormatters(columns, result);
                     string formatter = GetFormatterString(formattedColumns);
                     string header = BuildHeader(formattedColumns, formatter);
-                    var rows = GetRowsText(result, formatter);
+                    List<string> rows = GetRowsText(result, formatter);
                     builder.AppendLine(header);
                     foreach (var row in rows)
                     {

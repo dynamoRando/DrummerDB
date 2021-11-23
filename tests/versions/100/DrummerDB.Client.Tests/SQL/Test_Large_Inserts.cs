@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
@@ -16,7 +17,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
         }
 
         [Fact]
-        public async void Test_Insert_Async()
+        public async Task Test_Insert_Async()
         {
             string testName = GetCurrentMethod();
 

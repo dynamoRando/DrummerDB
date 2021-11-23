@@ -147,6 +147,11 @@ namespace Drummersoft.DrummerDB.Core.Systems
             _network.StopServerForInfoService();
         }
 
+        /// <summary>
+        /// Starts the SQL Service for this Process and overrides settings in the appsettings.json
+        /// </summary>
+        /// <param name="overrideSettingsPortNumber">The port number to use if you wish to override the setting in the Process' appsettings.json</param>
+        /// <param name="overrideSettingsUseHttps">Pass to override the setting to use HTTPS in the Process' appsettings.json</param>
         public void StartSQLServer(int overrideSettingsPortNumber, bool overrideSettingsUseHttps)
         {
             _network.StartServerForSQLService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber, _queries);
