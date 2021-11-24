@@ -59,8 +59,6 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             string selectQuery = test.SelectQuery;
             var selectResult = test.ExecuteSQL(selectQuery, dbName);
 
-            var resultSelect = selectResult.Results.FirstOrDefault();
-
             // --- ASSERT
             Assert.InRange(selectResult.Results.First().Rows.Count(), 1, 1);
         }
@@ -113,9 +111,6 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
 
             string selectQuery = test.SelectQuery;
             var selectResult = test.ExecuteSQL(selectQuery, dbName);
-
-            // sanity check, should return 1 row
-            var resultSelect = selectResult.Results.FirstOrDefault();
 
             // --- ASSERT
             Assert.InRange(selectResult.Results.First().Rows.Count(), 1, 1);
