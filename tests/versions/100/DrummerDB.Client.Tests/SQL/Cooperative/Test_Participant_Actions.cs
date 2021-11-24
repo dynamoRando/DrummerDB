@@ -15,7 +15,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.SET_STORAGE_POLICY);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.TEST_COOP_ACTIONS);
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -90,6 +90,13 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             ", dbName);
 
             // this should return the logical storage policy, which we should use to ASSERT that they are saved correctly
+
+            // need syntax to request acceptance of contract from participant
+            test.ExecuteSQL($@"
+            DRUMMER BEGIN;
+            REQUEST PARTICIPANT AliasName ACCEPT CONTRACT;
+            DRUMMER END;
+            ", dbName);
 
             throw new NotImplementedException();
         }

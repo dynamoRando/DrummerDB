@@ -41,6 +41,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
 
             // 5090
             public const int SET_STORAGE_POLICY = 5090;
+            public const int TEST_COOP_ACTIONS = 5091;
 
             // 6000
             public const int SQL_ONLINE = 6000;

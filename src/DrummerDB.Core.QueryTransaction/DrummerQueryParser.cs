@@ -40,7 +40,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             if (string.IsNullOrEmpty(dbName))
             {
-                throw new ArgumentException("Unable to parse database name in statement"); 
+                throw new ArgumentException("Unable to parse database name in statement");
             }
 
             return IsStatementValid(statement, dbName, dbManager, out errorMessage);
@@ -68,6 +68,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForReviewLogicalStoragePolicy(statement, out errorMessage);
                     }
+
+                    if (HasGenerateContractKeyword(statement))
+                    {
+                        return ParseForGenerateContract(statement, out errorMessage);
+                    }
                 }
             }
 
@@ -77,6 +82,73 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
+        private bool HasGenerateContractKeyword(string statement)
+        {
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ParseForGenerateContract(string statement, out string errorMessage)
+        {
+            // validation rule:
+            // all tables in the database should have a logical storage policy
+            // other than that, we just need to validate the syntax
+
+            if (!_db.IsReadyForCooperation())
+            {
+                errorMessage = $"Database {_db.Name} does not have all tables set with a logical storage policy";
+                return false;
+            }
+
+            // example: GENERATE CONTRACT AS AUTHOR RetailerCorporation DESCRIPTION IntroductionMessageGoesHere;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+                {
+                    string lineAnalysis = line;
+                    string keywords = DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR + " ";
+
+                    // AuthorName DESCRIPTION IntroductionMessageGoesHere
+                    string authorName = lineAnalysis.Replace(keywords, string.Empty).Trim();
+                    
+                    if (authorName.Contains(DrummerKeywords.DESCRIPTION))
+                    {
+                        // need to remove the description keyword and parse the description
+                        int indexOfDescriptionKeyword = authorName.IndexOf(DrummerKeywords.DESCRIPTION + " ");
+                        int lengthOfAuthorName = authorName.Length;
+                        int remainingLength = lengthOfAuthorName - indexOfDescriptionKeyword;
+
+                        // DESCRIPTION IntroductionMessageGoesHere
+                        string descriptionData = authorName.Substring(indexOfDescriptionKeyword, remainingLength).Trim();
+                        
+                        // AuthorName
+                        authorName = authorName.Replace(descriptionData, string.Empty).Trim();
+
+                        // IntroductionMessageGoesHere
+                        descriptionData = descriptionData.Replace(DrummerKeywords.DESCRIPTION, string.Empty).Trim();
+
+                        // ???
+                        errorMessage = string.Empty;
+                        return true;
+                    }
+                }
+            }
+
+            // ???
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
         private bool HasLogicalStoragePolicyKeyword(string statement)
         {
             return statement.Contains(DrummerKeywords.SET_LOGICAL_STORAGE);

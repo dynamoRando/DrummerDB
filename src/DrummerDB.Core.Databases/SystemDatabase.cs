@@ -90,6 +90,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public bool IsReadyForCooperation()
+        {
+            return false;
+        }
+
         public bool HasTable(string tableName)
         {
             if (tableName.Contains('.'))

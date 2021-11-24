@@ -57,6 +57,100 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             EvaluateForReviewLogicalStoragePolicy(line, database, dbManager, ref plan);
         }
 
+        private void EvaluateForGenerateContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            // example:
+            // GENERATE CONTRACT AS AUTHOR RetailerCorporation DESCRIPTION IntroductionMessageGoesHere;
+            // this data should be inserted into the sys.DatabaseContracts table in the database
+            // once the contract has been generated, all the records in sys.UserTables should be updated with the new
+            // contract GUID
+            string authorName = string.Empty;
+            string descriptionData = string.Empty;
+
+            if (database.IsReadyForCooperation())
+            {
+
+                if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+                {
+                    string lineAnalysis = line;
+                    string keywords = DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR + " ";
+
+                    // AuthorName DESCRIPTION IntroductionMessageGoesHere
+                    authorName = lineAnalysis.Replace(keywords, string.Empty).Trim();
+
+                    if (authorName.Contains(DrummerKeywords.DESCRIPTION))
+                    {
+                        // need to remove the description keyword and parse the description
+                        int indexOfDescriptionKeyword = authorName.IndexOf(DrummerKeywords.DESCRIPTION + " ");
+                        int lengthOfAuthorName = authorName.Length;
+                        int remainingLength = lengthOfAuthorName - indexOfDescriptionKeyword;
+
+                        // DESCRIPTION IntroductionMessageGoesHere
+                        descriptionData = authorName.Substring(indexOfDescriptionKeyword, remainingLength).Trim();
+
+                        // AuthorName
+                        authorName = authorName.Replace(descriptionData, string.Empty).Trim();
+
+                        // IntroductionMessageGoesHere
+                        descriptionData = descriptionData.Replace(DrummerKeywords.DESCRIPTION, string.Empty).Trim();
+                    }
+                }
+
+
+                // create an insert table operation for sys.DatabaseContracts
+                // and then an update table operation for sys.UserTables
+                if (!plan.Parts.Any(part => part is InsertQueryPlanPart))
+                {
+                    plan.Parts.Add(new InsertQueryPlanPart());
+                }
+
+                foreach (var part in plan.Parts)
+                {
+                    if (part is InsertQueryPlanPart)
+                    {
+                        var insertDatabaseContractsOp = new InsertTableOperator(dbManager);
+                        insertDatabaseContractsOp.TableName = DatabaseContracts.TABLE_NAME;
+
+                        var contractGuid = Guid.NewGuid();
+
+                        var contractGuidColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.ContractGUID).First();
+                        var generatedDateColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.GeneratedDate).First();
+                        var authorColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.Author).First();
+                        var tokenColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.Token).First();
+                        var descriptionColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.Description).First();
+
+                        var contractGuidStatement = new StatementColumn(contractGuidColumn.Id, contractGuidColumn.Name);
+                        insertDatabaseContractsOp.Columns.Add(contractGuidStatement);
+
+                        // need to create a row to insert
+                        var insertRow = new InsertRow(1);
+
+                        var insertValueContractGuid = new InsertValue(1, contractGuidColumn.Name, contractGuid.ToString());
+                        var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
+                        var insertValueAuthor = new InsertValue(3, authorColumn.Name, authorName);
+
+                        // we need to generate a binary value here
+                        throw new NotImplementedException();
+                        var insertValueToken = new InsertValue(4, tokenColumn.Name, null);
+
+                        var insertValueDescription = new InsertValue(5, descriptionColumn.Name, descriptionData);
+
+                        insertRow.Values.Add(insertValueContractGuid);
+                        insertRow.Values.Add(insertValueGeneratedDate);
+                        insertRow.Values.Add(insertValueAuthor);
+                        insertRow.Values.Add(insertValueToken);
+                        insertRow.Values.Add(insertValueDescription);
+
+                        insertDatabaseContractsOp.Rows.Add(insertRow);
+
+                        part.Operations.Add(insertDatabaseContractsOp);
+                    }
+                }
+            }
+
+            throw new NotImplementedException();
+        }
+
         private void EvaluateForReviewLogicalStoragePolicy(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
             // example:

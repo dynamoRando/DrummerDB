@@ -7,6 +7,11 @@
         public const string SET_LOGICAL_STORAGE = "SET LOGICAL STORAGE";
         public const string REVIEW_LOGICAL_STORAGE = "REVIEW LOGICAL STORAGE";
         public const string FOR = "FOR";
+        public const string ADD_PARTICIPANT = "ADD PARTICIPANT";
+        public const string REQUEST_PARTICIPANT = "REQUEST PARTICIPANT";
+        public const string ACCEPT_CONTRACT = "ACCEPT CONTRACT";
+        public const string GENERATE_CONTRACT_AS_AUTHOR = "GENERATE CONTRACT AS AUTHOR";
+        public const string DESCRIPTION = "DESCRIPTION";
 
         internal static class LogicalStoragePolicyKeywords
         {

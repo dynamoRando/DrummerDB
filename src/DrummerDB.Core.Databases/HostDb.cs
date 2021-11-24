@@ -61,6 +61,20 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public override bool IsReadyForCooperation()
+        {
+            foreach(var table in _inMemoryTables)
+            {
+                var lsp = table.GetLogicalStoragePolicy();
+                if (lsp == LogicalStoragePolicy.None)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             var storage = _metaData.StorageManager;
