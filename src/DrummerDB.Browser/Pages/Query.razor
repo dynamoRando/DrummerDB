@@ -20,7 +20,7 @@
     <tr>
         <td>
             <h3>Query Text:</h3>
-            <textarea id="queryText" name="queryText" rows="10" cols="100" @bind="QueryText">
+            <textarea id="queryText" name="queryText" rows="10" cols="200" @bind="QueryText">
 			</textarea>
         </td>
     </tr>
@@ -65,11 +65,11 @@
 
 
 <h1>Results</h1>
-<textarea id="queryResult" name="queryResult" rows="10" cols="100" @bind="QueryResult">
+<textarea id="queryResult" name="queryResult" rows="10" cols="200" wrap="off" @bind="QueryResult">
 </textarea>
 
 <h1>Messages</h1>
-<textarea id="queryMessages" name="queryMessages" rows="10" cols="100" @bind="QueryMessages">
+<textarea id="queryMessages" name="queryMessages" rows="10" cols="200" @bind="QueryMessages">
 </textarea>
 
 @code {
@@ -130,10 +130,11 @@
 
     private async Task ExecuteQuery()
     {
+        QueryMessages = string.Empty;
+        QueryResult = string.Empty;
+
         try
         {
-            QueryMessages = string.Empty;
-
             // must change function to async void for this to work
             //var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, UserName, Password, connection.UserSession);
 

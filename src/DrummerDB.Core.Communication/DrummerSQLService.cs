@@ -85,11 +85,12 @@ namespace Drummersoft.DrummerDB.Core.Communication
                             {
                                 var rowValue = new Common.Communication.RowValue();
                                 rowValue.Value = ByteString.CopyFrom(rRow[i].Value);
-
+                                rowValue.IsNullValue = rRow[i].IsNullValue;
                                 rowValue.Column = new Common.Communication.ColumnSchema();
                                 rowValue.Column.ColumnName = result.Columns[i].Name;
                                 rowValue.Column.ColumnType = Convert.ToUInt32(result.Columns[i].DataType);
                                 rowValue.Column.IsNullable = result.Columns[i].IsNullable;
+                                rowValue.Column.ColumnLength = Convert.ToUInt32(result.Columns[i].Length);
                                 row.Values.Add(rowValue);
                             }
 

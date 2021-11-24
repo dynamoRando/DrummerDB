@@ -70,32 +70,69 @@ namespace Drummersoft.DrummerDB.Browser.Format
             SQLColumnType type = (SQLColumnType)column.ColumnType;
             byte[] binaryValue = value.Value.ToByteArray();
 
-            switch (type)
+            if (!column.IsNullable)
             {
-                case SQLColumnType.Int:
-                    return DbBinaryConvert.BinaryToInt(binaryValue).ToString();
-                case SQLColumnType.Bit:
-                    return DbBinaryConvert.BinaryToBoolean(binaryValue).ToString();
-                case SQLColumnType.Char:
-                    return DbBinaryConvert.BinaryToString(binaryValue);
-                case SQLColumnType.DateTime:
-                    return DbBinaryConvert.BinaryToDateTime(binaryValue).ToString();
-                case SQLColumnType.Decimal:
-                    return DbBinaryConvert.BinaryToDecimal(binaryValue).ToString();
-                case SQLColumnType.Varchar:
-                    return DbBinaryConvert.BinaryToString(binaryValue).ToString();
-                case SQLColumnType.Binary:
-                    throw new InvalidOperationException("How do I convert binary to text?");
-                case SQLColumnType.Varbinary:
-                    throw new InvalidOperationException("How do I convert binary to text?");
-                default:
-                    throw new InvalidOperationException("Unknown data type to convert to string");
+                switch (type)
+                {
+                    case SQLColumnType.Int:
+                        return DbBinaryConvert.BinaryToInt(binaryValue).ToString();
+                    case SQLColumnType.Bit:
+                        return DbBinaryConvert.BinaryToBoolean(binaryValue).ToString();
+                    case SQLColumnType.Char:
+                        return DbBinaryConvert.BinaryToString(binaryValue);
+                    case SQLColumnType.DateTime:
+                        return DbBinaryConvert.BinaryToDateTime(binaryValue).ToString();
+                    case SQLColumnType.Decimal:
+                        return DbBinaryConvert.BinaryToDecimal(binaryValue).ToString();
+                    case SQLColumnType.Varchar:
+                        return DbBinaryConvert.BinaryToString(binaryValue).ToString();
+                    case SQLColumnType.Binary:
+                        throw new InvalidOperationException("How do I convert binary to text?");
+                    case SQLColumnType.Varbinary:
+                        throw new InvalidOperationException("How do I convert binary to text?");
+                    default:
+                        throw new InvalidOperationException("Unknown data type to convert to string");
+                }
             }
+
+            if (column.IsNullable && !value.IsNullValue)
+            {
+                var span = new ReadOnlySpan<byte>(binaryValue);
+                var revisedSpan = span.Slice(1, span.Length - 1);
+                switch (type)
+                {
+                    case SQLColumnType.Int:
+                        return DbBinaryConvert.BinaryToInt(revisedSpan.ToArray()).ToString();
+                    case SQLColumnType.Bit:
+                        return DbBinaryConvert.BinaryToBoolean(revisedSpan).ToString();
+                    case SQLColumnType.Char:
+                        return DbBinaryConvert.BinaryToString(revisedSpan);
+                    case SQLColumnType.DateTime:
+                        return DbBinaryConvert.BinaryToDateTime(revisedSpan).ToString();
+                    case SQLColumnType.Decimal:
+                        return DbBinaryConvert.BinaryToDecimal(revisedSpan).ToString();
+                    case SQLColumnType.Varchar:
+                        return DbBinaryConvert.BinaryToString(revisedSpan).ToString();
+                    case SQLColumnType.Binary:
+                        throw new InvalidOperationException("How do I convert binary to text?");
+                    case SQLColumnType.Varbinary:
+                        throw new InvalidOperationException("How do I convert binary to text?");
+                    default:
+                        throw new InvalidOperationException("Unknown data type to convert to string");
+                }
+            }
+
+            if (column.IsNullable && value.IsNullValue)
+            {
+                return "NULL";
+            }
+
+            return string.Empty;
         }
 
         private static string GetFormatterString(List<ColumnTextFormatter> columns)
         {
-            
+
             int i = 0;
             string parameterString = string.Empty;
 
@@ -168,6 +205,7 @@ namespace Drummersoft.DrummerDB.Browser.Format
             int maxLength = 0;
             int tempLength = 0;
             var specifiedColumntype = (SQLColumnType)column.ColumnType;
+            int columnNameLength = 0;
 
             var firstRow = result.Rows.First();
             if (firstRow is not null)
@@ -176,6 +214,7 @@ namespace Drummersoft.DrummerDB.Browser.Format
                 {
                     if (string.Equals(value.Column.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase))
                     {
+                        columnNameLength = column.ColumnName.Length;
                         var columnType = (SQLColumnType)value.Column.ColumnType;
                         switch (columnType)
                         {
@@ -228,6 +267,20 @@ namespace Drummersoft.DrummerDB.Browser.Format
                 maxLength = tempLength;
             }
 
+            if (columnNameLength > maxLength)
+            {
+                maxLength = columnNameLength;
+            }
+
+            if (specifiedColumntype == SQLColumnType.Varchar || specifiedColumntype == SQLColumnType.Varbinary)
+            {
+                if (columnNameLength > tempLength)
+                {
+                    maxLength = columnNameLength;
+                }
+            }
+
+            maxLength++;
             return maxLength;
         }
         #endregion

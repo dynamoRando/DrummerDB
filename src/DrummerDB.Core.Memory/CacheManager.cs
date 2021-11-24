@@ -262,7 +262,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                     _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
                 }
 
-                return new ResultsetValue { Value = value.GetValueInBinary(false, true) };
+                return new ResultsetValue { Value = value.GetValueInBinary(false, true), IsNullValue = value.IsNull() };
             }
 
             return new ResultsetValue();
