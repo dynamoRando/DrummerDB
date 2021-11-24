@@ -11,7 +11,7 @@ using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
     public class Test_LogicalStoragePolicy
     {

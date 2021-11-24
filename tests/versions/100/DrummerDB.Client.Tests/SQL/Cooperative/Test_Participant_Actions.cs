@@ -2,7 +2,7 @@
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
     public class Test_Participant_Actions
     {

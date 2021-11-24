@@ -43,6 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             if (_handler.UserHasRights(userName, pw))
             {
+                userIsAuthorized = true;
                 if (string.IsNullOrEmpty(databaseName))
                 {
                     if (_handler.IsValidQuery(statement, userName, pw, out errorMessage))
@@ -50,7 +51,6 @@ namespace Drummersoft.DrummerDB.Core.Communication
                         if (hasSessionId)
                         {
                             result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId);
-                            userIsAuthorized = true;
                         }
                     }
                 }
@@ -61,7 +61,6 @@ namespace Drummersoft.DrummerDB.Core.Communication
                         if (hasSessionId)
                         {
                             result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId);
-                            userIsAuthorized = true;
                         }
                     }
                 }
@@ -115,10 +114,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
                     if (result.HasExecutionErrors())
                     {
                         resultSet.ExecutionErrorMessage = result.ExecutionErrors.FirstOrDefault();
+                        resultSet.IsError = true;
                     }
                 }
 
-                // need to transform the reult into a SQLQueryReply
+                // need to transform the result into a SQLQueryReply
                 reply.Results.Add(resultSet);
                 authResult.IsAuthenticated = userIsAuthorized;
                 reply.AuthenticationResult = authResult;
@@ -128,7 +128,21 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 if (!string.IsNullOrEmpty(errorMessage))
                 {
                     resultSet.ExecutionErrorMessage = errorMessage;
+                    resultSet.IsError = true;
+                    reply.Results.Add(resultSet);
                 }
+
+                if (!userIsAuthorized)
+                {
+                    authResult.IsAuthenticated = false;
+                    reply.AuthenticationResult = authResult;
+                }
+            }
+
+            // santiy check
+            if (reply.Results.Count == 0)
+            {
+                reply.Results.Add(resultSet);
             }
 
             return Task.FromResult(reply);

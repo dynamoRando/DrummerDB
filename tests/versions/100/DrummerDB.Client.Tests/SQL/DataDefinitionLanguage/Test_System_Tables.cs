@@ -5,12 +5,12 @@ using System.Linq;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.DataDefinitionLanguage
 {
     public class Test_System_Tables
     {
         [Fact]
-        public void Test_Create_Get_Databases()
+        public void Test_Create_And_List_All_Databases()
         {
             string dbName = "TestSysGet";
             string dbName2 = "TestSysGet2";

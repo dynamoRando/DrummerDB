@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.Performance
 {
     public class Test_Large_Inserts
     {

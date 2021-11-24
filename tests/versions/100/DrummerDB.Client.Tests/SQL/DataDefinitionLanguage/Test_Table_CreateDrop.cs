@@ -9,9 +9,9 @@ using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.DataDefinitionLanguage
 {
-    public class Test_TableActions
+    public class Test_Table_CreateDrop
     {
         private string GetCurrentMethod([CallerMemberName] string callerName = "")
         {

@@ -6,12 +6,12 @@ using System.Runtime.CompilerServices;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.General
 {
     /// <summary>
     /// Tests multiple actions to ensure that the Process has no errors during typical startup, shutdown, and re-start. This test suite is intended to mirror real-world actions on a production instance.
     /// </summary>
-    public class Test_Various_Actions_Restart
+    public class Test_Various_Actions_And_Persistence_Thru_Restart
     {
         private string GetCurrentMethod([CallerMemberName] string callerName = "")
         {
