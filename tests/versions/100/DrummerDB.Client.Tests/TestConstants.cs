@@ -29,7 +29,10 @@ namespace Drummersoft.DrummerDB.Client.Tests
             // 5060 - SQL INSERT TESTS
             public const int LARGE_INSERTS = 5060;
             public const int INSERT_DATETIME = 5061;
-             
+            public const int INSERT_DATETIME2 = 5062;
+            public const int INSERT_DATETIME3 = 5063;
+            public const int INSERT_DATETIME4 = 5064;
+
             // 5070
             public const int SQL_CREATE_DB = 5070;
 

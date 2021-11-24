@@ -11,16 +11,6 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
 {
     public class Test_Inserts
     {
-        /// <summary>
-        /// Used to record the current method name if the calling method is an async method
-        /// </summary>
-        /// <param name="callerName"></param>
-        /// <returns>The calling method</returns>
-        private string GetCurrentMethod([CallerMemberName] string callerName = "")
-        {
-            return callerName;
-        }
-
         [Fact]
         public void Test_Insert_DateTime_Pass_Date_Only()
         {
@@ -46,8 +36,6 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             ", dbName);
 
             // --- ACT
-            // this should work
-
             var insert1 = test.ExecuteSQL($@"
             INSERT INTO {tableName}
             (
@@ -86,7 +74,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME2);
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -113,7 +101,6 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             );";
 
             // --- ACT
-            // this should work
             var insert1 = test.ExecuteSQL(insertStatement, dbName);
 
             bool isError = false;
@@ -137,13 +124,13 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
         [Fact]
         public void Test_Insert_DateTime_Fail_Wrong_DataType()
         {
-            string dbName = "TestSynInsertFail";
+            string dbName = "TestSynInsertFail1";
             string tableName = "TestInsertDT";
-            string storageFolder = "TestSynInsertFail";
+            string storageFolder = "TestSynInsertFail1";
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME3);
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -159,8 +146,6 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             ", dbName);
 
             // --- ACT
-            // this should work
-
             var insert1 = test.ExecuteSQL($@"
             INSERT INTO {tableName}
             (
@@ -169,6 +154,55 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             VALUES
             (
                 1234,
+            );
+            ", dbName);
+
+            bool isError = false;
+
+            var resultItem = insert1.Results.FirstOrDefault();
+            if (resultItem is not null)
+            {
+                isError = resultItem.IsError;
+            }
+
+            // --- ASSERT
+            Assert.True(isError);
+        }
+
+        [Fact]
+        public void Test_Insert_DateTime_Fail_No_Single_Quote()
+        {
+            string dbName = "TestSynInsertFail2";
+            string tableName = "TestInsertDT";
+            string storageFolder = "TestSynInsertFail2";
+            var test = new TestHarness();
+
+            // --- ARRANGE
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME4);
+            test.SetupTempDirectory();
+            test.SetupProcess();
+            test.StartNetwork();
+            test.SetupClient();
+
+            test.ExecuteSQL($"CREATE DATABASE {dbName}");
+
+            test.ExecuteSQL($@"
+            CREATE TABLE {tableName}
+            (
+                StartDate DATETIME
+            );
+            ", dbName);
+
+            // --- ACT
+
+            var insert1 = test.ExecuteSQL($@"
+            INSERT INTO {tableName}
+            (
+                StartDate
+            )
+            VALUES
+            (
+                {DateTime.Now.ToString()},
             );
             ", dbName);
 
