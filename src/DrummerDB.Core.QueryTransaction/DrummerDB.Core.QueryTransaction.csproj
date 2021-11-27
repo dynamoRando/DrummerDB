@@ -23,6 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\DrummerDB.Core.Cryptography\DrummerDB.Core.Cryptography.csproj" />
 	  <ProjectReference Include="..\DrummerDB.Core.Databases\DrummerDB.Core.Databases.csproj" />
 	  <ProjectReference Include="..\DrummerDB.Core.Diagnostics\DrummerDB.Core.Diagnostics.csproj" />
 	  <ProjectReference Include="..\DrummerDB.Core.IdentityAccess\DrummerDB.Core.IdentityAccess.csproj" />

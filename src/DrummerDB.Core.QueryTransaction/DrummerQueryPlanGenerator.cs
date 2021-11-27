@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Core.Cryptography;
+using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
@@ -128,9 +129,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
                         var insertValueAuthor = new InsertValue(3, authorColumn.Name, authorName);
 
-                        // we need to generate a binary value here
-                        throw new NotImplementedException();
-                        var insertValueToken = new InsertValue(4, tokenColumn.Name, null);
+                        var tokenString = CryptoManager.GenerateTokenString();
+                        var insertValueToken = new InsertValue(4, tokenColumn.Name, tokenString);
 
                         var insertValueDescription = new InsertValue(5, descriptionColumn.Name, descriptionData);
 

@@ -47,6 +47,18 @@ namespace Drummersoft.DrummerDB.Core.Cryptography
         {
             return 10;
         }
+
+        public static string GenerateTokenString()
+        {
+            // http://www.programmerguide.net/2015/02/generating-unique-token-in-c-generating.html
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        }
+
+        public static byte[] GenerateToken()
+        {
+            // http://www.programmerguide.net/2015/02/generating-unique-token-in-c-generating.html
+            return Convert.FromBase64String(GenerateTokenString());
+        }
         #endregion
 
         #region Private Methods
