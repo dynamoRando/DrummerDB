@@ -18,6 +18,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             /// </summary>
             public static class UserTable
             {
+                private static readonly object _lock = new object();
                 private static ColumnSchemaCollection _columns;
 
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_TABLES;
@@ -45,9 +46,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static ColumnSchemaCollection GetColumns()
                 {
-                   if (_columns is null)
+                    lock (_lock)
                     {
-                        GenerateColumns();
+                        if (_columns is null)
+                        {
+                            GenerateColumns();
+                        }
                     }
 
                     return _columns;
@@ -296,7 +300,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static ColumnSchemaCollection GetColumns()
                 {
-                   if (_columns is null)
+                    if (_columns is null)
                     {
                         GenerateColumns();
                     }
@@ -358,7 +362,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static ColumnSchemaCollection GetColumns()
                 {
-                   if (_columns is null)
+                    if (_columns is null)
                     {
                         GenerateColumns();
                     }
@@ -412,7 +416,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static ColumnSchemaCollection GetColumns()
                 {
-                   if (_columns is null)
+                    if (_columns is null)
                     {
                         GenerateColumns();
                     }
