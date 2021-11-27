@@ -1,0 +1,52 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<# string collectionObject = "ColumnSchema"; #>
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Drummersoft.DrummerDB.Core.Structures
+{
+    internal class <#= collectionObject #>Enumerator : IEnumerator<<#= collectionObject #>>
+    {
+        private <#= collectionObject #>Collection _<#= collectionObject #>s;
+        private int _index;
+        private <#= collectionObject #> _current;
+
+        public <#= collectionObject #> Current => _current;
+
+        object IEnumerator.Current => Current;
+
+        public <#= collectionObject #>Enumerator(<#= collectionObject #>Collection collection)
+        {
+            _<#= collectionObject #>s = collection;
+            _index = -1;
+            _current = default(<#= collectionObject #>);
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            //Avoids going beyond the end of the collection.
+            if (++_index >= _<#= collectionObject #>s.Count)
+            {
+                return false;
+            }
+            else
+            {
+                // Set current box to next item in collection.
+                _current = _<#= collectionObject #>s[_index];
+            }
+            return true;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+    }
+}

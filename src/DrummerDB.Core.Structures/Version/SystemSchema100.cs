@@ -20,7 +20,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return new SystemTableSchema100(SystemSchemaConstants100.Tables.UserTable.TABLE_ID,
                 SystemSchemaConstants100.Tables.UserTable.TABLE_NAME,
                 dbId,
-                SystemSchemaConstants100.Tables.UserTable.GetColumns());
+                SystemSchemaConstants100.Tables.UserTable.GetColumns().List);
         }
 
         public override SystemTableSchema GetUserTableSchema(Guid dbId, string dbName)
@@ -28,7 +28,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             var schema = new SystemTableSchema100(SystemSchemaConstants100.Tables.UserTable.TABLE_ID,
                 SystemSchemaConstants100.Tables.UserTable.TABLE_NAME,
                 dbId,
-                SystemSchemaConstants100.Tables.UserTable.GetColumns());
+                SystemSchemaConstants100.Tables.UserTable.GetColumns().List);
             schema.DatabaseName = dbName;
             return schema;
         }
@@ -42,7 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return new SystemTableSchema100(SystemSchemaConstants100.Tables.UserTableSchema.TABLE_ID,
                 SystemSchemaConstants100.Tables.UserTableSchema.TABLE_NAME,
                 dbId,
-                SystemSchemaConstants100.Tables.UserTableSchema.GetColumns());
+                SystemSchemaConstants100.Tables.UserTableSchema.GetColumns().List);
         }
 
         public override SystemTableSchema GetUserTableSchemaSchema(Guid dbId, string dbName)
@@ -50,7 +50,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             var schema = new SystemTableSchema100(SystemSchemaConstants100.Tables.UserTableSchema.TABLE_ID,
                 SystemSchemaConstants100.Tables.UserTableSchema.TABLE_NAME,
                 dbId,
-                SystemSchemaConstants100.Tables.UserTableSchema.GetColumns());
+                SystemSchemaConstants100.Tables.UserTableSchema.GetColumns().List);
             schema.DatabaseName = dbName;
             return schema;
         }
@@ -58,13 +58,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         public override SystemTableSchema GetUserObjectsSchema(Guid dbId)
         {
             return new SystemTableSchema100(SystemSchemaConstants100.Tables.UserObjects.TABLE_ID,
-                SystemSchemaConstants100.Tables.UserObjects.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.UserObjects.GetColumns());
+                SystemSchemaConstants100.Tables.UserObjects.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.UserObjects.GetColumns().List);
         }
 
         public override SystemTableSchema GetUserObjectsSchema(Guid dbId, string dbName)
         {
             var schema = new SystemTableSchema100(SystemSchemaConstants100.Tables.UserObjects.TABLE_ID,
-                SystemSchemaConstants100.Tables.UserObjects.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.UserObjects.GetColumns());
+                SystemSchemaConstants100.Tables.UserObjects.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.UserObjects.GetColumns().List);
             schema.DatabaseName = dbName;
             return schema;
         }
@@ -72,13 +72,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         public override SystemTableSchema GetUsersSchema(Guid dbId)
         {
             return new SystemTableSchema100(SystemSchemaConstants100.Tables.Users.TABLE_ID,
-                SystemSchemaConstants100.Tables.Users.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.Users.GetColumns());
+                SystemSchemaConstants100.Tables.Users.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.Users.GetColumns().List);
         }
 
         public override SystemTableSchema GetUsersSchema(Guid dbId, string dbName)
         {
             var schema = new SystemTableSchema100(SystemSchemaConstants100.Tables.Users.TABLE_ID,
-                SystemSchemaConstants100.Tables.Users.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.Users.GetColumns());
+                SystemSchemaConstants100.Tables.Users.TABLE_NAME, dbId, SystemSchemaConstants100.Tables.Users.GetColumns().List);
             schema.DatabaseName = dbName;
             return schema;
         }

@@ -18,12 +18,14 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             /// </summary>
             public static class UserTable
             {
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_TABLES;
                 public const string TABLE_NAME = "UserTables";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -41,38 +43,49 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string LogicalStoragePolicy = "LogicalStoragePolicy";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    var result = new List<ColumnSchema>(9);
+                   if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var tableId = new ColumnSchema(Columns.TableId, new SQLInt(), 1);
-                    result.Add(tableId);
+                    return _columns;
+                }
 
-                    var tableName = new ColumnSchema(Columns.TableName, new SQLChar(Constants.FIXED_LENGTH_OF_OBJECT_NAME), 2);
-                    result.Add(tableName);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(9);
 
-                    var totalRows = new ColumnSchema(Columns.TotalRows, new SQLInt(), 3);
-                    result.Add(totalRows);
+                        var tableId = new ColumnSchema(Columns.TableId, new SQLInt(), 1);
+                        _columns.Add(tableId);
 
-                    var totalLogicalRows = new ColumnSchema(Columns.TotalLogicalRows, new SQLInt(), 4);
-                    result.Add(totalLogicalRows);
+                        var tableName = new ColumnSchema(Columns.TableName, new SQLChar(Constants.FIXED_LENGTH_OF_OBJECT_NAME), 2);
+                        _columns.Add(tableName);
 
-                    var isDeleted = new ColumnSchema(Columns.IsDeleted, new SQLBit(), 5);
-                    result.Add(isDeleted);
+                        var totalRows = new ColumnSchema(Columns.TotalRows, new SQLInt(), 3);
+                        _columns.Add(totalRows);
 
-                    var columnObjectId = new ColumnSchema(Columns.UserObjectId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 6);
-                    result.Add(columnObjectId);
+                        var totalLogicalRows = new ColumnSchema(Columns.TotalLogicalRows, new SQLInt(), 4);
+                        _columns.Add(totalLogicalRows);
 
-                    var schemaGuid = new ColumnSchema(Columns.SchemaGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 7, true);
-                    result.Add(schemaGuid);
+                        var isDeleted = new ColumnSchema(Columns.IsDeleted, new SQLBit(), 5);
+                        _columns.Add(isDeleted);
 
-                    var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 8, true);
-                    result.Add(contractGuid);
+                        var columnObjectId = new ColumnSchema(Columns.UserObjectId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 6);
+                        _columns.Add(columnObjectId);
 
-                    var storagePolicy = new ColumnSchema(Columns.LogicalStoragePolicy, new SQLInt(), 9, true);
-                    result.Add(storagePolicy);
+                        var schemaGuid = new ColumnSchema(Columns.SchemaGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 7, true);
+                        _columns.Add(schemaGuid);
 
-                    return result;
+                        var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 8, true);
+                        _columns.Add(contractGuid);
+
+                        var storagePolicy = new ColumnSchema(Columns.LogicalStoragePolicy, new SQLInt(), 9, true);
+                        _columns.Add(storagePolicy);
+                    }
                 }
             }
 
@@ -81,13 +94,14 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             /// </summary>
             public static class UserTableSchema
             {
+                private static ColumnSchemaCollection _columns;
 
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_TABLE_SCHEMAS;
                 public const string TABLE_NAME = "UserTableSchemas";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -146,42 +160,53 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string ContractGUID = "ContractGUID";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    var result = new List<ColumnSchema>(10);
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var tableId = new ColumnSchema(Columns.TableId, new SQLInt(), 1);
-                    result.Add(tableId);
+                    return _columns;
+                }
 
-                    var columnId = new ColumnSchema(Columns.ColumnId, new SQLInt(), 2);
-                    result.Add(columnId);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(10);
 
-                    var columnName = new ColumnSchema(Columns.ColumnName, new SQLChar(Constants.FIXED_LENGTH_OF_OBJECT_NAME), 3);
-                    result.Add(columnName);
+                        var tableId = new ColumnSchema(Columns.TableId, new SQLInt(), 1);
+                        _columns.Add(tableId);
 
-                    // Use the ColumnTypes enum when saving off
-                    var columnType = new ColumnSchema(Columns.ColumnType, new SQLInt(), 4);
-                    result.Add(columnType);
+                        var columnId = new ColumnSchema(Columns.ColumnId, new SQLInt(), 2);
+                        _columns.Add(columnId);
 
-                    var columnLength = new ColumnSchema(Columns.ColumnLength, new SQLInt(), 5);
-                    result.Add(columnLength);
+                        var columnName = new ColumnSchema(Columns.ColumnName, new SQLChar(Constants.FIXED_LENGTH_OF_OBJECT_NAME), 3);
+                        _columns.Add(columnName);
 
-                    var columnOrdinal = new ColumnSchema(Columns.ColumnOrdinal, new SQLInt(), 6);
-                    result.Add(columnOrdinal);
+                        // Use the ColumnTypes enum when saving off
+                        var columnType = new ColumnSchema(Columns.ColumnType, new SQLInt(), 4);
+                        _columns.Add(columnType);
 
-                    var columnIsNullable = new ColumnSchema(Columns.ColumnIsNullable, new SQLBit(), 7);
-                    result.Add(columnIsNullable);
+                        var columnLength = new ColumnSchema(Columns.ColumnLength, new SQLInt(), 5);
+                        _columns.Add(columnLength);
 
-                    var columnBinaryOrder = new ColumnSchema(Columns.ColumnBinaryOrder, new SQLInt(), 8);
-                    result.Add(columnBinaryOrder);
+                        var columnOrdinal = new ColumnSchema(Columns.ColumnOrdinal, new SQLInt(), 6);
+                        _columns.Add(columnOrdinal);
 
-                    var columnUserObjectId = new ColumnSchema(Columns.UserObjectId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 9);
-                    result.Add(columnUserObjectId);
+                        var columnIsNullable = new ColumnSchema(Columns.ColumnIsNullable, new SQLBit(), 7);
+                        _columns.Add(columnIsNullable);
 
-                    var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 10, true);
-                    result.Add(contractGuid);
+                        var columnBinaryOrder = new ColumnSchema(Columns.ColumnBinaryOrder, new SQLInt(), 8);
+                        _columns.Add(columnBinaryOrder);
 
-                    return result;
+                        var columnUserObjectId = new ColumnSchema(Columns.UserObjectId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 9);
+                        _columns.Add(columnUserObjectId);
+
+                        var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 10, true);
+                        _columns.Add(contractGuid);
+                    }
                 }
             }
 
@@ -190,12 +215,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             /// </summary>
             public static class UserObjects
             {
+
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_OBJECTS;
                 public const string TABLE_NAME = "UserObjects";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -208,34 +236,48 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string ContractGUID = "ContractGUID";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    var result = new List<ColumnSchema>(4);
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var objectId = new ColumnSchema(Columns.ObjectId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                    result.Add(objectId);
+                    return _columns;
+                }
 
-                    var objectType = new ColumnSchema(Columns.ObjectType, new SQLInt(), 2);
-                    result.Add(objectType);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(4);
 
-                    var objectName = new ColumnSchema(Columns.ObjectName, new SQLChar(Constants.FIXED_LENGTH_OF_OBJECT_NAME), 3);
-                    result.Add(objectName);
+                        var objectId = new ColumnSchema(Columns.ObjectId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(objectId);
 
-                    var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 4, true);
-                    result.Add(contractGuid);
+                        var objectType = new ColumnSchema(Columns.ObjectType, new SQLInt(), 2);
+                        _columns.Add(objectType);
 
-                    return result;
+                        var objectName = new ColumnSchema(Columns.ObjectName, new SQLChar(Constants.FIXED_LENGTH_OF_OBJECT_NAME), 3);
+                        _columns.Add(objectName);
+
+                        var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 4, true);
+                        _columns.Add(contractGuid);
+
+                    }
                 }
             }
 
             public static class Users
             {
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USERS;
                 public const string TABLE_NAME = "Users";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -252,47 +294,56 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string Token = "Token";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    //var result = new List<ColumnSchema>(8);
-                    var result = new List<ColumnSchema>(7);
+                   if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var userName = new ColumnSchema(Columns.UserName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
-                    result.Add(userName);
+                    return _columns;
+                }
 
-                    var userGuid = new ColumnSchema(Columns.UserGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 2);
-                    result.Add(userGuid);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(7);
 
-                    var byteLength = new ColumnSchema(Columns.ByteLength, new SQLInt(), 3);
-                    result.Add(byteLength);
+                        var userName = new ColumnSchema(Columns.UserName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
+                        _columns.Add(userName);
 
-                    var salt = new ColumnSchema(Columns.Salt, new SQLVarbinary(Constants.MAX_LENGTH_OF_SECURITY_ARRAY), 4);
-                    result.Add(salt);
+                        var userGuid = new ColumnSchema(Columns.UserGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 2);
+                        _columns.Add(userGuid);
 
-                    var hash = new ColumnSchema(Columns.Hash, new SQLVarbinary(Constants.MAX_LENGTH_OF_SECURITY_ARRAY), 5);
-                    result.Add(hash);
+                        var byteLength = new ColumnSchema(Columns.ByteLength, new SQLInt(), 3);
+                        _columns.Add(byteLength);
 
-                    var work = new ColumnSchema(Columns.Workfactor, new SQLInt(), 6);
-                    result.Add(work);
+                        var salt = new ColumnSchema(Columns.Salt, new SQLVarbinary(Constants.MAX_LENGTH_OF_SECURITY_ARRAY), 4);
+                        _columns.Add(salt);
 
-                    var isBanned = new ColumnSchema(Columns.IsBanned, new SQLBit(), 7);
-                    result.Add(isBanned);
+                        var hash = new ColumnSchema(Columns.Hash, new SQLVarbinary(Constants.MAX_LENGTH_OF_SECURITY_ARRAY), 5);
+                        _columns.Add(hash);
 
-                    //var token = new ColumnSchema(Columns.Token, new SQLVarbinary(Constants.MAX_LENGTH_OF_SECURITY_ARRAY), 8);
-                    //result.Add(token);
+                        var work = new ColumnSchema(Columns.Workfactor, new SQLInt(), 6);
+                        _columns.Add(work);
 
-                    return result;
+                        var isBanned = new ColumnSchema(Columns.IsBanned, new SQLBit(), 7);
+                        _columns.Add(isBanned);
+                    }
                 }
             }
 
             public static class UserObjectPermissions
             {
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.USER_OBJECT_PERMISSIONS;
                 public const string TABLE_NAME = "UserObjectPermissions";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -305,35 +356,49 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string DbPermission = "DbPermission";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    var result = new List<ColumnSchema>(4);
+                   if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var userName = new ColumnSchema(Columns.UserName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
-                    result.Add(userName);
+                    return _columns;
+                }
 
-                    var userGuid = new ColumnSchema(Columns.UserGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 2);
-                    result.Add(userGuid);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(4);
 
-                    var objectId = new ColumnSchema(Columns.ObjectId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 3);
-                    result.Add(objectId);
+                        var userName = new ColumnSchema(Columns.UserName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
+                        _columns.Add(userName);
 
-                    var objectType = new ColumnSchema(Columns.DbPermission, new SQLInt(), 4);
-                    result.Add(objectType);
+                        var userGuid = new ColumnSchema(Columns.UserGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 2);
+                        _columns.Add(userGuid);
 
-                    return result;
+                        var objectId = new ColumnSchema(Columns.ObjectId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 3);
+                        _columns.Add(objectId);
+
+                        var objectType = new ColumnSchema(Columns.DbPermission, new SQLInt(), 4);
+                        _columns.Add(objectType);
+
+                    }
                 }
             }
 
             // contains the list of schemas held in this database, i.e. "sys", "dbo", and any other user created schemas
             public static class DatabaseSchemas
             {
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASE_SCHEMAS;
                 public const string TABLE_NAME = "DatabaseSchemas";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -345,31 +410,44 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string ContractGUID = "ContractGUID";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    var result = new List<ColumnSchema>(3);
+                   if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var schemaGUID = new ColumnSchema(Columns.SchemaGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                    result.Add(schemaGUID);
+                    return _columns;
+                }
 
-                    var schemaName = new ColumnSchema(Columns.SchemaName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
-                    result.Add(schemaName);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(3);
 
-                    var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 3, true);
-                    result.Add(contractGuid);
+                        var schemaGUID = new ColumnSchema(Columns.SchemaGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(schemaGUID);
 
-                    return result;
+                        var schemaName = new ColumnSchema(Columns.SchemaName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
+                        _columns.Add(schemaName);
+
+                        var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 3, true);
+                        _columns.Add(contractGuid);
+                    }
                 }
             }
 
             public static class DatabaseSchemaPermissions
             {
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASE_SCHEMA_PERMISSIONS;
                 public const string TABLE_NAME = "DatabaseSchemaPermissions";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -382,34 +460,47 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string DbPermission = "DbPermission";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    var result = new List<ColumnSchema>(4);
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var userName = new ColumnSchema(Columns.UserName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
-                    result.Add(userName);
+                    return _columns;
+                }
 
-                    var userGuid = new ColumnSchema(Columns.UserGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 2);
-                    result.Add(userGuid);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(4);
 
-                    var objectId = new ColumnSchema(Columns.SchemaGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 3);
-                    result.Add(objectId);
+                        var userName = new ColumnSchema(Columns.UserName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
+                        _columns.Add(userName);
 
-                    var objectType = new ColumnSchema(Columns.DbPermission, new SQLInt(), 4);
-                    result.Add(objectType);
+                        var userGuid = new ColumnSchema(Columns.UserGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 2);
+                        _columns.Add(userGuid);
 
-                    return result;
+                        var objectId = new ColumnSchema(Columns.SchemaGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 3);
+                        _columns.Add(objectId);
+
+                        var objectType = new ColumnSchema(Columns.DbPermission, new SQLInt(), 4);
+                        _columns.Add(objectType);
+                    }
                 }
             }
 
             public static class Participants
             {
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.PARTICIPANTS;
                 public const string TABLE_NAME = "Participants";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -427,49 +518,62 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string AcceptedContractDateTimeUTC = "AcceptedContractDateTimeUTC";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    var result = new List<ColumnSchema>(9);
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var participantId = new ColumnSchema(Columns.ParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                    result.Add(participantId);
+                    return _columns;
+                }
 
-                    var alias = new ColumnSchema(Columns.Alias, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
-                    result.Add(alias);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(9);
 
-                    var ip4 = new ColumnSchema(Columns.IP4Address, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 3);
-                    result.Add(ip4);
+                        var participantId = new ColumnSchema(Columns.ParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(participantId);
 
-                    var ip6 = new ColumnSchema(Columns.IP6Address, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 4);
-                    result.Add(ip6);
+                        var alias = new ColumnSchema(Columns.Alias, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
+                        _columns.Add(alias);
 
-                    var port = new ColumnSchema(Columns.PortNumber, new SQLInt(), 5);
-                    result.Add(port);
+                        var ip4 = new ColumnSchema(Columns.IP4Address, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 3);
+                        _columns.Add(ip4);
 
-                    var lastComm = new ColumnSchema(Columns.LastCommunicationUTC, new SQLDateTime(), 6, true);
-                    result.Add(lastComm);
+                        var ip6 = new ColumnSchema(Columns.IP6Address, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 4);
+                        _columns.Add(ip6);
 
-                    var acceptedContract = new ColumnSchema(Columns.HasAcceptedContract, new SQLBit(), 7, true);
-                    result.Add(acceptedContract);
+                        var port = new ColumnSchema(Columns.PortNumber, new SQLInt(), 5);
+                        _columns.Add(port);
 
-                    var acceptedContractVersion = new ColumnSchema(Columns.AcceptedContractVersion, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 8, true);
-                    result.Add(acceptedContractVersion);
+                        var lastComm = new ColumnSchema(Columns.LastCommunicationUTC, new SQLDateTime(), 6, true);
+                        _columns.Add(lastComm);
 
-                    var acceptedContractTime = new ColumnSchema(Columns.AcceptedContractDateTimeUTC, new SQLDateTime(), 9, true);
-                    result.Add(acceptedContractTime);
+                        var acceptedContract = new ColumnSchema(Columns.HasAcceptedContract, new SQLBit(), 7, true);
+                        _columns.Add(acceptedContract);
 
-                    return result;
+                        var acceptedContractVersion = new ColumnSchema(Columns.AcceptedContractVersion, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 8, true);
+                        _columns.Add(acceptedContractVersion);
+
+                        var acceptedContractTime = new ColumnSchema(Columns.AcceptedContractDateTimeUTC, new SQLDateTime(), 9, true);
+                        _columns.Add(acceptedContractTime);
+                    }
                 }
             }
 
             public static class Tenants
             {
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.TENANTS;
                 public const string TABLE_NAME = "Tenants";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -483,31 +587,44 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string DataLocation = "DataLocation";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchemaCollection GetColumns()
                 {
-                    var result = new List<ColumnSchema>(3);
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var participantId = new ColumnSchema(Columns.TenantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                    result.Add(participantId);
+                    return _columns;
+                }
 
-                    var alias = new ColumnSchema(Columns.Alias, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
-                    result.Add(alias);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(3);
 
-                    var dataLocation = new ColumnSchema(Columns.DataLocation, new SQLInt(), 3);
-                    result.Add(dataLocation);
+                        var participantId = new ColumnSchema(Columns.TenantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(participantId);
 
-                    return result;
+                        var alias = new ColumnSchema(Columns.Alias, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
+                        _columns.Add(alias);
+
+                        var dataLocation = new ColumnSchema(Columns.DataLocation, new SQLInt(), 3);
+                        _columns.Add(dataLocation);
+                    }
                 }
             }
 
             public static class DatabaseContracts
             {
+                private static ColumnSchemaCollection _columns;
+
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASE_CONTRACTS;
                 public const string TABLE_NAME = "DatabaseContracts";
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -521,26 +638,42 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string Description = "Description";
                 }
 
-                public static List<ColumnSchema> GetColumns()
+                public static ColumnSchema GetColumn(string columName)
                 {
-                    var result = new List<ColumnSchema>(5);
+                    return _columns.Get(columName);
+                }
 
-                    var participantId = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                    result.Add(participantId);
+                public static ColumnSchemaCollection GetColumns()
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
 
-                    var alias = new ColumnSchema(Columns.GeneratedDate, new SQLDateTime(), 2);
-                    result.Add(alias);
+                    return _columns;
+                }
 
-                    var author = new ColumnSchema(Columns.Author, new SQLVarChar(50), 3);
-                    result.Add(author);
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(5);
 
-                    var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 4, true);
-                    result.Add(token);
+                        var participantId = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(participantId);
 
-                    var description = new ColumnSchema(Columns.Description, new SQLVarChar(128), 5, true);
-                    result.Add(description);
+                        var alias = new ColumnSchema(Columns.GeneratedDate, new SQLDateTime(), 2);
+                        _columns.Add(alias);
 
-                    return result;
+                        var author = new ColumnSchema(Columns.Author, new SQLVarChar(50), 3);
+                        _columns.Add(author);
+
+                        var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 4, true);
+                        _columns.Add(token);
+
+                        var description = new ColumnSchema(Columns.Description, new SQLVarChar(128), 5, true);
+                        _columns.Add(description);
+                    }
                 }
             }
         }

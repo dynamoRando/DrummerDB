@@ -96,7 +96,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                 }
 
-
                 // create an insert table operation for sys.DatabaseContracts
                 // and then an update table operation for sys.UserTables
                 if (!plan.Parts.Any(part => part is InsertQueryPlanPart))
@@ -113,11 +112,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                         var contractGuid = Guid.NewGuid();
 
-                        var contractGuidColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.ContractGUID).First();
-                        var generatedDateColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.GeneratedDate).First();
-                        var authorColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.Author).First();
-                        var tokenColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.Token).First();
-                        var descriptionColumn = DatabaseContracts.GetColumns().Where(c => c.Name == DatabaseContracts.Columns.Description).First();
+                        var contractGuidColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.ContractGUID);
+                        var generatedDateColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.GeneratedDate);
+                        var authorColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Author);
+                        var tokenColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Token);
+                        var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
 
                         var contractGuidStatement = new StatementColumn(contractGuidColumn.Id, contractGuidColumn.Name);
                         insertDatabaseContractsOp.Columns.Add(contractGuidStatement);
