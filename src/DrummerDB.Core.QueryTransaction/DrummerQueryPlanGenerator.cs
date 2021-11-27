@@ -67,10 +67,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             // contract GUID
             string authorName = string.Empty;
             string descriptionData = string.Empty;
+            Guid contractGuid = Guid.Empty;
 
             if (database.IsReadyForCooperation())
             {
-
                 if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
                 {
                     string lineAnalysis = line;
@@ -111,7 +111,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var insertDatabaseContractsOp = new InsertTableOperator(dbManager);
                         insertDatabaseContractsOp.TableName = DatabaseContracts.TABLE_NAME;
 
-                        var contractGuid = Guid.NewGuid();
+                        contractGuid = Guid.NewGuid();
 
                         var contractGuidColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.ContractGUID);
                         var generatedDateColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.GeneratedDate);
@@ -143,6 +143,42 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         insertDatabaseContractsOp.Rows.Add(insertRow);
 
                         part.Operations.Add(insertDatabaseContractsOp);
+                    }
+                }
+
+                // need to update all rows in the table with the generated contract value
+                if (!plan.Parts.Any(part => part is UpdateQueryPlanPart))
+                {
+                    plan.Parts.Add(new UpdateQueryPlanPart());
+                }
+
+                foreach (var part in plan.Parts)
+                {
+                    if (part is UpdateQueryPlanPart)
+                    {
+                        var address = new TreeAddress { DatabaseId = database.Id, TableId = UserTable.TABLE_ID, SchemaId = Guid.Parse(Constants.SYS_SCHEMA_GUID) };
+                        // need to create update column sources
+
+                        var columns = new List<IUpdateColumnSource>();
+
+                        // create value object that we're going to update the contract guid to
+                        var column = new UpdateTableValue();
+                        column.Column = new StatementColumn(UserTable.TABLE_ID, UserTable.TABLE_NAME);
+                        column.Value = contractGuid.ToString();
+
+                        columns.Add(column);
+                        var updateOp = new UpdateOperator(dbManager, address, columns);
+
+                        // we need to create a read table operator to specify to update all the columns in the user table with the contract
+                        // and set it as the previous operation
+
+                        // only reading 1 column from the table that we want to update, the contract GUID column in sys.UserTables
+                        string[] colNames = new string[1] { UserTable.Columns.ContractGUID };
+
+                        var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
+                        updateOp.PreviousOperation = readTableOp;
+
+                        part.Operations.Add(updateOp);
                     }
                 }
             }
