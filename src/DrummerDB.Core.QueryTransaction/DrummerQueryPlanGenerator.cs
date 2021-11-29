@@ -70,9 +70,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             string descriptionData = string.Empty;
             Guid contractGuid = Guid.Empty;
 
-            if (database.IsReadyForCooperation())
+            if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
             {
-                if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+                if (database.IsReadyForCooperation())
                 {
                     string lineAnalysis = line;
                     string keywords = DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR + " ";
@@ -96,90 +96,95 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         // IntroductionMessageGoesHere
                         descriptionData = descriptionData.Replace(DrummerKeywords.DESCRIPTION, string.Empty).Trim();
                     }
-                }
 
-                // create an insert table operation for sys.DatabaseContracts
-                // and then an update table operation for sys.UserTables
-                if (!plan.Parts.Any(part => part is InsertQueryPlanPart))
-                {
-                    plan.Parts.Add(new InsertQueryPlanPart());
-                }
 
-                foreach (var part in plan.Parts)
-                {
-                    if (part is InsertQueryPlanPart)
+                    // create an insert table operation for sys.DatabaseContracts
+                    // and then an update table operation for sys.UserTables
+                    if (!plan.Parts.Any(part => part is InsertQueryPlanPart))
                     {
-                        var insertDatabaseContractsOp = new InsertTableOperator(dbManager);
-                        insertDatabaseContractsOp.TableName = DatabaseContracts.TABLE_NAME;
-
-                        contractGuid = Guid.NewGuid();
-
-                        var contractGuidColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.ContractGUID);
-                        var generatedDateColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.GeneratedDate);
-                        var authorColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Author);
-                        var tokenColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Token);
-                        var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
-
-                        var contractGuidStatement = new StatementColumn(contractGuidColumn.Id, contractGuidColumn.Name);
-                        insertDatabaseContractsOp.Columns.Add(contractGuidStatement);
-
-                        // need to create a row to insert
-                        var insertRow = new InsertRow(1);
-
-                        var insertValueContractGuid = new InsertValue(1, contractGuidColumn.Name, contractGuid.ToString());
-                        var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
-                        var insertValueAuthor = new InsertValue(3, authorColumn.Name, authorName);
-
-                        var tokenString = CryptoManager.GenerateTokenString();
-                        var insertValueToken = new InsertValue(4, tokenColumn.Name, tokenString);
-
-                        var insertValueDescription = new InsertValue(5, descriptionColumn.Name, descriptionData);
-
-                        insertRow.Values.Add(insertValueContractGuid);
-                        insertRow.Values.Add(insertValueGeneratedDate);
-                        insertRow.Values.Add(insertValueAuthor);
-                        insertRow.Values.Add(insertValueToken);
-                        insertRow.Values.Add(insertValueDescription);
-
-                        insertDatabaseContractsOp.Rows.Add(insertRow);
-
-                        part.Operations.Add(insertDatabaseContractsOp);
+                        plan.Parts.Add(new InsertQueryPlanPart());
                     }
-                }
 
-                // need to update all rows in the table with the generated contract value
-                if (!plan.Parts.Any(part => part is UpdateQueryPlanPart))
-                {
-                    plan.Parts.Add(new UpdateQueryPlanPart());
-                }
-
-                foreach (var part in plan.Parts)
-                {
-                    if (part is UpdateQueryPlanPart)
+                    foreach (var part in plan.Parts)
                     {
-                        var address = new TreeAddress { DatabaseId = database.Id, TableId = UserTable.TABLE_ID, SchemaId = Guid.Parse(Constants.SYS_SCHEMA_GUID) };
-                        // need to create update column sources
+                        if (part is InsertQueryPlanPart)
+                        {
+                            var insertDatabaseContractsOp = new InsertTableOperator(dbManager);
+                            insertDatabaseContractsOp.TableName = DatabaseContracts.TABLE_NAME;
+                            insertDatabaseContractsOp.DatabaseName = database.Name;
 
-                        var columns = new List<IUpdateColumnSource>();
+                            contractGuid = Guid.NewGuid();
 
-                        // create value object that we're going to update the contract guid to
-                        var column = new UpdateTableValue();
-                        column.Column = new StatementColumn(UserTable.TABLE_ID, UserTable.TABLE_NAME);
-                        column.Value = contractGuid.ToString();
+                            var contractGuidColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.ContractGUID);
+                            var generatedDateColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.GeneratedDate);
+                            var authorColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Author);
+                            var tokenColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Token);
+                            var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
 
-                        columns.Add(column);
-                        var updateOp = new UpdateOperator(dbManager, address, columns);
+                            var contractGuidStatement = new StatementColumn(contractGuidColumn.Id, contractGuidColumn.Name);
+                            insertDatabaseContractsOp.Columns.Add(contractGuidStatement);
 
-                        // we need to create a read table operator to specify to update all the columns in the user table with the contract
-                        // and set it as the previous operation
+                            // need to create a row to insert
+                            var insertRow = new InsertRow(1);
 
-                        // only reading 1 column from the table that we want to update, the contract GUID column in sys.UserTables
-                        string[] colNames = new string[1] { UserTable.Columns.ContractGUID };
+                            var insertValueContractGuid = new InsertValue(1, contractGuidColumn.Name, contractGuid.ToString());
+                            var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
+                            var insertValueAuthor = new InsertValue(3, authorColumn.Name, authorName);
 
-                        var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
-                        updateOp.PreviousOperation = readTableOp;
+                            var tokenString = CryptoManager.GenerateTokenString();
+                            var insertValueToken = new InsertValue(4, tokenColumn.Name, tokenString);
 
-                        part.Operations.Add(updateOp);
+                            var insertValueDescription = new InsertValue(5, descriptionColumn.Name, descriptionData);
+
+                            insertRow.Values.Add(insertValueContractGuid);
+                            insertRow.Values.Add(insertValueGeneratedDate);
+                            insertRow.Values.Add(insertValueAuthor);
+                            insertRow.Values.Add(insertValueToken);
+                            insertRow.Values.Add(insertValueDescription);
+
+                            insertDatabaseContractsOp.Rows.Add(insertRow);
+
+                            part.Operations.Add(insertDatabaseContractsOp);
+                        }
+                    }
+
+                    // need to update all rows in the table with the generated contract value
+                    if (!plan.Parts.Any(part => part is UpdateQueryPlanPart))
+                    {
+                        plan.Parts.Add(new UpdateQueryPlanPart());
+                    }
+
+                    foreach (var part in plan.Parts)
+                    {
+                        if (part is UpdateQueryPlanPart)
+                        {
+                            var address = new TreeAddress { DatabaseId = database.Id, TableId = UserTable.TABLE_ID, SchemaId = Guid.Parse(Constants.SYS_SCHEMA_GUID) };
+                            // need to create update column sources
+
+                            var columns = new List<IUpdateColumnSource>();
+
+                            // create value object that we're going to update the contract guid to
+                            var column = new UpdateTableValue();
+                            var tableColumn = UserTable.GetColumn(UserTable.Columns.ContractGUID);
+
+                            column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
+                            column.Value = contractGuid.ToString();
+
+                            columns.Add(column);
+                            var updateOp = new UpdateOperator(dbManager, address, columns);
+
+                            // we need to create a read table operator to specify to update all the columns in the user table with the contract
+                            // and set it as the previous operation
+
+                            // only reading 1 column from the table that we want to update, the contract GUID column in sys.UserTables
+                            string[] colNames = new string[1] { UserTable.Columns.ContractGUID };
+
+                            var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
+                            updateOp.PreviousOperation = readTableOp;
+
+                            part.Operations.Add(readTableOp);
+                            part.Operations.Add(updateOp);
+                        }
                     }
                 }
             }

@@ -29,6 +29,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _db = db;
             Rows = new List<InsertRow>();
             _tryRows = new List<Row>();
+            Columns = new List<StatementColumn>();
         }
         #endregion
 

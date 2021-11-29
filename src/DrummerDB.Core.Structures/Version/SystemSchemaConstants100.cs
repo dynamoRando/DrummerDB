@@ -44,6 +44,16 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string LogicalStoragePolicy = "LogicalStoragePolicy";
                 }
 
+                public static ColumnSchema GetColumn(string columName)
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns.Get(columName);
+                }
+
                 public static ColumnSchemaCollection GetColumns()
                 {
                     lock (_lock)
@@ -644,6 +654,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static ColumnSchema GetColumn(string columName)
                 {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
                     return _columns.Get(columName);
                 }
 

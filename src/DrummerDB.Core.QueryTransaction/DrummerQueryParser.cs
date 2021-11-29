@@ -113,14 +113,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             var lines = statement.Split(";");
             foreach (var line in lines)
             {
-                if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
                 {
-                    string lineAnalysis = line;
+                    string lineAnalysis = trimmedLine;
                     string keywords = DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR + " ";
 
                     // AuthorName DESCRIPTION IntroductionMessageGoesHere
                     string authorName = lineAnalysis.Replace(keywords, string.Empty).Trim();
-                    
+
                     if (authorName.Contains(DrummerKeywords.DESCRIPTION))
                     {
                         // need to remove the description keyword and parse the description
@@ -130,7 +131,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                         // DESCRIPTION IntroductionMessageGoesHere
                         string descriptionData = authorName.Substring(indexOfDescriptionKeyword, remainingLength).Trim();
-                        
+
                         // AuthorName
                         authorName = authorName.Replace(descriptionData, string.Empty).Trim();
 

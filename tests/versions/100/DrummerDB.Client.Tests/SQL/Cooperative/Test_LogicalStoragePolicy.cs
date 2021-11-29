@@ -224,6 +224,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // -- ACT
             // ------------ generate contract ------------
+            
             var generateContractResult = test.ExecuteSQL($@"
             DRUMMER BEGIN;
             GENERATE CONTRACT AS AUTHOR RetailerCorporation DESCRIPTION IntroductionMessageGoesHere;

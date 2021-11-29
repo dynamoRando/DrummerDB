@@ -65,7 +65,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             foreach (var table in _inMemoryTables)
             {
+                string schemaName = table.Schema().Schema.SchemaName;
                 // need to ignore sys tables
+                if (string.Equals(schemaName, Constants.SYS_SCHEMA, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 var lsp = table.GetLogicalStoragePolicy();
                 if (lsp == LogicalStoragePolicy.None)
                 {
