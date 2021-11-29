@@ -56,6 +56,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             EvaluateForLogicalStoragePolicy(line, database, dbManager, ref plan);
             EvaluateForReviewLogicalStoragePolicy(line, database, dbManager, ref plan);
+            EvaluateForGenerateContract(line, database, dbManager, ref plan);
         }
 
         private void EvaluateForGenerateContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -182,8 +183,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                 }
             }
-
-            throw new NotImplementedException();
         }
 
         private void EvaluateForReviewLogicalStoragePolicy(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)

@@ -87,7 +87,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             var lines = statement.Split(";");
             foreach (var line in lines)
             {
-                if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+                var trimLined = line.Trim();
+                if (trimLined.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
                 {
                     return true;
                 }

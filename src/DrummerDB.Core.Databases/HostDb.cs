@@ -63,8 +63,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Public Methods
         public override bool IsReadyForCooperation()
         {
-            foreach(var table in _inMemoryTables)
+            foreach (var table in _inMemoryTables)
             {
+                // need to ignore sys tables
                 var lsp = table.GetLogicalStoragePolicy();
                 if (lsp == LogicalStoragePolicy.None)
                 {
