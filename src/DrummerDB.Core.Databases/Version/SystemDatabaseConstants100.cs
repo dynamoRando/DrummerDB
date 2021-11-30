@@ -214,6 +214,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static class Columns
                 {
                     public const string DatabaseName = "DatabaseName";
+                    public const string DatabaseType = "DatabaseType";
                 }
 
                 private static List<ColumnSchema> GetColumns()
@@ -223,9 +224,17 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     var databaseName = new ColumnSchema(Columns.DatabaseName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
                     result.Add(databaseName);
 
+                    // Drummersoft.DrummerDB.Core.Structures.Enum.DatabaseType
+                    // var databaseType = new ColumnSchema(Columns.DatabaseType, new SQLInt(), 2, true);
+                    // result.Add(databaseType);
+
                     return result;
                 }
             }
+
+            // TO DO: Need a table of hosts that we cooperate with
+            // in other words, if I'm booting up as a participant, who do I cooperate with?
+            // - who are the hosts?
         }
 
         internal static class SystemLoginConstants

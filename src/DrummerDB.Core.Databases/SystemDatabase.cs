@@ -322,6 +322,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     var record = _databaseTableDatabases.GetNewLocalRow();
                     record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, name);
 
+                    // TO DO: We should change this to actually look at the database type
+                    // either by the file extension or some other means
+                    // record.SetValueAsNullForColumn(DatabaseTableDatabses.Columns.DatabaseType);
+
                     _databaseTableDatabases.TryAddRow(record);
                 }
             }
@@ -336,6 +340,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 var record = _databaseTableDatabases.GetNewLocalRow();
                 record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, dbName);
+
+                // TO DO: We should change this to actually look at the database type
+                // either by the file extension or some other means
+                // record.SetValueAsNullForColumn(DatabaseTableDatabses.Columns.DatabaseType);
 
                 _databaseTableDatabases.TryAddRow(record, transaction, transactionMode);
             }
