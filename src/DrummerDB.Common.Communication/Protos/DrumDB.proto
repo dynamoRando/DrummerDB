@@ -1,0 +1,14 @@
+syntax = "proto3";
+import "Drum.proto";
+option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication";
+package DrumDB;
+
+// a file for database objects to be used by the Drummer Database Service
+
+// a message representing a database contract between a host and a participant
+message Contract {
+	// the name of the column. Max length of 50 characters
+	string contractGUID = 1;
+	string authorName = 2;
+	Drum.DatabaseSchema schema = 3;
+}

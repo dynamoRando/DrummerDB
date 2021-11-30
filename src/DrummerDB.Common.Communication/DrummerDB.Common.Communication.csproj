@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <Protobuf Include="Protos\Drum.proto" ProtoRoot="Protos\" />
+	  <Protobuf Include="Protos\DrumDB.proto" ProtoRoot="Protos\" />
     <Protobuf Include="Protos\DrumDatabaseService.proto" ProtoRoot="Protos\" />
     <Protobuf Include="Protos\DrumInfoService.proto" ProtoRoot="Protos\" />
     <Protobuf Include="Protos\DrumSQLService.proto" ProtoRoot="Protos\" />
