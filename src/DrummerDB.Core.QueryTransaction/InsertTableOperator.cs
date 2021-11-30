@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
+using System;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -17,6 +18,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public int Order { get; set; }
         public string DatabaseName { get; set; }
         public string TableName { get; set; }
+        public string TableSchemaName { get; set; }
         public List<InsertRow> Rows { get; set; }
         public List<StatementColumn> Columns { get; set; }
         public IQueryPlanPartOperator PreviousOperation { get; set; }
@@ -39,51 +41,111 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             bool rowsAdded = true;
 
             var db = _db.GetUserDatabase(DatabaseName);
-            if (db.HasTable(TableName))
+
+            if (string.IsNullOrEmpty(TableSchemaName))
             {
-                var table = db.GetTable(TableName);
-
-                if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
+                if (db.HasTable(TableName))
                 {
-                    foreach (var insertRow in Rows)
-                    {
-                        var row = table.GetNewLocalRow();
-                        foreach (var insertValue in insertRow.Values)
-                        {
-                            row.SetValue(insertValue.ColumnName, insertValue.Value);
-                        }
+                    var table = db.GetTable(TableName);
 
-                        if (!table.TryAddRow(row, transaction, transactionMode))
+                    if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
+                    {
+                        foreach (var insertRow in Rows)
                         {
-                            rowsAdded = false;
-                        }
-                        else
-                        {
-                            _tryRows.Add(row);
+                            var row = table.GetNewLocalRow();
+                            foreach (var insertValue in insertRow.Values)
+                            {
+                                row.SetValue(insertValue.ColumnName, insertValue.Value);
+                            }
+
+                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            {
+                                rowsAdded = false;
+                            }
+                            else
+                            {
+                                _tryRows.Add(row);
+                            }
                         }
                     }
-                }
-                else if (transactionMode == TransactionMode.Commit && _tryRows.Count > 0)
-                {
-                    foreach (var row in _tryRows)
+                    else if (transactionMode == TransactionMode.Commit && _tryRows.Count > 0)
                     {
-                        if (!table.TryAddRow(row, transaction, transactionMode))
+                        foreach (var row in _tryRows)
                         {
-                            rowsAdded = false;
+                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            {
+                                rowsAdded = false;
+                            }
                         }
                     }
-                }
 
-                if (rowsAdded)
-                {
-                    messages.Add($"{Rows.Count.ToString()} rows were added to table {TableName}");
+                    if (rowsAdded)
+                    {
+                        messages.Add($"{Rows.Count.ToString()} rows were added to table {TableName}");
+                    }
+                    else
+                    {
+                        errorMessages.Add("Rows were not added");
+                    }
                 }
                 else
                 {
-                    errorMessages.Add("Rows were not added");
+                    throw new InvalidOperationException($"Invalid Query Plan: Database {DatabaseName} does not have table {TableName}");
+                }
+            }
+            else
+            {
+                if (db.HasTable(TableName, TableSchemaName))
+                {
+                    var table = db.GetTable(TableName);
+
+                    if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
+                    {
+                        foreach (var insertRow in Rows)
+                        {
+                            var row = table.GetNewLocalRow();
+                            foreach (var insertValue in insertRow.Values)
+                            {
+                                row.SetValue(insertValue.ColumnName, insertValue.Value);
+                            }
+
+                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            {
+                                rowsAdded = false;
+                            }
+                            else
+                            {
+                                _tryRows.Add(row);
+                            }
+                        }
+                    }
+                    else if (transactionMode == TransactionMode.Commit && _tryRows.Count > 0)
+                    {
+                        foreach (var row in _tryRows)
+                        {
+                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            {
+                                rowsAdded = false;
+                            }
+                        }
+                    }
+
+                    if (rowsAdded)
+                    {
+                        messages.Add($"{Rows.Count.ToString()} rows were added to table {TableName}");
+                    }
+                    else
+                    {
+                        errorMessages.Add("Rows were not added");
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Invalid Query Plan: Database {DatabaseName} does not have table {TableSchemaName}.{TableName}");
                 }
             }
         }
+        
 
         #endregion
 

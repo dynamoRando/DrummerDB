@@ -48,6 +48,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private Table _databaseSchemas;
         private Table _databaseSchemaPermissions;
         private Table _participants;
+        private Table _databaseContracts;
         // TODO - going to need a system participant table that has a Tree in cache
         #endregion
 
@@ -81,6 +82,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             SetUserTable();
             SetupUserTablePermissions();
             SetupParticipantTable();
+            SetupDatabaseContracts();
 
             AddSystemTables();
         }
@@ -807,6 +809,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _systemTables.Add(_databaseSchemas);
             _systemTables.Add(_databaseSchemaPermissions);
             _systemTables.Add(_participants);
+            _systemTables.Add(_databaseContracts);
         }
         private void SetupDatabaseSchemas()
         {
@@ -817,6 +820,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private void SetupParticipantTable()
         {
             _participants = new Table(Participants.Schema(_dbId, _dbName), _cache, _storage, _xEntryManager);
+        }
+
+        private void SetupDatabaseContracts()
+        {
+            _databaseContracts = new Table(DatabaseContracts.Schema(_dbId, _dbName), _cache, _storage, _xEntryManager);
         }
 
         private void SetupUserTablePermissions()

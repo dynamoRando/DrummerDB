@@ -112,6 +112,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             var insertDatabaseContractsOp = new InsertTableOperator(dbManager);
                             insertDatabaseContractsOp.TableName = DatabaseContracts.TABLE_NAME;
                             insertDatabaseContractsOp.DatabaseName = database.Name;
+                            insertDatabaseContractsOp.TableSchemaName = Constants.SYS_SCHEMA;
 
                             contractGuid = Guid.NewGuid();
 

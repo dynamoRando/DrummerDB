@@ -9,6 +9,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Interface
         public bool HasTable(string tableName);
         public Table GetTable(int tableId);
         public Table GetTable(string tableName);
+        public bool HasTable(string tableName, string schemaName);
 
         /// <summary>
         /// Validates that user tables in the database have a logical storage policy set on them

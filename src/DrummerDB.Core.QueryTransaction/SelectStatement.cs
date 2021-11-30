@@ -152,6 +152,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             IsValidated = database.HasTable(TableName);
 
+            // double check to see if the alias is the schema instead
+            if (!IsValidated)
+            {
+                IsValidated = database.HasTable(TableName, TableAlias);
+            }
+
             if (!IsValidated)
             {
                 errors = new List<string>();

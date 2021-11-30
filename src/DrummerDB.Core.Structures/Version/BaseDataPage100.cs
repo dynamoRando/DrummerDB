@@ -395,7 +395,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         public override IRow GetRow(int rowId)
         {
             IRow row = null;
-            List<int> offsets = GetRowOffsets(rowId, true, true);
+            List<int> offsets = GetRowOffsets(rowId, false, true);
 
             int rowOffset;
             if (offsets.Count == 0)

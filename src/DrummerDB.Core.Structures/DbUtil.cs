@@ -44,6 +44,9 @@ namespace Drummersoft.DrummerDB.Core.Structures
                 case SQLDecimal c:
                     columnType = SQLColumnType.Decimal;
                     break;
+                case SQLVarbinary d:
+                    columnType = SQLColumnType.Varbinary;
+                    break;
                 default:
                     throw new UnknownSQLTypeException($"{column.DataType.GetType().ToString()} is unknown");
             }

@@ -503,10 +503,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                _metaData.HasTable(tableName);
+                return _metaData.HasTable(tableName);
             }
-
-            return false;
         }
 
         public override bool ValidateUser(string userName, string pwInput)

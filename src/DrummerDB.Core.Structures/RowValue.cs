@@ -482,6 +482,27 @@ namespace Drummersoft.DrummerDB.Core.Structures
                         }
                     }
                     break;
+                case SQLVarbinary d:
+                    if (Column.IsNullable)
+                    {
+                        byte[] convertedValue = DbBinaryConvert.StringToBinary(value);
+                        byte[] isNull = DbBinaryConvert.BooleanToBinary(_isNull);
+
+                        string debugConvertedValue = BitConverter.ToString(convertedValue);
+                        Debug.WriteLine(debugConvertedValue);
+
+                        _value = new byte[convertedValue.Length + isNull.Length];
+                        Array.Copy(isNull, 0, _value, 0, isNull.Length);
+                        Array.Copy(convertedValue, 0, _value, isNull.Length, convertedValue.Length);
+
+                        string debugValue = BitConverter.ToString(_value);
+                        Debug.WriteLine(debugValue);
+                    }
+                    else
+                    {
+                        _value = DbBinaryConvert.StringToBinary(value);
+                    }
+                    break;
                 default:
                     throw new UnknownSQLTypeException($"{Column.DataType.GetType().ToString()} is unknown");
             }

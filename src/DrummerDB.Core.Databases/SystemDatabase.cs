@@ -115,6 +115,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
+        public bool HasTable(string tableName, string schemaName)
+        {
+            return _systemTables.Any(table =>
+              string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase) &&
+              string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase)
+              );
+        }
+
         public Table GetTable(int tableId)
         {
             return _systemTables.Where(table => table.Address.TableId == tableId).FirstOrDefault();

@@ -127,6 +127,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             string dbName = "TestGenCont";
             string tableName = "CUSTOMERS";
             string storageFolder = "TestGenCont";
+            string contractAuthorName = "RetailerCorporation";
             var test = new TestHarness();
 
             // --- ARRANGE
@@ -227,7 +228,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             
             var generateContractResult = test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            GENERATE CONTRACT AS AUTHOR RetailerCorporation DESCRIPTION IntroductionMessageGoesHere;
+            GENERATE CONTRACT AS AUTHOR {contractAuthorName} DESCRIPTION IntroductionMessageGoesHere;
             DRUMMER END;
             ", dbName);
 
@@ -236,8 +237,17 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             SELECT * FROM sys.DatabaseContracts;
             ", dbName);
 
+            var result = databaseContractResults.Results.First();
+
             // -- ASSERT
-            Assert.InRange(databaseContractResults.Results.First().Rows.Count, 1, 1);
+            Assert.InRange(result.Rows.Count, 1, 1);
+
+            var bAuthor = result.Rows[0].Values[2].Value.ToByteArray();
+            var sAuthor = DbBinaryConvert.BinaryToString(bAuthor);
+            
+            // -- ASSERT 
+            // the name of the contract author is what is actually in the database
+            Assert.Equal(contractAuthorName, sAuthor);
         }
     }
 }
