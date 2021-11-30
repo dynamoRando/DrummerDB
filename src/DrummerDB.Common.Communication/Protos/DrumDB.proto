@@ -1,5 +1,6 @@
 syntax = "proto3";
 import "Drum.proto";
+import "google/protobuf/timestamp.proto";
 option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication";
 package DrumDB;
 
@@ -7,8 +8,28 @@ package DrumDB;
 
 // a message representing a database contract between a host and a participant
 message Contract {
-	// the name of the column. Max length of 50 characters
+	// the unique contract id
 	string contractGUID = 1;
-	string authorName = 2;
-	Drum.DatabaseSchema schema = 3;
+	// the date the contract was generated
+	google.protobuf.Timestamp generatedDate = 2;
+	// the author of the contract 
+	string authorName = 3;
+	// the unique identifer token for authorization purposes
+	bytes token = 4;
+	// a description of the rights in the contract 
+	string description = 5;
+	// the schema of the entire database
+	Drum.DatabaseSchema schema = 6;
+	// a GUID representing the version of the contract
+	string contractVersion = 7;
+}
+
+// a message representing information about a participant in the system
+message Participant {
+	string participantGUID = 1;
+	string alias = 2;
+	string ip4Address = 3;
+	string ip6Address = 4;
+	uint32 portNumber = 5;
+	bytes token = 6;
 }

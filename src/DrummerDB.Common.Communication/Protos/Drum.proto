@@ -34,6 +34,8 @@ message TableSchema {
 	string databaseName = 3;
 	string databaseId = 4;
 	repeated ColumnSchema columns = 5;
+	// Drummersoft.DrummerDB.Core.Structures.Enum.LogicalStoragePolicy
+	uint32 logicalStoragePolicy = 6;
 }
 
 // a message for describing the schema of a database

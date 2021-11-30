@@ -530,6 +530,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string HasAcceptedContract = "HasAcceptedContract";
                     public const string AcceptedContractVersion = "AcceptedContractVersion";
                     public const string AcceptedContractDateTimeUTC = "AcceptedContractDateTimeUTC";
+                    public const string Token = "Token";
                 }
 
                 public static ColumnSchemaCollection GetColumns()
@@ -546,7 +547,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(9);
+                        _columns = new ColumnSchemaCollection(10);
 
                         var participantId = new ColumnSchema(Columns.ParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
                         _columns.Add(participantId);
@@ -574,6 +575,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                         var acceptedContractTime = new ColumnSchema(Columns.AcceptedContractDateTimeUTC, new SQLDateTime(), 9, true);
                         _columns.Add(acceptedContractTime);
+
+                        var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 10, true);
+                        _columns.Add(token);
                     }
                 }
             }
