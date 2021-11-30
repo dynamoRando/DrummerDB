@@ -21,7 +21,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.Database
             string dbName = "CreateDbClient";
             int portNumber = TestPortNumbers.CREATE_DB;
 
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestCreateDbClient");
+            string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestCreateDbClient");
 
             DirectoryInfo directory = new DirectoryInfo(storageFolder);
 

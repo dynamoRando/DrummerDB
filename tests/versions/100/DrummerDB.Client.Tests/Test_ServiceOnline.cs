@@ -12,7 +12,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
         public async void Test_ProcessAndClientSQLPing()
         {
 
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestSQLClientOnline");
+            string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestSQLClientOnline");
 
             DirectoryInfo directory = new DirectoryInfo(storageFolder);
 
@@ -46,7 +46,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
         [Fact]
         public async void Test_ProcessAndClientInfoPing()
         {
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestInfoClientOnline");
+            string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestInfoClientOnline");
 
             DirectoryInfo directory = new DirectoryInfo(storageFolder);
 
@@ -82,7 +82,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
         public async void Test_ProcessAndClientDatabasePing()
         {
 
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestDbClientOnline");
+            string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestDbClientOnline");
 
             DirectoryInfo directory = new DirectoryInfo(storageFolder);
 
