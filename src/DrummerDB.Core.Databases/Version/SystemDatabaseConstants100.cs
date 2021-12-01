@@ -274,7 +274,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     {
                         _columns = new ColumnSchemaCollection(6);
 
-
                         var hostName = new ColumnSchema(Columns.HostName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
                         _columns.Add(hostName);
 
