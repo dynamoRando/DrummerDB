@@ -219,14 +219,14 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
 
                 private static List<ColumnSchema> GetColumns()
                 {
-                    var result = new List<ColumnSchema>(1);
+                    var result = new List<ColumnSchema>(2);
 
                     var databaseName = new ColumnSchema(Columns.DatabaseName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
                     result.Add(databaseName);
 
                     // Drummersoft.DrummerDB.Core.Structures.Enum.DatabaseType
-                    // var databaseType = new ColumnSchema(Columns.DatabaseType, new SQLInt(), 2, true);
-                    // result.Add(databaseType);
+                    var databaseType = new ColumnSchema(Columns.DatabaseType, new SQLInt(), 2);
+                    result.Add(databaseType);
 
                     return result;
                 }

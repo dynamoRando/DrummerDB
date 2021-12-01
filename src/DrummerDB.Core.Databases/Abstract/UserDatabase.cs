@@ -30,6 +30,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         #endregion
 
         #region Public Methods        
+        public abstract DatabaseType DatabaseType { get; }
         public abstract bool IsReadyForCooperation();
 
         /// <summary>

@@ -30,6 +30,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public override string Name => _metaData.Name;
         public override int Version => _metaData.Version;
         public override Guid Id => _metaData.Id;
+        public override DatabaseType DatabaseType => DatabaseType.Host;
         #endregion
 
         #region Constructors

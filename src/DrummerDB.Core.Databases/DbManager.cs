@@ -222,7 +222,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         internal void LoadSystemDatabaseTableWithActiveDbs()
         {
             var db = GetGuSystemDatabase();
-            db.LoadDbTableWithDbNames(_userDatabases.Names());
+            db.LoadDbTableWithDbNames(_userDatabases);
         }
 
         /// <summary>
@@ -334,7 +334,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     }
 
                     system = GetSystemDatabase();
-                    system.AddNewDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                    system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                     return true;
 
@@ -354,7 +354,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         }
 
                         system = GetSystemDatabase();
-                        system.AddNewDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                        system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                         return true;
                     }
@@ -402,7 +402,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         }
 
                         system = GetSystemDatabase();
-                        system.AddNewDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                        system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                         return true;
                     }

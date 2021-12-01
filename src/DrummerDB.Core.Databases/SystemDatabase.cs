@@ -310,40 +310,38 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _storage.RemoveOpenTransaction(databaseId, transaction);
         }
 
-        public void LoadDbTableWithDbNames(string[] dbNames)
+        public void LoadDbTableWithDbNames(UserDatabaseCollection databases)
         {
-            foreach (var name in dbNames)
+            foreach (var db in databases)
             {
-                var dbName = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, name);
+                var dbName = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, db.Name);
                 int count = _databaseTableDatabases.CountOfRowsWithValue(dbName);
 
                 if (count == 0)
                 {
                     var record = _databaseTableDatabases.GetNewLocalRow();
-                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, name);
+                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, db.Name);
 
-                    // TO DO: We should change this to actually look at the database type
-                    // either by the file extension or some other means
-                    // record.SetValueAsNullForColumn(DatabaseTableDatabses.Columns.DatabaseType);
-
+                    int dbType = (int)db.DatabaseType;
+                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, dbType.ToString());
+            
                     _databaseTableDatabases.TryAddRow(record);
                 }
             }
         }
 
-        public void AddNewDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
+        public void AddNewHostDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, dbName);
             int count = _databaseTableDatabases.CountOfRowsWithValue(dbNameSearch);
 
             if (count == 0)
             {
+                int hostDbType = (int)DatabaseType.Host;
+
                 var record = _databaseTableDatabases.GetNewLocalRow();
                 record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, dbName);
-
-                // TO DO: We should change this to actually look at the database type
-                // either by the file extension or some other means
-                // record.SetValueAsNullForColumn(DatabaseTableDatabses.Columns.DatabaseType);
+                record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, hostDbType.ToString());
 
                 _databaseTableDatabases.TryAddRow(record, transaction, transactionMode);
             }
