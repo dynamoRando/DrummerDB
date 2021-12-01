@@ -1,9 +1,9 @@
 ﻿using Drummersoft.DrummerDB.Core.Structures;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
-namespace Drummersoft.DrummerDB.Core.QueryTransaction 
+namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
     class TransactionRequestCollection : IEnumerable<TransactionRequest>
     {

@@ -37,6 +37,17 @@
             }
         }
 
+        public static int SIZE_OF_IS_DELETED(int version = Constants.MAX_DATABASE_VERSION)
+        {
+            switch (version)
+            {
+                case Constants.DatabaseVersions.V100:
+                    return Constants.SIZE_OF_BOOL;
+                default:
+                    return 0;
+            }
+        }
+
         /// <summary>
         /// Returns the byte size for the Page Preamble
         /// </summary>
@@ -47,7 +58,7 @@
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return SIZE_OF_PAGE_ID(version) + SIZE_OF_PAGE_TYPE(version);
+                    return SIZE_OF_PAGE_ID(version) + SIZE_OF_PAGE_TYPE(version) + SIZE_OF_IS_DELETED(version);
                 default:
                     return 0;
             }
@@ -73,6 +84,17 @@
             {
                 case Constants.DatabaseVersions.V100:
                     return SIZE_OF_PAGE_ID(version);
+                default:
+                    return 0;
+            }
+        }
+
+        public static int PageIsDeletedOffset(int version = Constants.MAX_DATABASE_VERSION)
+        {
+            switch (version)
+            {
+                case Constants.DatabaseVersions.V100:
+                    return SIZE_OF_PAGE_ID(version) + SIZE_OF_PAGE_TYPE(version);
                 default:
                     return 0;
             }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Drummersoft.DrummerDB.Core.QueryTransaction.Enum
+﻿namespace Drummersoft.DrummerDB.Core.QueryTransaction.Enum
 {
     // note: this enum should be seperate from the mode that the query plan is executed in, i.e try, rollback, or commit. that still
     // will be done. 

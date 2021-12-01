@@ -1,24 +1,40 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>Drummersoft.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>Drummersoft.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
+	  <FileVersion>1.0.0.0</FileVersion>
+	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	  <Authors>dynamoRando</Authors>
+	  <Company>Drummersoft</Company>
+	  <Version>1.0.0.0</Version>
+	  <Description>Common gRPC elements for the DrummerDB system.</Description>
+	  <PackageProjectUrl>https://github.com/dynamoRando/DrummerDB</PackageProjectUrl>
+	  <RepositoryType>git</RepositoryType>
+	  <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.17.3" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.38.0" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.38.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.38.1">
+    <PackageReference Include="Google.Protobuf" Version="3.19.1" />
+    <PackageReference Include="Google.Protobuf.Tools" Version="3.19.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.40.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.40.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.42.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DrummerDB.Core.Diagnostics\DrummerDB.Core.Diagnostics.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Protobuf Include="Protos\Drum.proto" ProtoRoot="Protos\" />
+	  <Protobuf Include="Protos\DrumDB.proto" ProtoRoot="Protos\" />
     <Protobuf Include="Protos\DrumDatabaseService.proto" ProtoRoot="Protos\" />
     <Protobuf Include="Protos\DrumInfoService.proto" ProtoRoot="Protos\" />
     <Protobuf Include="Protos\DrumSQLService.proto" ProtoRoot="Protos\" />

@@ -21,7 +21,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Private Fields
         // TODO - the metadata objects should talk to cache to get things they need, example system data tables should talk to cache to get data
         // from system data pages, etc.
-        private ITableSchema[] _tables;
+        private TableSchemaCollection _tables;
         private DbMetaSystemDataPages _systemDataPages;
         private DbMetaSystemPage _systemPage;
         private string _dbName;
@@ -42,14 +42,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public readonly IRemoteDataManager RemoteDataManager;
 
         public ITransactionEntryManager TransactionEntryManager => _xEntryManager;
-
-        /// <summary>
-        /// The tables in the database
-        /// </summary>
-        public ITableSchema[] Tables
-        {
-            get { return _tables; }
-        }
 
         /// <summary>
         /// The users of the database
@@ -102,15 +94,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var userTables = _systemDataPages.GetTables(page.DatabaseName);
             var systemTables = _systemDataPages.SystemTables;
 
-            var tables = new List<ITableSchema>();
-            tables.AddRange(userTables);
+            _tables = new TableSchemaCollection();
+
+            foreach (var table in userTables)
+            {
+                _tables.Add(table);
+            }
 
             foreach (var table in systemTables)
             {
-                tables.Add(table.Schema());
+                _tables.Add(table.Schema());
             }
-
-            _tables = tables.ToArray();
         }
 
         public DatabaseMetadata(ICacheManager cache, Guid dbId, int version, ICryptoManager crypt, IStorageManager storage, string dbName)
@@ -126,19 +120,21 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _version = version;
             _dbName = dbName;
 
+            _tables = new TableSchemaCollection();
+
             var userTables = _systemDataPages.GetTables(_dbName);
 
-            var tables = new List<ITableSchema>();
-            tables.AddRange(userTables);
+            foreach (var table in userTables)
+            {
+                _tables.Add(table);
+            }
 
             var systemTables = _systemDataPages.SystemTables;
 
             foreach (var table in systemTables)
             {
-                tables.Add(table.Schema());
+                _tables.Add(table.Schema());
             }
-
-            _tables = tables.ToArray();
 
             if (!cache.UserSystemCacheHasDatabase(dbId))
             {
@@ -163,18 +159,20 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _dbId = dbId;
             _version = version;
 
+            _tables = new TableSchemaCollection();
+
             var userTables = _systemDataPages.GetTables(dbName);
             var systemTables = _systemDataPages.SystemTables;
 
-            var tables = new List<ITableSchema>();
-            tables.AddRange(userTables);
+            foreach (var table in userTables)
+            {
+                _tables.Add(table);
+            }
 
             foreach (var table in systemTables)
             {
-                tables.Add(table.Schema());
+                _tables.Add(table.Schema());
             }
-
-            _tables = tables.ToArray();
 
             _dbName = dbName;
 
@@ -184,6 +182,86 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public TableSchema GetTableSchema(string tableName)
+        {
+            foreach (var item in _tables)
+            {
+                if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (string.IsNullOrEmpty(item.DatabaseName))
+                    {
+                        item.DatabaseName = GetDatabaseName();
+                    }
+
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        public TableSchema GetTableSchema(int tableId)
+        {
+            foreach (var item in _tables)
+            {
+                if (item.Address.TableId == tableId)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        public int GetMaxTableId()
+        {
+            int maxId = 0;
+            foreach (var table in _tables)
+            {
+                if (table.Id > maxId)
+                {
+                    maxId = table.Id;
+                }
+            }
+
+            return maxId;
+        }
+
+        public bool HasTable(int tableId)
+        {
+            foreach (var item in _tables)
+            {
+                if (item.Address.TableId == tableId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool HasTable(string tableName, string schemaName)
+        {
+            foreach (var table in _tables)
+            {
+                if (table.Schema is not null)
+                {
+                    if (string.Equals(tableName, table.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(schemaName, table.Schema.SchemaName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
+        public List<TableSchema> Schemas()
+        {
+            return _tables.GetAll();
+        }
+
         public DatabaseSchemaInfo GetSchemaInfo(string schemaName)
         {
             if (HasSchema(schemaName))
@@ -254,23 +332,31 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
+        public bool UpdateTableSchema(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (_systemDataPages.HasTable(schema.Name))
+            {
+                _systemDataPages.UpdateTableSchema(schema, transaction, transactionMode);
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Adds the specified table to the metadata's collection of tables
         /// </summary>
         /// <param name="schema">The schema of the table to add</param>
         /// <remarks>Note that adding the table to this object is only to maintain what is presented to other databases. 
         /// To actually add the table to Cache and Storage, use <seealso cref="IDbMetaSystemDataPages.AddTable(ITableSchema)"/></remarks>
-        public bool AddTable(ITableSchema schema, out Guid tableObjectId)
+        public bool AddTable(TableSchema schema, out Guid tableObjectId)
         {
             bool result = false;
 
             if (!_systemDataPages.HasTable(schema.Name))
             {
                 _systemDataPages.AddTable(schema, out tableObjectId);
-                int oldSize = _tables.Length;
-                int newSize = oldSize + 1;
-                Array.Resize<ITableSchema>(ref _tables, newSize);
-                _tables[newSize - 1] = schema;
+                _tables.Add(schema);
                 result = true;
                 return result;
             }
@@ -279,9 +365,35 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public bool DropTable(string tableName)
+
+        /// <summary>
+        /// Marks the pages for the table in memory as deleted and saves those pages to disk. 
+        /// Then unloads those pages from Cache. 
+        /// Then removes the table references from the metadata tables.
+        /// Also removes the schema from the metadata collection.
+        /// </summary>
+        /// <param name="tableName">The name of the table to delete</param>
+        /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public bool DropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
-            throw new NotImplementedException();
+            var table = _tables.Get(tableName);
+            var pageAddresses = CacheManager.GetPageAddressesForTree(table.Address);
+
+            foreach (var address in pageAddresses)
+            {
+                var page = CacheManager.UserDataGetPage(address);
+                page.Delete();
+                StorageManager.SavePageDataToDisk(address, page.Data, page.Type, page.DataPageType(), page.IsDeleted());
+            }
+
+            _systemDataPages.DropTable(tableName, transaction, transactionMode);
+
+            CacheManager.TryRemoveTree(table.Address);
+            _tables.Remove(tableName);
+
+            // is this it?
+            return true;
         }
 
         /// <summary>

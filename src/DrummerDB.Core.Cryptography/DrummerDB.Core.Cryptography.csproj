@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Drummersoft.DrummerDB.Core.Cryptography</AssemblyName>
     <RootNamespace>Drummersoft.DrummerDB.Core.Cryptography</RootNamespace>
   </PropertyGroup>
@@ -18,6 +18,9 @@
 		</AssemblyAttribute>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
 			<_Parameter1>Drummersoft.DrummerDB.Core.Systems</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Drummersoft.DrummerDB.Core.QueryTransaction</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
 

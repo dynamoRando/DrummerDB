@@ -1,16 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>Drummersoft.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>Drummersoft.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
+	  <FileVersion>1.0.0.0</FileVersion>
+	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	  <Authors>dynamoRando</Authors>
+	  <Company>Drummersoft</Company>
+	  <Version>1.0.0.0</Version>
+	  <Description>Library for recording logging, etc for the DrummerDB system.</Description>
+	  <PackageProjectUrl>https://github.com/dynamoRando/DrummerDB</PackageProjectUrl>
+	  <RepositoryType>git</RepositoryType>
+	  <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
 			<_Parameter1>Drummersoft.DrummerDB.Core.Tests</_Parameter1>
 		</AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.Systems</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.Communication</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.QueryTransaction</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.Memory</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.Structures</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Drummersoft.DrummerDB.Core.Databases</_Parameter1>
+    </AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="nlog.config" Version="4.7.12" />
 	</ItemGroup>
 
 </Project>

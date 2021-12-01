@@ -1,21 +1,19 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
-using Drummersoft.DrummerDB.Core.IdentityAccess;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using Drummersoft.DrummerDB.Core.Structures.Interface;
+using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -27,6 +25,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private LockManager _lockManager;
         private ITransactionManager _transactionManager;
         private ActivePlanCollection _activePlans;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -40,6 +39,17 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _lockManager = new LockManager(_db);
             _transactionManager = new TransactionManager(entryManager);
             _activePlans = new ActivePlanCollection();
+        }
+
+        public QueryExecutor(IAuthenticationManager auth, IDbManager db, ITransactionEntryManager entryManager, LogService log)
+        {
+            _auth = auth;
+            _db = db;
+            _lockManager = new LockManager(_db);
+            _transactionManager = new TransactionManager(entryManager);
+            _activePlans = new ActivePlanCollection();
+
+            _log = log;
         }
         #endregion
 
@@ -118,12 +128,24 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #region Private Methods
         private async Task<Resultset> ExecuteAsync(QueryPlan plan, TransactionRequest transaction)
         {
-            return await Task.Factory.StartNew(() => ExecutePlan(plan, transaction));
+            if (_log is not null)
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                var result = await Task.Factory.StartNew(() => ExecutePlan(plan, transaction));
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds, transaction.TransactionBatchId, plan.SqlStatement);
+                return result;
+            }
+            else
+            {
+                return await Task.Factory.StartNew(() => ExecutePlan(plan, transaction));
+            }
         }
 
         private Resultset ExecutePlan(QueryPlan plan, TransactionRequest transaction)
         {
-            var resultBuilder = new ResultsetBuilder(DetermineResultsetShape(plan), _db);
+            var resultBuilder = new ResultsetBuilder(DetermineResultsetShape(plan), _db, _log);
             var addresses = new List<ValueAddress>();
             var resultSet = new Resultset();
 
@@ -177,7 +199,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             var result = new List<ValueAddress>();
             var messages = new List<string>();
-            var errors = new List<string>();    
+            var errors = new List<string>();
 
             // begin transaction
             foreach (var part in plan.Parts)
@@ -187,7 +209,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     if (operation is ISQLQueryable)
                     {
                         var op = operation as ISQLQueryable;
-                        result.AddRange(op.Execute(transaction, TransactionMode.Try));
+                        // don't need to add the results here, just attempt it
+                        op.Execute(transaction, TransactionMode.Try);
+
+                        //result.AddRange(op.Execute(transaction, TransactionMode.Try));
                     }
                     else if (operation is ISQLNonQueryable)
                     {
@@ -205,7 +230,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     if (operation is ISQLQueryable)
                     {
                         var op = operation as ISQLQueryable;
-                        result.AddRange(op.Execute(transaction, TransactionMode.Commit));
+                        var results = op.Execute(transaction, TransactionMode.Commit);
+                        result.AddRange(results.Distinct());
+
+                        if (results.Distinct().Count() == 0)
+                        {
+                            resultSet.NonQueryMessages.Add($"No rows found");
+                        }
+
                     }
                     else if (operation is ISQLNonQueryable)
                     {
@@ -398,6 +430,68 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
 
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Create_Schema, db.Id))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case LogicalStoragePolicyOperator i:
+
+                    var lspOp = operation as LogicalStoragePolicyOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    db = _db.GetUserDatabase(lspOp.DatabaseName);
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Set_Logical_Storage_Policy, db.Id))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case ReviewLogicalStoragePolicyOperator j:
+
+                    var rlspOp = operation as ReviewLogicalStoragePolicyOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    db = _db.GetUserDatabase(rlspOp.DatabaseName);
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Review_Logical_Storage_Policy, db.Id))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case DropTableOperator k:
+                    var dtOp = operation as DropTableOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    db = _db.GetUserDatabase(dtOp.Database.Name);
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Drop_Table, db.Id))
                     {
                         return true;
                     }

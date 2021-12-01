@@ -19,7 +19,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Abstract
         public abstract int GetTotalPages();
         public abstract int GetTotalPages(TreeAddress address);
         public abstract UserDataPage GetUserDataPage(int id);
-        public abstract void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType);
+        public abstract void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType, bool isDeleted);
         public abstract void DeleteFromDisk();
         public abstract List<UserDataPage> GetAllUserDataPages(TreeAddress address, ITableSchema schema);
     }

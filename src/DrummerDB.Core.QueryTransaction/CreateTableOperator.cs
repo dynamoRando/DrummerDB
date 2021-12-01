@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using System;
+using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -21,7 +18,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public List<ColumnSchema> Columns { get; set; }
         public IQueryPlanPartOperator PreviousOperation { get; set; }
         public IQueryPlanPartOperator NextOperation { get; set; }
-        
+
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             Guid tableId;

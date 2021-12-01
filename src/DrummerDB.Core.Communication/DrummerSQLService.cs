@@ -43,6 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             if (_handler.UserHasRights(userName, pw))
             {
+                userIsAuthorized = true;
                 if (string.IsNullOrEmpty(databaseName))
                 {
                     if (_handler.IsValidQuery(statement, userName, pw, out errorMessage))
@@ -50,7 +51,6 @@ namespace Drummersoft.DrummerDB.Core.Communication
                         if (hasSessionId)
                         {
                             result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId);
-                            userIsAuthorized = true;
                         }
                     }
                 }
@@ -61,12 +61,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
                         if (hasSessionId)
                         {
                             result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId);
-                            userIsAuthorized = true;
                         }
                     }
                 }
             }
-          
+
             if (result is not null)
             {
                 if (!result.HasAuthenticationErrors() && !result.HasExecutionErrors())
@@ -86,11 +85,12 @@ namespace Drummersoft.DrummerDB.Core.Communication
                             {
                                 var rowValue = new Common.Communication.RowValue();
                                 rowValue.Value = ByteString.CopyFrom(rRow[i].Value);
-
+                                rowValue.IsNullValue = rRow[i].IsNullValue;
                                 rowValue.Column = new Common.Communication.ColumnSchema();
                                 rowValue.Column.ColumnName = result.Columns[i].Name;
                                 rowValue.Column.ColumnType = Convert.ToUInt32(result.Columns[i].DataType);
                                 rowValue.Column.IsNullable = result.Columns[i].IsNullable;
+                                rowValue.Column.ColumnLength = Convert.ToUInt32(result.Columns[i].Length);
                                 row.Values.Add(rowValue);
                             }
 
@@ -115,10 +115,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
                     if (result.HasExecutionErrors())
                     {
                         resultSet.ExecutionErrorMessage = result.ExecutionErrors.FirstOrDefault();
+                        resultSet.IsError = true;
                     }
                 }
 
-                // need to transform the reult into a SQLQueryReply
+                // need to transform the result into a SQLQueryReply
                 reply.Results.Add(resultSet);
                 authResult.IsAuthenticated = userIsAuthorized;
                 reply.AuthenticationResult = authResult;
@@ -128,7 +129,21 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 if (!string.IsNullOrEmpty(errorMessage))
                 {
                     resultSet.ExecutionErrorMessage = errorMessage;
+                    resultSet.IsError = true;
+                    reply.Results.Add(resultSet);
                 }
+
+                if (!userIsAuthorized)
+                {
+                    authResult.IsAuthenticated = false;
+                    reply.AuthenticationResult = authResult;
+                }
+            }
+
+            // santiy check
+            if (reply.Results.Count == 0)
+            {
+                reply.Results.Add(resultSet);
             }
 
             return Task.FromResult(reply);

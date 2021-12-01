@@ -1,13 +1,12 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
-using Drummersoft.DrummerDB.Core.IdentityAccess;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.Structures;
-using System;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
-using Drummersoft.DrummerDB.Core.Databases.Interface;
+using System;
+using System.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -22,7 +21,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         // internal objects
         private IQueryExecutor _queryExecutor;
         private IQueryParser _queryParser;
+        private IQueryParser _drummerQueryParser;
         private IQueryPlanGenerator _queryPlanGenerator;
+        private DrummerQueryPlanGenerator _drummerPlanGenerator;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -38,6 +40,25 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _queryParser = new QueryParser(_statementHandler);
             _queryPlanGenerator = new QueryPlanGenerator(_statementHandler);
             _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager);
+
+            _drummerQueryParser = new DrummerQueryParser();
+            _drummerPlanGenerator = new DrummerQueryPlanGenerator();
+        }
+
+        public QueryManager(DbManager dbManager, IAuthenticationManager authManager, ITransactionEntryManager entryManager, LogService log)
+        {
+            _dbManager = dbManager;
+            _authManager = authManager;
+
+            _statementHandler = new StatementHandler(_dbManager, log);
+            _queryParser = new QueryParser(_statementHandler, log);
+            _queryPlanGenerator = new QueryPlanGenerator(_statementHandler);
+            _queryExecutor = new QueryExecutor(_authManager, _dbManager, entryManager, log);
+
+            _drummerQueryParser = new DrummerQueryParser(log);
+            _drummerPlanGenerator = new DrummerQueryPlanGenerator(log);
+
+            _log = log;
         }
         #endregion
 
@@ -51,14 +72,71 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <returns><c>TRUE</c> if the SQL query can be executed, otherwise <c>FALSE</c></returns>
         public bool IsStatementValid(string sqlStatement, out string errorMessage)
         {
-            errorMessage = string.Empty;
-            return _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+            bool isStatementValid = false;
+
+            if (_log is not null)
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                if (ContainsDrummerKeywords(sqlStatement))
+                {
+                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                }
+                else
+                {
+                    isStatementValid = _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                }
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+
+                return isStatementValid;
+            }
+            else
+            {
+                if (ContainsDrummerKeywords(sqlStatement))
+                {
+                    return _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                }
+                else
+                {
+                    return _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                }
+            }
         }
 
         public bool IsStatementValid(string sqlStatement, string dbName, out string errorMessage)
         {
             errorMessage = string.Empty;
-            return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+            bool isStatementValid = false;
+
+            if (_log is not null)
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                if (ContainsDrummerKeywords(sqlStatement))
+                {
+                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                }
+                else
+                {
+                    isStatementValid = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                }
+
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.Elapsed.TotalMilliseconds);
+                return isStatementValid;
+            }
+            else
+            {
+                if (ContainsDrummerKeywords(sqlStatement))
+                {
+                    return _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                }
+                else
+                {
+                    return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                }
+            }
         }
 
         /// <summary>
@@ -104,7 +182,17 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (_dbManager.HasDatabase(dbName))
                 {
                     db = _dbManager.GetDatabase(dbName);
-                    return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+
+                    // need to see if this has drummer keywords
+                    if (ContainsDrummerKeywords(sqlStatement))
+                    {
+                        var database = _dbManager.GetHostDatabase(dbName);
+                        return _drummerPlanGenerator.GetQueryPlan(sqlStatement, database, _dbManager);
+                    }
+                    else
+                    {
+                        return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                    }
                 }
             }
             else
@@ -114,20 +202,64 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (_dbManager.HasDatabase(parsedDbName))
                 {
                     db = _dbManager.GetDatabase(parsedDbName);
-                    
+
                     // for the parser to work correctly, we need to remove the USE {dbName} statement
                     sqlStatement = RemoveUsingStatement(sqlStatement, parsedDbName);
 
+
+                    if (_log is not null)
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        var result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        sw.Stop();
+                        _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+                        return result;
+
+                    }
                     return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+
                 }
                 else
                 {
                     // default to system database if the user database was not supplied. This usually happens when the user is creating a new database
                     db = _dbManager.GetSystemDatabase();
-                    return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                    QueryPlan result = null;
+
+                    if (_log is not null)
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+
+                        // need to see if this has drummer keywords
+                        if (ContainsDrummerKeywords(sqlStatement))
+                        {
+                            var database = _dbManager.GetHostDatabase(dbName);
+                            result = _drummerPlanGenerator.GetQueryPlan(sqlStatement, database, _dbManager);
+                        }
+                        else
+                        {
+                            result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        }
+
+                        sw.Stop();
+                        _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+                        return result;
+                    }
+
+                    if (ContainsDrummerKeywords(sqlStatement))
+                    {
+                        var database = _dbManager.GetHostDatabase(dbName);
+                        return _drummerPlanGenerator.GetQueryPlan(sqlStatement, database, _dbManager);
+                    }
+                    else
+                    {
+                        return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                    }
+                    
                 }
             }
-           
+
             return null;
         }
 
@@ -160,6 +292,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private string RemoveUsingStatement(string statement, string dbName)
         {
             return statement.Replace(SQLGeneralKeywords.USE + $" {dbName};", string.Empty).Trim();
+        }
+
+        private bool ContainsDrummerKeywords(string statement)
+        {
+            return statement.Contains(DrummerKeywords.DRUMMER_BEGIN);
         }
         #endregion
 

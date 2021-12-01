@@ -1,8 +1,8 @@
 ﻿using Drummersoft.DrummerDB.Core.Communication.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using System;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -19,6 +19,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private SQLServiceServer _sqlServiceServer;
         private InfoServiceServer _infoServiceServer;
         private DatabaseServiceServer _databaseServiceServer;
+        private LogService _logService;
 
         // internal objects
         private SQLServiceHandler _sqlServiceHandler;
@@ -33,7 +34,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         #endregion
 
         #region Constructors
-        public NetworkManager(PortSettings databaseServiceSettings, PortSettings sqlServiceSettings, PortSettings infoServiceSettings, IQueryManager queryManager, IDbManager dbManager)
+        public NetworkManager(PortSettings databaseServiceSettings, PortSettings sqlServiceSettings, PortSettings infoServiceSettings, IQueryManager queryManager, IDbManager dbManager, LogService logService)
         {
             _queryManager = queryManager;
             _dbManager = dbManager;
@@ -41,6 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             _sqlServicePort = sqlServiceSettings;
             _databaseServicePort = databaseServiceSettings;
             _infoServicePort = infoServiceSettings;
+            _logService = logService;
         }
         #endregion
 
@@ -69,6 +71,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _sqlServiceHandler.SetQueryManager(queryManager);
                 _sqlServiceHandler.SetDbManager(dbManager);
                 _sqlServiceHandler.SetAuthentication(authenticationManager);
+
+                if (_logService is not null)
+                {
+                    _sqlServiceHandler.SetLogService(_logService);
+                }
             }
 
             if (useHttps)
@@ -87,6 +94,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
             {
                 _sqlServiceServer = new SQLServiceServer();
             }
+
+            _logService.Info($"SQLService endpoint started at: {clientUrl}");
 
             _sqlServiceServer.RunAsync(null, urls, _sqlServiceHandler, _sqlServicePort);
         }
@@ -130,6 +139,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
             {
                 _infoServiceServer = new InfoServiceServer();
             }
+
+            _logService.Info($"InfoService endpoint started at: {clientUrl}");
 
             _infoServiceServer.RunAsync(null, urls, _infoServiceHandler, _infoServicePort);
         }
@@ -195,6 +206,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _databaseServiceServer = new DatabaseServiceServer();
             }
 
+
+            _logService.Info($"DatabaseService endpoint started at: {clientUrl}");
             _databaseServiceServer.RunAsync(null, urls, _databaseServiceHandler, _databaseServicePort);
         }
 

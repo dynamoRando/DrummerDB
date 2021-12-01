@@ -18,7 +18,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.Database
             Guid guid = Guid.NewGuid();
             int portNumber = TestPortNumbers.SYSTEM_LOGIN;
 
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestSysLog");
+            string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestSysLog");
 
             DirectoryInfo directory = new DirectoryInfo(storageFolder);
 

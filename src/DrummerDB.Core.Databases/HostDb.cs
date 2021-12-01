@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Abstract;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
@@ -19,7 +20,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
         // NOTE: May need to seperate out User Data actions (i.e. things that pertain to tables) into a different sub-object?
         private DatabaseMetadata _metaData;
         private ITransactionEntryManager _xEntryManager;
-        private List<Table> _inMemoryTables;
+        private TableCollection _inMemoryTables;
+        private LogService _log;
 
         private ProcessUserDatabaseSettings _settings;
         #endregion
@@ -28,6 +30,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public override string Name => _metaData.Name;
         public override int Version => _metaData.Version;
         public override Guid Id => _metaData.Id;
+        public override DatabaseType DatabaseType => DatabaseType.Host;
         #endregion
 
         #region Constructors
@@ -36,10 +39,22 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             _metaData = metadata;
             _xEntryManager = xEntryManager;
-            _inMemoryTables = new List<Table>();
+            _inMemoryTables = new TableCollection();
+
+            LoadTablesIntoMemory();
         }
 
-        internal HostDb(DatabaseMetadata metadata, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) : 
+        internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
+        {
+            _metaData = metadata;
+            _xEntryManager = xEntryManager;
+            _inMemoryTables = new TableCollection();
+            _log = log;
+
+            LoadTablesIntoMemory();
+        }
+
+        internal HostDb(DatabaseMetadata metadata, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
             this(metadata, xEntryManager)
         {
             _settings = settings;
@@ -47,12 +62,172 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public override bool IsReadyForCooperation()
+        {
+            foreach (var table in _inMemoryTables)
+            {
+                string schemaName = table.Schema().Schema.SchemaName;
+                // need to ignore sys tables
+                if (string.Equals(schemaName, Constants.SYS_SCHEMA, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var lsp = table.GetLogicalStoragePolicy();
+                if (lsp == LogicalStoragePolicy.None)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            var storage = _metaData.StorageManager;
+            TransactionEntry xact = null;
+            var cache = _metaData.CacheManager;
+            Table table;
+            TableSchema schema;
+            List<IPage> pages;
+
+            switch (transactionMode)
+            {
+                case TransactionMode.None:
+
+                    if (HasTable(tableName))
+                    {
+                        _inMemoryTables.Remove(tableName);
+                        _metaData.DropTable(tableName, transaction, transactionMode);
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                case TransactionMode.Try:
+
+                    if (HasTable(tableName))
+                    {
+                        table = _inMemoryTables.Get(tableName);
+                        schema = _metaData.GetTableSchema(tableName);
+                        var addresses = _metaData.CacheManager.GetPageAddressesForTree(table.Address);
+                        pages = new List<IPage>();
+
+                        // get the pages for the tree (table) from memory before we mark them as deleted
+                        // and save them to disk
+                        foreach (var address in addresses)
+                        {
+                            var page = _metaData.CacheManager.UserDataGetPage(address);
+                            pages.Add(page as IPage);
+                        }
+
+                        // record the data in the transaction entry
+                        xact = GetTransactionEntryForDropTable(GetDropTableTransaction(schema, table, pages), transaction);
+                        _xEntryManager.AddEntry(xact);
+
+                        // save the transaction to disk
+                        storage.LogOpenTransaction(_metaData.Id, xact);
+
+                        // -- remove the actual table
+                        // remove from our in memory collection
+                        _inMemoryTables.Remove(tableName);
+                        // remove all the table infastructure (schema, data pages in cache, data pages on disk)
+                        _metaData.DropTable(tableName, transaction, transactionMode);
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                case TransactionMode.Rollback:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+
+                    // need to get the data back to revert the changes
+                    // need to load the pages back into cache
+                    // and need to make sure the pages are not deleted on disk
+                    var xactData = xact.GetActionAsDropTable();
+
+                    table = xactData.Table as Table;
+                    schema = xactData.Schema;
+                    pages = xactData.Pages;
+
+                    _inMemoryTables.Add(table as Table);
+                    _metaData.AddTable(schema, out _);
+
+                    foreach (var page in pages)
+                    {
+                        if (page is IBaseDataPage)
+                        {
+                            // note - we might be duplicating pages; because we just mark the pages as deleted
+                            // and here we are trying to save the pages back to disk as undeleted
+                            // we might be better off just marking the pages as undeleted directly on disk
+                            var dataPage = page as IBaseDataPage;
+                            storage.SavePageDataToDisk(new PageAddress
+                            {
+                                PageId = dataPage.PageId(),
+                                DatabaseId = table.Address.DatabaseId,
+                                TableId = table.Address.TableId,
+                                SchemaId = table.Address.SchemaId
+                            }, dataPage.Data, dataPage.Type, dataPage.DataPageType(), page.IsDeleted());
+                        }
+                    }
+
+                    // load Cache back with data from disk
+                    table.BringTreeOnline();
+
+                    // once done restoring data, need to clean up transaction
+                    xact.MarkDeleted();
+                    storage.RemoveOpenTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+
+                case TransactionMode.Commit:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkComplete();
+                    storage.LogCloseTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    break;
+                case TransactionMode.Unknown:
+                    throw new InvalidOperationException("Unknown transaction type");
+                default:
+                    throw new InvalidOperationException("Unknown transaction type");
+            }
+
+            throw new NotImplementedException();
+        }
+
         public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy)
         {
             if (HasTable(tableName))
             {
                 var table = GetTable(tableName);
                 table.SetLogicalStoragePolicy(policy);
+
+                var schema = _metaData.GetSchema(tableName, Name) as TableSchema;
+                schema.SetStoragePolicy(policy);
+                _metaData.UpdateTableSchema(schema);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (HasTable(tableName))
+            {
+                var table = GetTable(tableName);
+                table.SetLogicalStoragePolicy(policy, transaction, transactionMode);
 
                 var schema = _metaData.GetSchema(tableName, Name) as TableSchema;
                 schema.SetStoragePolicy(policy);
@@ -102,7 +277,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 else
                 {
                     var item = GetTableSchema(tableId);
-                    result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    if (_log is not null)
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                    }
+                    else
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    }
+
                     _inMemoryTables.Add(result);
                 }
             }
@@ -112,46 +295,56 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public override int GetMaxTableId()
         {
-            int maxId = 0;
-
-            foreach (var table in _metaData.Tables)
-            {
-                if (table.Id > maxId)
-                {
-                    maxId = table.Id;
-                }
-            }
-
-            return maxId;
+            return _metaData.GetMaxTableId();
         }
 
         public override bool HasTable(int tableId)
         {
-            foreach (var item in _metaData.Tables)
-            {
-                if (item.Address.TableId == tableId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _metaData.HasTable(tableId);
         }
 
         public override bool HasTable(string tableName, string schemaName)
         {
-            foreach (var table in _metaData.Tables)
+            return _metaData.HasTable(tableName, schemaName);
+        }
+
+        public override Table GetTable(string tableName, string schemaName)
+        {
+            Table result = null;
+
+            if (HasTable(tableName, schemaName))
             {
-                if (table.Schema is not null)
+                if (
+                    _inMemoryTables.Any(table => string.Equals(table.Schema().Name, tableName, StringComparison.OrdinalIgnoreCase))
+                && _inMemoryTables.Any(table => string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
+                )
                 {
-                    if (string.Equals(tableName, table.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(schemaName, table.Schema.SchemaName, StringComparison.OrdinalIgnoreCase))
+                    foreach (var table in _inMemoryTables)
                     {
-                        return true;
+                        if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase) && string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return table;
+                        }
                     }
                 }
+                else
+                {
+                    var item = GetTableSchema(tableName);
+                    if (_log is not null)
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                    }
+                    else
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    }
+
+                    _inMemoryTables.Add(result);
+                }
+
             }
 
-            return false;
+            return result;
         }
 
         public override Table GetTable(string tableName)
@@ -167,10 +360,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 else
                 {
                     var item = GetTableSchema(tableName);
-                    result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    if (_log is not null)
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                    }
+                    else
+                    {
+                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+                    }
+
                     _inMemoryTables.Add(result);
                 }
-            
+
             }
 
             return result;
@@ -191,12 +392,29 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _metaData.HasUser(userName);
         }
 
-        public override bool AddTable(ITableSchema schema, out Guid tableObjectId)
+        public override bool AddTable(TableSchema schema, out Guid tableObjectId)
         {
-            return _metaData.AddTable(schema, out tableObjectId);
+            var result = _metaData.AddTable(schema, out tableObjectId);
+            if (!_inMemoryTables.Contains(schema.Name))
+            {
+                Table physicalTable = null;
+
+                if (_log is not null)
+                {
+                    physicalTable = MakeTable(schema, _log);
+                }
+                else
+                {
+                    physicalTable = MakeTable(schema);
+                }
+
+                _inMemoryTables.Add(physicalTable);
+            }
+
+            return result;
         }
 
-        public override bool TryAddTable(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
+        public override bool TryAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
         {
             var storage = _metaData.StorageManager;
 
@@ -219,6 +437,22 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         storage.LogOpenTransaction(_metaData.Id, xact);
                         _metaData.AddTable(schema, out tableObjectId);
 
+                        Table newTable = null;
+
+                        if (_log is not null)
+                        {
+                            newTable = MakeTable(schema, _log);
+                        }
+                        else
+                        {
+                            newTable = MakeTable(schema);
+                        }
+
+                        if (!_inMemoryTables.Contains(schema.Name))
+                        {
+                            _inMemoryTables.Add(newTable);
+                        }
+
                         //storage.SavePageDataToDisk(null, null, PageType.Data);
                         return true;
                     }
@@ -231,7 +465,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     {
                         xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
                         xact.MarkDeleted();
-                        _metaData.DropTable(schema.Name);
+                        _metaData.DropTable(schema.Name, transaction, transactionMode);
                         storage.RemoveOpenTransaction(_metaData.Id, xact);
                         _xEntryManager.RemoveEntry(xact);
 
@@ -259,15 +493,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public override bool HasTable(string tableName)
         {
-            foreach (var item in _metaData.Tables)
+            if (_inMemoryTables is null)
             {
-                if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
+                throw new InvalidOperationException();
             }
 
-            return false;
+            if (_inMemoryTables.Contains(tableName))
+            {
+                return true;
+            }
+            else
+            {
+                return _metaData.HasTable(tableName);
+            }
         }
 
         public override bool ValidateUser(string userName, string pwInput)
@@ -302,35 +540,24 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Private Methods
-        private ITableSchema GetTableSchema(string tableName)
+        private TableSchema GetTableSchema(string tableName)
         {
-            foreach (var item in _metaData.Tables)
-            {
-                if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (string.IsNullOrEmpty(item.DatabaseName))
-                    {
-                        item.DatabaseName = _metaData.Name;
-                    }
-
-                    return item;
-                }
-            }
-
-            return null;
+            return _metaData.GetTableSchema(tableName);
         }
 
-        private ITableSchema GetTableSchema(int tableId)
+        private Table MakeTable(TableSchema schema)
         {
-            foreach (var item in _metaData.Tables)
-            {
-                if (item.Address.TableId == tableId)
-                {
-                    return item;
-                }
-            }
+            return new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
+        }
 
-            return null;
+        private Table MakeTable(TableSchema schema, LogService log)
+        {
+            return new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, log);
+        }
+
+        private TableSchema GetTableSchema(int tableId)
+        {
+            return _metaData.GetTableSchema(tableId);
         }
 
         private CreateTableTransaction GetCreateTableTransaction(TableSchema schema)
@@ -338,9 +565,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new CreateTableTransaction(schema);
         }
 
+        private DropTableTransaction GetDropTableTransaction(TableSchema schema, Table table, List<IPage> pages)
+        {
+            return new DropTableTransaction(schema, table, pages);
+        }
+
         private TransactionEntry GetTransactionEntryForCreateTable(CreateTableTransaction transaction, TransactionRequest request)
         {
-
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
 
             var entry = new TransactionEntry
@@ -349,6 +580,33 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 );
 
             return entry;
+        }
+
+        private TransactionEntry GetTransactionEntryForDropTable(DropTableTransaction transaction, TransactionRequest request)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
+            var entry = new TransactionEntry(request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
+                transaction, request.UserName, false, sequenceId);
+
+            return entry;
+        }
+
+        private void LoadTablesIntoMemory()
+        {
+            foreach (var table in _metaData.Schemas())
+            {
+                Table newTable = null;
+                if (_log is not null)
+                {
+                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
+                }
+                else
+                {
+                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager); ;
+                }
+
+                _inMemoryTables.Add(newTable);
+            }
         }
         #endregion
 

@@ -80,6 +80,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         bool IsSystemDatabase(Guid databaseId);
 
         bool IsUserDatabase(Guid databaseId);
+
         void LoadSystemDatabaseFilesIntoMemory();
 
         void LoadUserDatabaseFilesIntoMemory();
@@ -115,7 +116,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         /// <param name="address">The address of the page.</param>
         /// <param name="data">The binary data.</param>
         /// <param name="type">The type of page to be saved to disk.</param>
-        void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType);
+        void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType, bool isDeleted);
         int TotalSystemDatabasesOnDisk();
         int TotalUserDatabasesOnDisk();
     }

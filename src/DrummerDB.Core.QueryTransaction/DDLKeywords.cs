@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Drummersoft.DrummerDB.Core.QueryTransaction
+﻿namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
     internal static class DDLKeywords
     {
@@ -14,6 +8,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public const string ALTER = "ALTER";
         public const string DROP = "DROP";
         public const string TRUNCATE = "TRUNCATE";
+        public const string TABLE = "TABLE";
+        public const string IF_EXISTS = "IF EXISTS";
 
         public static string[] Get()
         {

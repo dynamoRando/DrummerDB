@@ -57,6 +57,10 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         Guid DbId();
         int TableId();
 
+        bool IsDeleted();
+        void Delete();
+        void UnDelete();
+
         /// <summary>
         /// Used to determine the status of a row on a page
         /// </summary>
@@ -78,17 +82,16 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// <param name="value">The value to search for</param>
         /// <returns>A list of row ids that contain the specified value</returns>
         List<RowAddress> GetRowsWithValue(IRowValue value);
+        RowAddress[] GetRowAddressesWithValue(IRowValue value);
 
         /// <summary>
         /// Gets all the Row Ids on this page
         /// </summary>
         /// <returns>A list of row ids</returns>
-        List<RowAddress> GetRowIdsOnPage();
+        List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false);
+        int GetCountOfRowIdsOnPage(bool includeDeletedRows = false);
 
         bool HasValue(IRowValue value);
-        bool HasValue(RowValueSearch value);
-        List<RowAddress> GetRowsWithValue(RowValueStruct value);
-        List<RowAddress> GetRowsWithValue(RowValueSearch value);
         RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
         RowDebug GetDebugRow(int rowId);
 
@@ -99,6 +102,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// <returns><c>TRUE</c> if the <see cref="PageRowStatus"/> is <see cref="PageRowStatus.IsOnPage"/> or <see cref="PageRowStatus.IsOnPageAndForwardedOnSamePage"/>
         /// , otherwise <c>FALSE</c></returns>
         bool HasRow(int rowId);
-        List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false);
+        List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false);
+        int GetCountOfRowsWithValue(IRowValue value);
     }
 }

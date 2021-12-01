@@ -1,9 +1,7 @@
-﻿using Drummersoft.DrummerDB.Core.Memory.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction;
+﻿using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
-using System;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
+using System;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {

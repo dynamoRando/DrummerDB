@@ -38,7 +38,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         }
 
         public Task StopAsync()
-        { 
+        {
             return _server.StopAsync();
         }
 

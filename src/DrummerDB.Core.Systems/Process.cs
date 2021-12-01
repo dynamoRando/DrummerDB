@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Core.Communication.Interface;
 using Drummersoft.DrummerDB.Core.Cryptography;
 using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.Memory;
@@ -13,11 +14,12 @@ using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
+using NLog;
 using System;
-using System.Linq;
-using System.IO;
-using System.Reflection;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.Systems
 {
@@ -36,6 +38,8 @@ namespace Drummersoft.DrummerDB.Core.Systems
         private IAuthenticationManager _auth;
         private ICryptoManager _crypt;
         private ITransactionEntryManager _xEntryManager;
+        private LogService _logService;
+
 
         // test variables
         private string _storageFolder;
@@ -115,6 +119,12 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public void Start()
         {
             LoadConfiguration();
+
+            if (Settings.EnableLogging)
+            {
+                ConfigureLogService();
+            }
+
             SetupCrypt();
             SetupStorage();
             SetupMemory();
@@ -125,6 +135,9 @@ namespace Drummersoft.DrummerDB.Core.Systems
             SetupQueries();
             LoadDatabases();
             CheckForAdminSetup();
+
+
+
         }
 
         public void Stop()
@@ -134,6 +147,11 @@ namespace Drummersoft.DrummerDB.Core.Systems
             _network.StopServerForInfoService();
         }
 
+        /// <summary>
+        /// Starts the SQL Service for this Process and overrides settings in the appsettings.json
+        /// </summary>
+        /// <param name="overrideSettingsPortNumber">The port number to use if you wish to override the setting in the Process' appsettings.json</param>
+        /// <param name="overrideSettingsUseHttps">Pass to override the setting to use HTTPS in the Process' appsettings.json</param>
         public void StartSQLServer(int overrideSettingsPortNumber, bool overrideSettingsUseHttps)
         {
             _network.StartServerForSQLService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber, _queries);
@@ -244,7 +262,15 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
         private void SetupMemory()
         {
-            _cache = new CacheManager();
+            if (_logService is not null)
+            {
+                _cache = new CacheManager(_logService);
+            }
+            else
+            {
+                _cache = new CacheManager();
+            }
+
         }
 
         private void SetupTransactionEntryManager()
@@ -254,7 +280,15 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
         private void SetupQueries()
         {
-            _queries = new QueryManager(_dbManager, _auth, _xEntryManager);
+            if (Settings.EnableLogging)
+            {
+                _queries = new QueryManager(_dbManager, _auth, _xEntryManager, _logService);
+            }
+            else
+            {
+                _queries = new QueryManager(_dbManager, _auth, _xEntryManager);
+            }
+
         }
 
         private void SetupNetwork()
@@ -262,7 +296,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
             var sqlPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.SQLServicePort };
             var databasePort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.DatabaseServicePort };
             var infoPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.InfoServicePort };
-            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager);
+            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager, _logService);
         }
 
         private void SetupAuth()
@@ -292,7 +326,48 @@ namespace Drummersoft.DrummerDB.Core.Systems
                 Test_SetupAdminLogin(userName, password, userId);
             }
         }
+
+        private void ConfigureLogService()
+        {
+            var config = new NLog.Config.LoggingConfiguration();
+            string fullPath = string.Empty;
+
+            if (!string.IsNullOrEmpty(_storageFolder))
+            {
+                fullPath = Path.Combine(_storageFolder, Settings.LogFileName);
+            }
+            else
+            {
+                fullPath = Path.Combine(Settings.DatabaseFolder, Settings.LogFileName);
+            }
+
+
+            // Targets where to log to: File and Console
+            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = fullPath };
+
+            // Rules for mapping loggers to targets            
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, logfile);
+
+            // Apply config           
+            NLog.LogManager.Configuration = config;
+
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+
+            _logService = new LogService(logger, Settings.EnableLogging, Settings.LogPerformanceMetrics);
+            _logService.Info("DrummerDB started");
+
+            DateTimeOffset localTime = DateTimeOffset.Now;
+            DateTimeOffset utcTime = DateTimeOffset.UtcNow;
+
+            string currentMessage = $"Local Time: {localTime.ToString("T")}";
+            string offsetMessage = $"Difference from UTC: {localTime.Offset.ToString()}";
+
+            _logService.Info(currentMessage);
+            _logService.Info(offsetMessage);
+        }
+
         #endregion
 
     }
 }
+

@@ -58,6 +58,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
         #endregion
 
         #region Public Methods
+      
         /// <summary>
         /// Creates the needed database structures on disk for a system database
         /// </summary>
@@ -498,13 +499,13 @@ namespace Drummersoft.DrummerDB.Core.Storage
                 }
             }
         }
-        public void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType)
+        public void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType, bool isDeleted)
         {
             UserDbFileHandler file = _userDbFiles.Get(address.DatabaseId);
 
             if (file is not null)
             {
-                file.WritePageToDisk(data, address, type, dataPageType);
+                file.WritePageToDisk(data, address, type, dataPageType, isDeleted);
             }
             else
             {
@@ -512,7 +513,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
 
                 if (system is not null)
                 {
-                    system.WritePageToDisk(data, address, type, dataPageType);
+                    system.WritePageToDisk(data, address, type, dataPageType, isDeleted);
                 }
                 else
                 {

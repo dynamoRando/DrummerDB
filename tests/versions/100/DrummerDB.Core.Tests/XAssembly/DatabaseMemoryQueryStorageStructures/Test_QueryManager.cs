@@ -1,24 +1,20 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Cryptography;
 using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Version;
 using Drummersoft.DrummerDB.Core.IdentityAccess;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
 using System.IO;
-using Drummersoft.DrummerDB.Core.Tests.Mocks;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
+using System.Linq;
+using Xunit;
 
 namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 {
@@ -325,7 +321,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string sqlStatement = $"CREATE DATABASE {createdDbName}";
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            
+
             // --- ACT
             string errorMessage = string.Empty;
             var isStatementValid = queryManager.IsStatementValid(sqlStatement, userDbName, out errorMessage);
@@ -451,7 +447,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             ";
 
             string sqlSelectFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName}";
-            
+
+            string sqlSelectBrandonFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName} WHERE EMPLOYEENAME = 'Brandon'";
+
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
             var dbExists = _dbManager.HasUserDatabase(userDbName);
 
@@ -471,6 +469,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var isSelectStatementValid = queryManager.IsStatementValid(sqlSelectFromTable, userDbName, out errorSelectMessage);
             var selectTableResult = queryManager.ExecuteValidatedStatement(sqlSelectFromTable, userDbName, userName, password, userSessionId);
 
+            string errorBrandonSelectMessage = string.Empty;
+            var isSelectBranodnStatementValid = queryManager.IsStatementValid(sqlSelectBrandonFromTable, userDbName, out errorSelectMessage);
+            var selectBrandonTableResult = queryManager.ExecuteValidatedStatement(sqlSelectBrandonFromTable, userDbName, userName, password, userSessionId);
+
             // -- ASSERT
             Assert.True(isCreateStatementValid);
             Assert.True(isInsertStatementValid);
@@ -479,7 +481,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             Assert.InRange(selectTableResult.Columns.Count(), 4, 4);
 
             var brandonHireBinary = DbBinaryConvert.DateTimeToBinary("2021-09-13");
-            var returnedBrandonHireDate = selectTableResult.Rows[0][2].Value;
+            var returnedBrandonHireDate = selectBrandonTableResult.Rows[0][2].Value;
 
             Assert.Equal(brandonHireBinary, returnedBrandonHireDate);
         }
@@ -773,7 +775,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var brandonReturnedHireDate = selectEmployeesResult2.Rows[0][2].Value;
             var brandonRevisedHireDate = DbBinaryConvert.BinaryToDateTime(brandonReturnedHireDate);
-            
+
             // -- ASSERT
             Assert.True(isCreateStatementValid);
             Assert.True(tableWasCreated);
@@ -952,19 +954,19 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             Assert.Equal(2, selectStarResult.Rows.Count());
         }
 
-        [Fact(Skip ="Drop table operator not written yet")]
+        [Fact(Skip = "Drop table operator not written yet")]
         public void Test_Generate_Execute_Drop_Table_Query_Plan()
         {
             throw new NotImplementedException();
         }
 
-        [Fact(Skip ="System schema not implemented yet")]
+        [Fact(Skip = "System schema not implemented yet")]
         public void Test_Generate_Select_Databases_From_System_Schema_Query_Plan()
         {
             throw new NotImplementedException();
         }
 
-        [Fact(Skip ="System schema not implemented yet")]
+        [Fact(Skip = "System schema not implemented yet")]
         public void Test_Generate_Select_Tables_From_System_Schema_Query_Plan()
         {
             throw new NotImplementedException();
@@ -1070,7 +1072,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var auth = new AuthenticationManager(dbManager);
 
             dbManager.LoadSystemDatabases(cache, storage, crypto);
-            
+
             dbManager.TryCreateNewHostDatabase(userDbName, out _);
             dbManager.TryCreateNewHostDatabase("TestDb2", out _);
             dbManager.TryCreateNewHostDatabase("TestDb3", out _);
@@ -1090,13 +1092,69 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var isSelectDatabasesValid = queryManager.IsStatementValid(sqlSelectDatabasesStatement, dbName, out errorSelectDatabases);
             var selectDatabasesResult = queryManager.ExecuteValidatedStatement(sqlSelectDatabasesStatement, dbName, userName, password, userSessionId);
 
-            foreach(var row in selectDatabasesResult.Rows)
+            foreach (var row in selectDatabasesResult.Rows)
             {
                 string result = DbBinaryConvert.BinaryToString(row[0].Value);
                 Debug.WriteLine(result);
             }
 
             Assert.InRange(selectDatabasesResult.Rows.Count(), 4, 4);
+        }
+
+        [Fact(Skip = "If Exists Operator Not Written")]
+        public void Test_IfTableExistsOperator()
+        {
+            // -- ARRANGE
+            string userName = "Tester";
+            string password = "TestPass";
+            string userDbName = "TestCreateT";
+            Guid userSessionId = Guid.NewGuid();
+            string createdTableName = "PEOPLE";
+            string sqlCreateTableStatement = $@"
+            CREATE TABLE {createdTableName}
+            (
+                ID INT IDENTITY(1,1),
+                EMPLOYEENAME NVARCHAR(25) NOT NULL,
+                HIREDATE DATETIME NOT NULL,
+                TERMDATE DATETIME NULL
+            );
+            ";
+
+            string sqlSelectFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName}";
+
+            string sqlDropTableStatement = $@"
+            DROP TABLE IF EXISTS {createdTableName}
+            ";
+
+            var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
+
+            var dbExists = _dbManager.HasUserDatabase(userDbName);
+
+            // --- ACT
+            string errorCreateMessage = string.Empty;
+            var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
+            var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
+
+            var db = _dbManager.GetUserDatabase(userDbName);
+            var tableWasCreated = db.HasTable(createdTableName);
+
+            string errorSelectMessage = string.Empty;
+            var isSelectStatementValid = queryManager.IsStatementValid(sqlSelectFromTable, userDbName, out errorSelectMessage);
+            var selectTableResult = queryManager.ExecuteValidatedStatement(sqlSelectFromTable, userDbName, userName, password, userSessionId);
+
+            // -- ASSERT
+            Assert.True(isCreateStatementValid);
+            Assert.True(tableWasCreated);
+            Assert.InRange(selectTableResult.Rows.Count, 0, 0);
+            Assert.InRange(selectTableResult.Columns.Count(), 4, 4);
+
+            string errorDropMessage = string.Empty;
+            var isDropStatementValid = queryManager.IsStatementValid(sqlDropTableStatement, userDbName, out errorDropMessage);
+            var dropTableResult = queryManager.ExecuteValidatedStatement(sqlDropTableStatement, userDbName, userName, password, userSessionId);
+
+            var tableWasDropped = db.HasTable(createdTableName);
+
+            Assert.False(tableWasDropped);
         }
     }
 }

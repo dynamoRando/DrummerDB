@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Drummersoft.DrummerDB.Core.QueryTransaction
+﻿namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
     internal static class SQLGeneralKeywords
     {
@@ -18,6 +12,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             public const string INT = "INT";
             public const string NVARCHAR = "NVARCHAR";
+            public const string VARCHAR = "VARCHAR";
             public const string CHAR = "CHAR";
             public const string DATETIME = "DATETIME";
             public const string BIT = "BIT";

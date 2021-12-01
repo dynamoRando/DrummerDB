@@ -1,6 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Client;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Browser.Services
 {
@@ -55,6 +55,8 @@ namespace Drummersoft.DrummerDB.Browser.Services
             CurrentDatabaseNames = new List<string>();
             CurrentDatabaseName = string.Empty;
             CurrrentTableNames = new List<string>();
+
+            CurrentDatabaseNames.Add("-- SELECT ONE ---");
         }
     }
 }

@@ -1,9 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Core.Structures;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -20,6 +16,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             TableId = tableId;
             DatabaseId = dbId;
             SchemaId = schemaId;
-        }    
+        }
     }
 }

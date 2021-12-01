@@ -12,7 +12,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
         public async void Test_ProcessAndClientSQLPing()
         {
 
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestSQLClientOnline");
+            string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestSQLClientOnline");
 
             DirectoryInfo directory = new DirectoryInfo(storageFolder);
 
@@ -34,7 +34,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
             // for some reason this bombs in .NET when using the IP Address instead of the domain
             // will need to consider how this will work moving forward
             string url = "http://localhost";
-            
+
 
             var client = new DrummerSQLClient(url, portNumber);
             var result = await client.IsClientOnlineAsync();
@@ -46,7 +46,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
         [Fact]
         public async void Test_ProcessAndClientInfoPing()
         {
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestInfoClientOnline");
+            string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestInfoClientOnline");
 
             DirectoryInfo directory = new DirectoryInfo(storageFolder);
 
@@ -68,7 +68,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
             // for some reason this bombs in .NET when using the IP Address instead of the domain
             // will need to consider how this will work moving forward
             string url = "http://localhost";
-            
+
 
             var client = new DrummerInfoClient(url, portNumber);
             var result = await client.IsClientOnlineAsync();
@@ -82,7 +82,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
         public async void Test_ProcessAndClientDatabasePing()
         {
 
-            string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestDbClientOnline");
+            string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestDbClientOnline");
 
             DirectoryInfo directory = new DirectoryInfo(storageFolder);
 
@@ -104,7 +104,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
             // for some reason this bombs in .NET when using the IP Address instead of the domain
             // will need to consider how this will work moving forward
             string url = "http://localhost";
-           
+
             var client = new DrummerDatabaseClient(url, portNumber);
             var result = await client.IsClientOnlineAsync();
 

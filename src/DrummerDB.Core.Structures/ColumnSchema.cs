@@ -90,6 +90,18 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     var convertedChar = type as SQLChar;
                     Length = convertedChar.Length;
                     break;
+                case SQLInt:
+                    Length = Constants.SIZE_OF_INT;
+                    break;
+                case SQLDateTime:
+                    Length = Constants.SIZE_OF_DATETIME;
+                    break;
+                case SQLBit:
+                    Length = Constants.SIZE_OF_BOOL;
+                    break;
+                case SQLDecimal:
+                    Length = Constants.SIZE_OF_DECIMAL;
+                    break;
                 default:
                     Length = 0;
                     break;

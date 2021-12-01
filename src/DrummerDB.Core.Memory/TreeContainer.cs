@@ -1,4 +1,5 @@
 ﻿using C5;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
@@ -19,6 +20,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         private TreeAddress _address;
         private TreeDictionary<int, IBaseDataPage> _tree;
         private ReaderWriterLockSlim _locker = new ReaderWriterLockSlim();
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -36,6 +38,14 @@ namespace Drummersoft.DrummerDB.Core.Memory
             _address = address;
             _tree = new TreeDictionary<int, IBaseDataPage>();
             _tree.Add(page.PageId(), page);
+        }
+
+        public TreeContainer(TreeAddress address, IBaseDataPage page, LogService log)
+        {
+            _address = address;
+            _tree = new TreeDictionary<int, IBaseDataPage>();
+            _tree.Add(page.PageId(), page);
+            _log = log;
         }
         #endregion
 
@@ -133,180 +143,19 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <remarks>This function tries to account for row forwards and when a page we're updating is full. This function will write lock the container. For more information on these concepts, see Page.md and Row.md</remarks>
         public int UpdateRow(IRow row)
         {
-            _locker.TryEnterWriteLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
-
-            int pageId = 0;
-            int rowId = row.Id;
-            int newRowOffset = 0;
-            IBaseDataPage newPage = null;
-            IBaseDataPage page = null;
-            PageUpdateRowResult updateResult = PageUpdateRowResult.Unknown;
-
-            // Figure out the status of our row. Is it currently on our page but forwarded? Is it forwarded to a different page?
-
-            // if the row is on our page, but forwarded (has been updated at least once)
-            var pages = _tree.Values.Where(p => p.GetRowStatus(rowId) == PageRowStatus.IsOnPageAndForwardedOnSamePage).ToList();
-
-            if (pages.Count > 1)
+            if (_log is not null)
             {
-                throw new InvalidOperationException("Tree has an updated row that somehow exists on multiple pages");
+                var sw = Stopwatch.StartNew();
+                sw.Start();
+                var result = Update(row);
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+                return result;
             }
-            else if (pages.Count == 1)
+            else
             {
-                // the row exists on on the page, but has been forwarded at least once
-                page = pages.First();
-                var currentPageId = page.PageId();
-
-                // try to update the row on the page
-                updateResult = page.TryUpdateRowData(row, out _);
-
-                // if the attempted update failed because there's not enough room on the page
-                if (updateResult == PageUpdateRowResult.NotEnoughRoom)
-                {
-                    // need to find another page with enough room to update with the updated row data, then mark the existing rows as forwarded on this page
-                    newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != page.PageId()).FirstOrDefault();
-                    if (newPage is not null)
-                    {
-                        int newPageId = newPage.PageId();
-
-                        // add the row to the new page
-                        newRowOffset = newPage.AddRow(row);
-
-                        // then go back and mark the previous rows as forwarded to this new page
-                        pages.ForEach(p =>
-                        {
-                            string debug = $"Forwarding row {rowId.ToString()} to new page {newPageId.ToString()} at offset {newRowOffset.ToString()}";
-                            Debug.WriteLine(debug);
-
-                            p.ForwardRows(rowId, newPageId, newRowOffset);
-                        });
-                        pageId = newPage.PageId();
-
-                        _locker.ExitWriteLock();
-                        return pageId;
-                    }
-                }
-
-                // good to go
-                else if (updateResult == PageUpdateRowResult.Success)
-                {
-                    pageId = page.PageId();
-
-                    _locker.ExitWriteLock();
-                    return pageId;
-                }
+                return Update(row);
             }
-
-            // if the row has been forward to other pages
-            pages = _tree.Values.Where(p => p.GetRowStatus(rowId) == PageRowStatus.IsForwardedToOtherPage).ToList();
-
-            // if we have pages where the row has been forwarded
-            if (pages.Count >= 1)
-            {
-                // need to get the actual page with the row and see if we can update the row on that page (if there is room). So first, need to grab any of the forwarded rows for the page id of the 
-                // page that actually contains the data
-                var anyPage = pages.FirstOrDefault();
-                if (anyPage is not null)
-                {
-                    var currentPage = anyPage.PageId();
-                    var forwardedRow = anyPage.GetRow(rowId);
-
-                    // sanity check, it should be forwarded
-                    if (forwardedRow.IsForwarded)
-                    {
-                        int pageIdToGet = forwardedRow.ForwardedPageId;
-
-                        // get the actual page with the row
-                        IBaseDataPage actualPage = _tree.Values.Where(p => p.PageId() == pageIdToGet).FirstOrDefault();
-
-                        if (actualPage is not null)
-                        {
-                            int actualPageId = actualPage.PageId();
-                            int newOffset = 0;
-
-                            PageUpdateRowResult attemptToUpdate = actualPage.TryUpdateRowData(row, out newOffset);
-                            if (attemptToUpdate == PageUpdateRowResult.Success)
-                            {
-                                // we need to go back and update all the forwards with the correct offset for the correct page
-                                int newPageId = actualPage.PageId();
-                                newRowOffset = newOffset;
-
-                                pages.ForEach(page =>
-                                {
-                                    string debug = $"Forwarding row {rowId.ToString()} to new page {newPageId.ToString()} at offset {newRowOffset.ToString()}";
-                                    Debug.WriteLine(debug);
-
-                                    page.ForwardRows(rowId, newPageId, newRowOffset);
-                                });
-
-                                _locker.ExitWriteLock();
-                                return newPageId;
-                            }
-
-                            // there's not enough room on the actual page with the row
-                            else if (attemptToUpdate == PageUpdateRowResult.NotEnoughRoom)
-                            {
-                                // need to find a page with room for the update, then go back and update all the other pages with the correct forwarded page id and offset
-                                newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != actualPage.PageId()).FirstOrDefault();
-                                if (newPage is not null)
-                                {
-                                    int newPageId = newPage.PageId();
-                                    newRowOffset = newPage.AddRow(row);
-
-                                    pages.ForEach(p =>
-                                    {
-                                        string debug = $"Forwarding row {rowId.ToString()} to new page {newPageId.ToString()} at offset {newRowOffset.ToString()}";
-                                        Debug.WriteLine(debug);
-
-                                        p.ForwardRows(rowId, newPageId, newRowOffset);
-                                    });
-
-                                    actualPage.ForwardRows(rowId, newPageId, newRowOffset);
-                                    pageId = newPage.PageId();
-
-                                    _locker.ExitWriteLock();
-                                    return pageId;
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
-
-            // if the row is on the page and has never been forwarded (updated)
-            page = _tree.Values.Where(p => p.GetRowStatus(rowId) == PageRowStatus.IsOnPage).ToList().FirstOrDefault();
-
-            newRowOffset = 0;
-            updateResult = page.TryUpdateRowData(row, out newRowOffset);
-
-            // if there's not enough room on the page for this update
-            if (updateResult == PageUpdateRowResult.NotEnoughRoom)
-            {
-                // grab any page (that's not the current page) that isn't full and can fit our row size
-                newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != page.PageId()).FirstOrDefault();
-                if (newPage is not null)
-                {
-                    newRowOffset = newPage.AddRow(row);
-                    page.ForwardRows(rowId, newPage.PageId(), newRowOffset);
-                    pageId = newPage.PageId();
-
-                    _locker.ExitWriteLock();
-                    return pageId;
-                }
-            }
-
-            // we're good to go
-            else if (updateResult == PageUpdateRowResult.Success)
-            {
-                pageId = page.PageId();
-
-                _locker.ExitWriteLock();
-                return pageId;
-            }
-
-            _locker.ExitWriteLock();
-            return pageId;
         }
 
         /// <summary>
@@ -338,7 +187,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         public bool DeleteRow(int rowId)
         {
             int pageId = 0;
-            bool result = false; 
+            bool result = false;
 
             pageId = GetPageIdOfRow(rowId);
             if (pageId != 0)
@@ -522,6 +371,183 @@ namespace Drummersoft.DrummerDB.Core.Memory
         #endregion
 
         #region Private Methods
+        private int Update(IRow row)
+        {
+            _locker.TryEnterWriteLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
+
+            int pageId = 0;
+            int rowId = row.Id;
+            int newRowOffset = 0;
+            IBaseDataPage newPage = null;
+            IBaseDataPage page = null;
+            PageUpdateRowResult updateResult = PageUpdateRowResult.Unknown;
+
+            // Figure out the status of our row. Is it currently on our page but forwarded? Is it forwarded to a different page?
+
+            // if the row is on our page, but forwarded (has been updated at least once)
+            var pages = _tree.Values.Where(p => p.GetRowStatus(rowId) == PageRowStatus.IsOnPageAndForwardedOnSamePage).ToList();
+
+            if (pages.Count > 1)
+            {
+                throw new InvalidOperationException("Tree has an updated row that somehow exists on multiple pages");
+            }
+            else if (pages.Count == 1)
+            {
+                // the row exists on on the page, but has been forwarded at least once
+                page = pages.First();
+                var currentPageId = page.PageId();
+
+                // try to update the row on the page
+                updateResult = page.TryUpdateRowData(row, out _);
+
+                // if the attempted update failed because there's not enough room on the page
+                if (updateResult == PageUpdateRowResult.NotEnoughRoom)
+                {
+                    // need to find another page with enough room to update with the updated row data, then mark the existing rows as forwarded on this page
+                    newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != page.PageId()).FirstOrDefault();
+                    if (newPage is not null)
+                    {
+                        int newPageId = newPage.PageId();
+
+                        // add the row to the new page
+                        newRowOffset = newPage.AddRow(row);
+
+                        // then go back and mark the previous rows as forwarded to this new page
+                        pages.ForEach(p =>
+                        {
+                            string debug = $"Forwarding row {rowId.ToString()} to new page {newPageId.ToString()} at offset {newRowOffset.ToString()}";
+                            Debug.WriteLine(debug);
+
+                            p.ForwardRows(rowId, newPageId, newRowOffset);
+                        });
+                        pageId = newPage.PageId();
+
+                        _locker.ExitWriteLock();
+                        return pageId;
+                    }
+                }
+
+                // good to go
+                else if (updateResult == PageUpdateRowResult.Success)
+                {
+                    pageId = page.PageId();
+
+                    _locker.ExitWriteLock();
+                    return pageId;
+                }
+            }
+
+            // if the row has been forward to other pages
+            pages = _tree.Values.Where(p => p.GetRowStatus(rowId) == PageRowStatus.IsForwardedToOtherPage).ToList();
+
+            // if we have pages where the row has been forwarded
+            if (pages.Count >= 1)
+            {
+                // need to get the actual page with the row and see if we can update the row on that page (if there is room). So first, need to grab any of the forwarded rows for the page id of the 
+                // page that actually contains the data
+                var anyPage = pages.FirstOrDefault();
+                if (anyPage is not null)
+                {
+                    var currentPage = anyPage.PageId();
+                    var forwardedRow = anyPage.GetRow(rowId);
+
+                    // sanity check, it should be forwarded
+                    if (forwardedRow.IsForwarded)
+                    {
+                        int pageIdToGet = forwardedRow.ForwardedPageId;
+
+                        // get the actual page with the row
+                        IBaseDataPage actualPage = _tree.Values.Where(p => p.PageId() == pageIdToGet).FirstOrDefault();
+
+                        if (actualPage is not null)
+                        {
+                            int actualPageId = actualPage.PageId();
+                            int newOffset = 0;
+
+                            PageUpdateRowResult attemptToUpdate = actualPage.TryUpdateRowData(row, out newOffset);
+                            if (attemptToUpdate == PageUpdateRowResult.Success)
+                            {
+                                // we need to go back and update all the forwards with the correct offset for the correct page
+                                int newPageId = actualPage.PageId();
+                                newRowOffset = newOffset;
+
+                                pages.ForEach(page =>
+                                {
+                                    string debug = $"Forwarding row {rowId.ToString()} to new page {newPageId.ToString()} at offset {newRowOffset.ToString()}";
+                                    Debug.WriteLine(debug);
+
+                                    page.ForwardRows(rowId, newPageId, newRowOffset);
+                                });
+
+                                _locker.ExitWriteLock();
+                                return newPageId;
+                            }
+
+                            // there's not enough room on the actual page with the row
+                            else if (attemptToUpdate == PageUpdateRowResult.NotEnoughRoom)
+                            {
+                                // need to find a page with room for the update, then go back and update all the other pages with the correct forwarded page id and offset
+                                newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != actualPage.PageId()).FirstOrDefault();
+                                if (newPage is not null)
+                                {
+                                    int newPageId = newPage.PageId();
+                                    newRowOffset = newPage.AddRow(row);
+
+                                    pages.ForEach(p =>
+                                    {
+                                        string debug = $"Forwarding row {rowId.ToString()} to new page {newPageId.ToString()} at offset {newRowOffset.ToString()}";
+                                        Debug.WriteLine(debug);
+
+                                        p.ForwardRows(rowId, newPageId, newRowOffset);
+                                    });
+
+                                    actualPage.ForwardRows(rowId, newPageId, newRowOffset);
+                                    pageId = newPage.PageId();
+
+                                    _locker.ExitWriteLock();
+                                    return pageId;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            // if the row is on the page and has never been forwarded (updated)
+            page = _tree.Values.Where(p => p.GetRowStatus(rowId) == PageRowStatus.IsOnPage).ToList().FirstOrDefault();
+
+            newRowOffset = 0;
+            updateResult = page.TryUpdateRowData(row, out newRowOffset);
+
+            // if there's not enough room on the page for this update
+            if (updateResult == PageUpdateRowResult.NotEnoughRoom)
+            {
+                // grab any page (that's not the current page) that isn't full and can fit our row size
+                newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != page.PageId()).FirstOrDefault();
+                if (newPage is not null)
+                {
+                    newRowOffset = newPage.AddRow(row);
+                    page.ForwardRows(rowId, newPage.PageId(), newRowOffset);
+                    pageId = newPage.PageId();
+
+                    _locker.ExitWriteLock();
+                    return pageId;
+                }
+            }
+
+            // we're good to go
+            else if (updateResult == PageUpdateRowResult.Success)
+            {
+                pageId = page.PageId();
+
+                _locker.ExitWriteLock();
+                return pageId;
+            }
+
+            _locker.ExitWriteLock();
+            return pageId;
+        }
         #endregion
 
     }

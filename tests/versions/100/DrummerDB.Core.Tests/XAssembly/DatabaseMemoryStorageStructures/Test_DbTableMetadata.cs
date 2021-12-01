@@ -43,7 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var directory = new DirectoryInfo(storageFolder);
             if (directory.Exists)
             {
-                foreach(var file in directory.EnumerateFiles())
+                foreach (var file in directory.EnumerateFiles())
                 {
                     file.Delete();
                 }
@@ -123,7 +123,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             if (directory.Exists)
             {
-                foreach(var file in directory.EnumerateFiles())
+                foreach (var file in directory.EnumerateFiles())
                 {
                     file.Delete();
                 }

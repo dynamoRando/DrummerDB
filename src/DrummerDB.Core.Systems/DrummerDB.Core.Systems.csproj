@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Drummersoft.DrummerDB.Core.Systems</AssemblyName>
     <RootNamespace>Drummersoft.DrummerDB.Core.Systems</RootNamespace>
   </PropertyGroup>
@@ -13,6 +13,10 @@
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
 			<_Parameter1>Drummersoft.DrummerDB.Client.Tests</_Parameter1>
 		</AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="nlog.config" Version="4.7.12" />
 	</ItemGroup>
 
 	<ItemGroup>

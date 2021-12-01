@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Remote.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
@@ -8,22 +9,22 @@ using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
-using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
-    internal class Table
+    internal class Table : ITable
     {
         #region Private Fields
-        private ITableSchema _schema;
+        private TableSchema _schema;
         private ICacheManager _cache;
         private IRemoteDataManager _remoteManager;
         private IStorageManager _storage;
         private ProcessUserDatabaseSettings _settings;
         private ITransactionEntryManager _xEntryManager;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -39,13 +40,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Constructors
-        public Table(ITableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager) :
+        public Table(TableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager) :
             this(schema, cache, storage, xEntryManager)
         {
             _remoteManager = remoteManager;
         }
 
-        public Table(ITableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager)
+        public Table(TableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log) :
+         this(schema, cache, storage, xEntryManager, log)
+        {
+            _remoteManager = remoteManager;
+        }
+
+        public Table(TableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager)
         {
             _cache = cache;
             _schema = schema;
@@ -54,7 +61,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             BringTreeOnline();
         }
 
-        public Table(ITableSchema schema, ICacheManager cache, IStorageManager storage, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
+        public Table(TableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log)
+        {
+            _cache = cache;
+            _schema = schema;
+            _storage = storage;
+            _xEntryManager = xEntryManager;
+            _log = log;
+            BringTreeOnline();
+        }
+
+        public Table(TableSchema schema, ICacheManager cache, IStorageManager storage, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
             this(schema, cache, storage, xEntryManager)
         {
             _settings = settings;
@@ -69,6 +86,26 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var schema = _schema as TableSchema;
                 schema.SetStoragePolicy(policy);
             }
+        }
+
+        public void SetLogicalStoragePolicy(LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (_schema is TableSchema)
+            {
+                var schema = _schema as TableSchema;
+                schema.SetStoragePolicy(policy);
+            }
+        }
+
+        public LogicalStoragePolicy GetLogicalStoragePolicy()
+        {
+            if (_schema is TableSchema)
+            {
+                var schema = _schema as TableSchema;
+                return schema.StoragePolicy;
+            }
+
+            return LogicalStoragePolicy.None;
         }
 
         /// <summary>
@@ -164,7 +201,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <param name="columnName">Name of the column.</param>
         /// <returns>The column with the name specified from this table</returns>
-        /// <exception cref="ColumnNotInTableException"></exception>
+        /// <exception cref="ColumnNotFoundException"></exception>
         /// <remarks>This function is useful as a shortcut when setting <seealso cref="RowValue"/> parameters.</remarks>
         public ColumnSchema GetColumn(string columnName)
         {
@@ -176,7 +213,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            throw new ColumnNotInTableException(columnName, Name);
+            throw new ColumnNotFoundException(columnName, Name);
         }
 
         public ColumnSchema GetColumn(int id)
@@ -189,7 +226,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            throw new ColumnNotInTableException($"Column Id {id.ToString()} not found in table {_schema.Name}");
+            throw new ColumnNotFoundException($"Column Id {id.ToString()} not found in table {_schema.Name}");
         }
 
         public ColumnSchemaStruct GetColumnStruct(int id)
@@ -202,7 +239,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            throw new ColumnNotInTableException($"Column Id {id.ToString()} not found in table {_schema.Name}");
+            throw new ColumnNotFoundException($"Column Id {id.ToString()} not found in table {_schema.Name}");
         }
 
         public ColumnSchemaStruct GetColumnStruct(string columnName)
@@ -218,7 +255,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new ColumnSchemaStruct();
         }
 
-        public ITableSchema Schema()
+        public TableSchema Schema()
         {
             return _schema;
         }
@@ -302,7 +339,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var deleteAction = xact.GetActionAsDelete();
                         xact.MarkComplete();
                         IBaseDataPage pageToSave = _cache.UserDataGetPage(deleteAction.Address.ToPageAddress());
-                        _storage.SavePageDataToDisk(deleteAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType());
+                        _storage.SavePageDataToDisk(deleteAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
                         _storage.LogCloseTransaction(_schema.DatabaseId, xact);
                         _xEntryManager.RemoveEntry(xact);
 
@@ -368,7 +405,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                             var updateAction = xact.GetActionAsUpdate();
                             xact.MarkComplete();
                             IBaseDataPage pageToSave = _cache.UserDataGetPage(updateAction.Address.ToPageAddress());
-                            _storage.SavePageDataToDisk(updateAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType());
+                            _storage.SavePageDataToDisk(updateAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, 
+                                pageToSave.DataPageType(), pageToSave.IsDeleted());
                             _storage.LogCloseTransaction(_schema.DatabaseId, xact);
                             _xEntryManager.RemoveEntry(xact);
 
@@ -438,7 +476,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                         string pageData = BitConverter.ToString(pageToSave.Data);
 
-                        _storage.SavePageDataToDisk(pageAddress, pageToSave.Data, pageToSave.Type, pageToSave.DataPageType());
+                        _storage.SavePageDataToDisk(pageAddress, pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
 
                         return true;
                     }
@@ -504,7 +542,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var debug = new PageDebug(pageToSave.Data);
                         string dataString = debug.DebugData();
 
-                        _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType());
+                        _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
+                            pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),
+                            pageToSave.IsDeleted()
+                            );
                         _storage.LogCloseTransaction(_schema.DatabaseId, xact);
                         _xEntryManager.RemoveEntry(xact);
 
@@ -534,42 +575,34 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return TryUpdateRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public List<IRow> FindRowsWithValue(RowValueStruct value)
+        public List<IRow> GetRowsWithValue(RowValue value)
         {
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            return _cache.FindRowsWithValue(Address, value, _schema);
-
+            return _cache.GetRowsWithValue(Address, value, _schema);
         }
 
-        /// <summary>
-        /// Finds the rows with value.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException">You must supply a value with a column of the table</exception>
-        /// <remarks>This performs an EQUALS operation on the specified value</remarks>
-        public List<IRow> FindRowsWithValue(RowValue value)
+        public int CountOfRowsWithValue(RowValue value)
         {
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            return _cache.FindRowsWithValue(Address, value, _schema);
+            return _cache.CountOfRowsWithValue(Address, value);
         }
 
-        public List<RowAddress> FindRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)
+        public List<RowAddress> GetRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)
         {
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            return _cache.FindRowAddressesWithValue(Address, value, _schema);
+            return _cache.GetRowAddressesWithValue(Address, value);
         }
 
         public List<RowAddress> FindRowAddressesWithValue(RowValue value, ValueComparisonOperator comparison, TransactionRequest transaction, TransactionMode transactionMode)
@@ -578,7 +611,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
             var rows = _cache.GetValues(Address, value.Column.Name, _schema);
@@ -607,7 +640,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <returns>
         ///   <c>true</c> if the specified table has the value; otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="ColumnNotInTableException">Thrown when the <seealso cref="ColumnSchema"/> in the row value is not part
+        /// <exception cref="ColumnNotFoundException">Thrown when the <seealso cref="ColumnSchema"/> in the row value is not part
         /// of the table.</exception>
         public bool HasValue(RowValue value)
         {
@@ -615,7 +648,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (!HasColumn(value.Column.Name))
             {
-                throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
             return _cache.HasValue(Address, value, _schema);
@@ -635,7 +668,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 if (!(HasColumn(value.Column.Name)))
                 {
-                    throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
                 }
             });
 
@@ -657,67 +690,28 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return hasAllValues;
         }
 
-        public bool HasAllValues(List<RowValueSearch> values)
+        public int CountOfRowsWithAllValues(IRowValue[] values)
         {
-            values.ForEach(value =>
-            {
-                if (!(HasColumn(value.Column.Name)))
-                {
-                    throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
-                }
-            });
-
-            bool hasAllValues = false;
-
-            foreach (var value in values)
-            {
-                if (!_cache.HasValue(Address, value, _schema))
-                {
-                    hasAllValues = false;
-                    break;
-                }
-                else
-                {
-                    hasAllValues = true;
-                }
-            }
-
-            return hasAllValues;
-        }
-
-        /// <summary>
-        /// Finds the rows with all values.
-        /// </summary>
-        /// <param name="values">The values.</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        /// <remarks>This performs effectively an AND operation on all the values</remarks>
-        public List<IRow> FindRowsWithAllValues(List<RowValue> values)
-        {
-            throw new NotImplementedException();
+            return _cache.CountOfRowsWithAllValues(Address, ref values);
         }
 
 
-        /// <summary>
-        /// Finds the rows with all values.
-        /// </summary>
-        /// <param name="values">The values.</param>
-        /// <returns>Returns the rows that contain all specified values, or an empty list</returns>
-        /// <remarks>This performs effectively an AND operation on all the values</remarks>
-        public List<IRow> FindRowsWithAllValues(List<RowValueSearch> values)
+        public IRow[] GetRowsWithAllValues(IRowValue[] values)
         {
             foreach (var value in values)
             {
                 if (!HasColumn(value.Column.Name))
                 {
-                    throw new ColumnNotInTableException(value.Column.Name, _schema.Name);
+                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
                 }
             }
 
-            List<IRow> result = _cache.FindRowsWithAllValues(Address, values);
+            var result = _cache.GetRowsWithAllValues(Address, ref values);
 
             return result;
         }
+
+
 
         /// <summary>
         /// Finds the rows with any values.
@@ -829,9 +823,20 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private List<ValueAddress> GetAllValuesForColumn(string columnName)
         {
-            BringTreeOnline();
 
-            var items = _cache.GetValues(Address, columnName, _schema);
+            BringTreeOnline();
+            List<ValueAddress> items = null;
+            if (_log is not null)
+            {
+                var sw = Stopwatch.StartNew();
+                items = _cache.GetValues(Address, columnName, _schema);
+                sw.Stop();
+                _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                items = _cache.GetValues(Address, columnName, _schema);
+            }
 
             return items;
         }
@@ -936,7 +941,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                             else
                             {
                                 if (!_cache.HasUserDataPage(diskPage.Address))
-                                { 
+                                {
                                     _cache.UserDataAddPageToContainer(diskPage, Address);
                                 }
                             }

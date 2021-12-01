@@ -49,9 +49,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Public Methods
-        public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false)
+        public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false)
         {
-            return _basePage.GetRowOffsets(rowId, stopAtFirstForward);
+            return _basePage.GetRowOffsets(rowId, stopAtFirstForward, includeDeletedRows);
         }
 
         public override bool HasRow(int rowId)
@@ -184,7 +184,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             throw new NotImplementedException();
         }
 
-        public override List<RowAddress> GetRowIdsOnPage()
+        public override List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false)
         {
             throw new NotImplementedException();
         }
@@ -194,24 +194,39 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             throw new NotImplementedException();
         }
 
-        public override List<RowAddress> GetRowsWithValue(RowValueStruct value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override List<RowAddress> GetRowsWithValue(RowValueSearch value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool HasValue(RowValueSearch value)
-        {
-            throw new NotImplementedException();
-        }
-
         public override RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column)
         {
             throw new NotImplementedException();
+        }
+
+        public override int GetCountOfRowIdsOnPage(bool includeDeletedRows = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override RowAddress[] GetRowAddressesWithValue(IRowValue value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int GetCountOfRowsWithValue(IRowValue value)
+        {
+            return _basePage.GetCountOfRowsWithValue(value);
+        }
+
+        public override bool IsDeleted()
+        {
+            return _basePage.IsDeleted();
+        }
+
+        public override void Delete()
+        {
+            _basePage.Delete();
+        }
+
+        public override void UnDelete()
+        {
+            _basePage.UnDelete();
         }
         #endregion
 

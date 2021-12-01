@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Factory;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
@@ -12,7 +13,6 @@ using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -27,11 +27,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private ICacheManager _cache;
         private ICryptoManager _crypt;
         private ITransactionEntryManager _xEntryManager;
+        private LogService _log;
 
         // internal objects
         private UserDatabaseCollection _userDatabases;
         private SystemDatabaseCollection _systemDatabases;
-        private ILogger _logger;
 
         // settings
         private ProcessUserDatabaseSettings _settings;
@@ -53,6 +53,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _xEntryManager = xEntryManager;
         }
 
+
+        internal DbManager(ITransactionEntryManager xEntryManager, LogService log)
+        {
+            _xEntryManager = xEntryManager;
+            _log = log;
+        }
+
         internal DbManager(IStorageManager storage, ICacheManager cache, ICryptoManager crypt, ITransactionEntryManager xEntryManager) : this(xEntryManager)
         {
             _storage = storage;
@@ -60,15 +67,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _crypt = crypt;
         }
 
-        internal DbManager(IStorageManager storage, ICacheManager cache, ICryptoManager crypt, ITransactionEntryManager xEntryManager, ILogger logger) : this(storage, cache, crypt, xEntryManager)
+
+        internal DbManager(IStorageManager storage, ICacheManager cache, ICryptoManager crypt, ITransactionEntryManager xEntryManager, LogService log) : this(xEntryManager, log)
         {
-            _logger = logger;
+            _storage = storage;
+            _cache = cache;
+            _crypt = crypt;
         }
 
-        internal DbManager(IStorageManager storage, ICacheManager cache, ICryptoManager crypt, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) : this(storage, cache, crypt, xEntryManager)
-        {
-            _settings = settings;
-        }
         #endregion
 
         #region Public Methods        
@@ -202,13 +208,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
             foreach (var meta in userDbMeta)
             {
                 var metadata = new DatabaseMetadata(_cache, meta.DatabaseId, meta.DatabaseVersion, _crypt, _storage, meta.DatabaseName);
-                var hostDb = new HostDb(metadata, _xEntryManager);
+                var hostDb = new HostDb(metadata, _xEntryManager, _log);
                 _userDatabases.Add(hostDb);
             }
 
-            if (_logger is not null)
+            if (_log is not null)
             {
-                _logger.LogInformation($"User databases loaded. Total User Database count {UserDatabaseCount().ToString()}");
+                _log.Info($"User databases loaded. Total User Database count {UserDatabaseCount().ToString()}");
             }
 
         }
@@ -216,7 +222,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         internal void LoadSystemDatabaseTableWithActiveDbs()
         {
             var db = GetGuSystemDatabase();
-            db.LoadDbTableWithDbNames(_userDatabases.Names());
+            db.LoadDbTableWithDbNames(_userDatabases);
         }
 
         /// <summary>
@@ -275,16 +281,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var systemPage = _storage.GetSystemPageForSystemDatabase(dbName);
                         _cache.AddSystemDbSystemPage(systemPage);
                         var metaData = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager);
-                        var system = new SystemDatabase(metaData);
+                        var system = new SystemDatabase(metaData, _log);
 
                         _systemDatabases.Add(system);
                     }
                 }
             }
 
-            if (_logger is not null)
+            if (_log is not null)
             {
-                _logger.LogInformation($"System databases loaded. Total System Database count {SystemDatabaseCount().ToString()}");
+                _log.Info($"System databases loaded. Total System Database count {SystemDatabaseCount().ToString()}");
             }
         }
 
@@ -322,13 +328,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     host = CreateUserDatabaseOnDisk(dbName, _storage, _crypt, _cache) as HostDb;
                     databaseId = host.Id;
 
-                    if (_logger is not null)
+                    if (_log is not null)
                     {
-                        _logger.LogInformation($"New User Database {dbName} created");
+                        _log.Info($"New User Database {dbName} created");
                     }
 
                     system = GetSystemDatabase();
-                    system.AddNewDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                    system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                     return true;
 
@@ -342,13 +348,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         _storage.LogOpenTransaction(systemDbId, xact);
                         databaseId = host.Id;
 
-                        if (_logger is not null)
+                        if (_log is not null)
                         {
-                            _logger.LogInformation($"Try: New User Database {dbName} created");
+                            _log.Info($"Try: New User Database {dbName} created");
                         }
 
                         system = GetSystemDatabase();
-                        system.AddNewDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                        system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                         return true;
                     }
@@ -367,9 +373,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         _xEntryManager.RemoveEntry(xact);
 
 
-                        if (_logger is not null)
+                        if (_log is not null)
                         {
-                            _logger.LogInformation($"Rollback: New User Database {dbName} created");
+                            _log.Info($"Rollback: New User Database {dbName} created");
                         }
 
                         system = GetSystemDatabase();
@@ -390,13 +396,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         _storage.LogCloseTransaction(systemDbId, xact);
                         _xEntryManager.RemoveEntry(xact);
 
-                        if (_logger is not null)
+                        if (_log is not null)
                         {
-                            _logger.LogInformation($"Commit: User Database {dbName} created");
+                            _log.Info($"Commit: User Database {dbName} created");
                         }
 
                         system = GetSystemDatabase();
-                        system.AddNewDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                        system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                         return true;
                     }
@@ -441,7 +447,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 return true;
             }
-            
+
             return false;
         }
 
@@ -449,7 +455,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             IDatabase database;
             database = _userDatabases.GetUserDatabase(dbName);
-            
+
             if (database is null)
             {
                 database = _systemDatabases.GetSystemDatabase(dbName);
@@ -464,6 +470,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             return null;
+        }
+
+        public HostDb GetHostDatabase(string dbName)
+        {
+            return _userDatabases.GetUserDatabase(dbName) as HostDb;
         }
 
         /// <summary>
@@ -497,9 +508,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 result = db.AddLogin(userName, pwInput, userGUID, true);
                 db.AssignUserToDefaultSystemAdmin(userName);
 
-                if (_logger is not null)
+                if (_log is not null)
                 {
-                    _logger.LogInformation($"Created login {userName}");
+                    _log.Info($"Created login {userName}");
                 }
             }
 

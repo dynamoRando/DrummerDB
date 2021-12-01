@@ -1,22 +1,21 @@
 ﻿using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.LoginTable.Columns;
-using Microsoft.Extensions.Logging;
-using Drummersoft.DrummerDB.Core.Structures.Version;
-using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
-using Drummersoft.DrummerDB.Core.Structures.Enum;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
+using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.LoginTable.Columns;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -44,7 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private Table _databaseSchemas;
         private Table _databaseSchemaPermissions;
         private Table _databaseTableDatabases;
-        private ILogger _logger;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -83,14 +82,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
             SetupTables();
         }
 
-        public SystemDatabase(DatabaseMetadata metadata, ILogger logger) : this(metadata)
+        public SystemDatabase(DatabaseMetadata metadata, LogService log) : this(metadata)
         {
-            _logger = logger;
+            _log = log;
         }
 
         #endregion
 
         #region Public Methods
+        public bool IsReadyForCooperation()
+        {
+            return false;
+        }
+
         public bool HasTable(string tableName)
         {
             if (tableName.Contains('.'))
@@ -109,6 +113,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 return _systemTables.Any(table => string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase));
             }
+        }
+
+        public bool HasTable(string tableName, string schemaName)
+        {
+            return _systemTables.Any(table =>
+              string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase) &&
+              string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase)
+              );
         }
 
         public Table GetTable(int tableId)
@@ -152,7 +164,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var valueUserName = RowValueMaker.Create(_systemLogins, login.UserName, userName);
             values.Add(valueUserName);
 
-            var valueUserId = RowValueMaker.Create(_systemLogins, login.UserGUID, userId.ToString());
+            var valueUserId = RowValueMaker.Create(_systemLogins, login.UserGUID, userId.ToString().ToUpper());
             values.Add(valueUserId);
 
             return _systemLogins.HasAllValues(values);
@@ -179,7 +191,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var row = _systemLogins.GetNewLocalRow();
             row.SetValue(login.UserName, userName);
-            row.SetValue(login.UserGUID, Guid.NewGuid().ToString());
+            row.SetValue(login.UserGUID, userGUID.ToString().ToUpper());
             row.SetValue(login.Salt, salt);
             row.SetValue(login.ByteLength, length.ToString());
             row.SetValue(login.Hash, hash);
@@ -187,9 +199,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             row.SetValue(login.Workfactor, iterations.ToString());
             _systemLogins.TryAddRow(row);
 
-            if (_logger is not null)
+            if (_log is not null)
             {
-                _logger.LogInformation($"User {userName} login created in database {_metadata.Name}");
+                _log.Info($"User {userName} login created in database {_metadata.Name}");
             }
 
             return true;
@@ -203,12 +215,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var valueUserName = RowValueMaker.Create(_systemLogins, login.UserName, userName);
 
-            var rows = _systemLogins.FindRowsWithValue(valueUserName);
-
-            if (rows.Count > 1)
+            int count = _systemLogins.CountOfRowsWithValue(valueUserName);
+            if (count > 1)
             {
                 throw new InvalidOperationException($"Muliple logins found for user {userName}");
             }
+
+            var rows = _systemLogins.GetRowsWithValue(valueUserName);
 
             foreach (var row in rows)
             {
@@ -249,26 +262,26 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool IsUserInSystemRole(string userName)
         {
-            var searchItem = RowValueMaker.Create(_systemLoginRoles, SystemDatabaseConstants100.Tables.LoginRolesTable.Columns.UserName, userName);
+            var searchItem = RowValueMaker.Create(_systemLoginRoles, LoginRolesTable.Columns.UserName, userName);
             return _systemLoginRoles.HasValue(searchItem);
         }
 
         public bool UserHasSystemPermission(string userName, SystemPermission permission)
         {
-            var searchUserName = RowValueMaker.Create(_systemLoginRoles, SystemDatabaseConstants100.Tables.LoginRolesTable.Columns.UserName, userName);
-            List<IRow> rolesForUser = _systemLoginRoles.FindRowsWithValue(searchUserName);
+            var searchUserName = RowValueMaker.Create(_systemLoginRoles, LoginRolesTable.Columns.UserName, userName);
+            List<IRow> rolesForUser = _systemLoginRoles.GetRowsWithValue(searchUserName);
 
             foreach (var role in rolesForUser)
             {
-                string roleName = role.GetValueInString(SystemDatabaseConstants100.Tables.LoginRolesTable.Columns.RoleName);
+                string roleName = role.GetValueInString(LoginRolesTable.Columns.RoleName);
 
-                RowValue searchRoleName = RowValueMaker.Create(_systemRolePermissions, SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleName,
+                RowValue searchRoleName = RowValueMaker.Create(_systemRolePermissions, SystemRolesPermissions.Columns.RoleName,
                     roleName);
 
-                List<IRow> permissions = _systemRolePermissions.FindRowsWithValue(searchRoleName);
+                List<IRow> permissions = _systemRolePermissions.GetRowsWithValue(searchRoleName);
                 foreach (var item in permissions)
                 {
-                    string permissionString = item.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.SystemPermission);
+                    string permissionString = item.GetValueInString(SystemRolesPermissions.Columns.SystemPermission);
                     int permissionInt = Convert.ToInt32(permissionString);
                     SystemPermission storedPermission = (SystemPermission)permissionInt;
                     if (storedPermission == permission || storedPermission == SystemPermission.FullAccess)
@@ -297,32 +310,38 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _storage.RemoveOpenTransaction(databaseId, transaction);
         }
 
-        public void LoadDbTableWithDbNames(string[] dbNames)
+        public void LoadDbTableWithDbNames(UserDatabaseCollection databases)
         {
-            foreach (var name in dbNames)
+            foreach (var db in databases)
             {
-                var dbName = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, name);
-                var records = _databaseTableDatabases.FindRowsWithValue(dbName);
+                var dbName = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, db.Name);
+                int count = _databaseTableDatabases.CountOfRowsWithValue(dbName);
 
-                if (records.Count == 0)
+                if (count == 0)
                 {
                     var record = _databaseTableDatabases.GetNewLocalRow();
-                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, name);
+                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, db.Name);
 
+                    int dbType = (int)db.DatabaseType;
+                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, dbType.ToString());
+            
                     _databaseTableDatabases.TryAddRow(record);
                 }
             }
         }
 
-        public void AddNewDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
+        public void AddNewHostDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, dbName);
-            var records = _databaseTableDatabases.FindRowsWithValue(dbNameSearch);
+            int count = _databaseTableDatabases.CountOfRowsWithValue(dbNameSearch);
 
-            if (records.Count == 0)
+            if (count == 0)
             {
+                int hostDbType = (int)DatabaseType.Host;
+
                 var record = _databaseTableDatabases.GetNewLocalRow();
                 record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, dbName);
+                record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, hostDbType.ToString());
 
                 _databaseTableDatabases.TryAddRow(record, transaction, transactionMode);
             }
@@ -331,10 +350,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public void RemoveDbNameFromDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, dbName);
-            var records = _databaseTableDatabases.FindRowsWithValue(dbNameSearch);
+            int count = _databaseTableDatabases.CountOfRowsWithValue(dbNameSearch);
 
-            if (records.Count > 0)
+            if (count > 0)
             {
+                var records = _databaseTableDatabases.GetRowsWithValue(dbNameSearch);
                 foreach (var record in records)
                 {
                     _databaseTableDatabases.TryDeleteRow(record, transaction, transactionMode);
@@ -394,19 +414,23 @@ namespace Drummersoft.DrummerDB.Core.Databases
             // auto grant any role with full access permission to dbo and sys schemas
             var fullAccess = RowValueMaker.Create(_systemRolePermissions, SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.SystemPermission,
                 Convert.ToString((int)SystemPermission.FullAccess));
-            var hasRows = _systemRolePermissions.FindRowsWithValue(fullAccess);
 
-            if (hasRows.Count > 0)
+            var count = _systemRolePermissions.CountOfRowsWithValue(fullAccess);
+
+            if (count > 0)
             {
-                foreach (var row in hasRows)
+                var rows = _systemRolePermissions.GetRowsWithValue(fullAccess);
+                foreach (var row in rows)
                 {
                     // find the users in the role that has full access and grant those users full rights to the dbo and sys schemas
                     var findUsers = RowValueMaker.Create(_systemLoginRoles,
                         SystemDatabaseConstants100.Tables.LoginRolesTable.Columns.RoleName, row.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleName));
 
-                    var users = _systemLoginRoles.FindRowsWithValue(findUsers);
-                    if (users.Count > 0)
+                    var loginCount = _systemLoginRoles.CountOfRowsWithValue(findUsers);
+
+                    if (loginCount > 0)
                     {
+                        var users = _systemLoginRoles.GetRowsWithValue(findUsers);
                         foreach (var user in users)
                         {
                             var record = _databaseSchemaPermissions.GetNewLocalRow();
@@ -432,12 +456,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 Guid roleGuid = Guid.Empty;
                 string roleName = string.Empty;
 
-                RowValue searchForRole = RowValueMaker.Create(_systemRoles, SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName, role.Name);
-                var roles = _systemRoles.FindRowsWithValue(searchForRole);
+                RowValue searchForRole = RowValueMaker.Create(_systemRoles, SystemRolesTable.Columns.RoleName, role.Name);
+                var roles = _systemRoles.GetRowsWithValue(searchForRole);
 
                 foreach (var x in roles)
                 {
-                    roleName = x.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName);
+                    roleName = x.GetValueInString(SystemRolesTable.Columns.RoleName);
                     if (roleName == role.Name)
                     {
                         string roleGuidString = x.GetValueInString(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleGUID);
@@ -457,9 +481,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     var permissionToCheck =
                         RowValueMaker.Create(_systemRolePermissions, SystemRolesPermissions.Columns.SystemPermission, Convert.ToString((int)permission));
 
-                    var permissionRecords = _systemRolePermissions.FindRowsWithValue(permissionToCheck);
+                    int count = _systemRolePermissions.CountOfRowsWithValue(permissionToCheck);
 
-                    if (permissionRecords.Count == 0)
+                    if (count == 0)
                     {
                         var permissionToAdd = _systemRolePermissions.GetNewLocalRow();
                         permissionToAdd.SetValue(SystemRolesPermissions.Columns.RoleName, roleName);
@@ -469,9 +493,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     }
                 }
 
-                if (_logger is not null)
+                if (_log is not null)
                 {
-                    _logger.LogInformation($"User {userName} added to system role {role.Name}");
+                    _log.Info($"User {userName} added to system role {role.Name}");
                 }
             }
             else
@@ -482,21 +506,21 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void SetupSystemLoginsTable()
         {
-            _systemLogins = new Table(SystemDatabaseConstants100.Tables.LoginTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _systemLogins = new Table(LoginTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemLogins);
         }
 
         private void SetupSystemLoginsRolesTable()
         {
-            _systemLoginRoles = new Table(SystemDatabaseConstants100.Tables.LoginRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _systemLoginRoles = new Table(LoginRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemLoginRoles);
         }
 
         private void SetupSystemRolesTable()
         {
-            _systemRoles = new Table(SystemDatabaseConstants100.Tables.SystemRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _systemRoles = new Table(SystemRolesTable.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemRoles);
 
@@ -504,7 +528,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void SetupSystemRolePermisionsTable()
         {
-            _systemRolePermissions = new Table(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _systemRolePermissions = new Table(SystemRolesPermissions.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemRolePermissions);
         }

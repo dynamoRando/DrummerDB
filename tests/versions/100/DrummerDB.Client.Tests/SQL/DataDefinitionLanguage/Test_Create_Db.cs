@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 using drummer = Drummersoft.DrummerDB.Core.Systems;
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.DataDefinitionLanguage
 {
-    public class Test_SQL_DDLActions
+    public class Test_Create_Db
     {
         [Fact]
         public async void Test_SQL_Create_Db()

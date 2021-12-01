@@ -28,7 +28,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.LOGIN_TABLE;
                 public const string TABLE_NAME = "SystemLogins";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -83,7 +83,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.LOGIN_ROLE_TABLE;
                 public const string TABLE_NAME = "SystemLoginRoles";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -126,7 +126,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.SYSTEM_ROLE_TABLE;
                 public const string TABLE_NAME = "SystemRoles";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
@@ -162,9 +162,9 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.SYSTEM_ROLE_PERMISSIONS_TABLE;
                 public const string TABLE_NAME = "SystemRolesPermissions";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema =  new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -204,9 +204,9 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASES_TABLE;
                 public const string TABLE_NAME = "Databases";
 
-                public static ITableSchema Schema(Guid dbId, string dbName)
+                public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema =  new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
@@ -214,16 +214,84 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static class Columns
                 {
                     public const string DatabaseName = "DatabaseName";
+                    public const string DatabaseType = "DatabaseType";
                 }
 
                 private static List<ColumnSchema> GetColumns()
                 {
-                    var result = new List<ColumnSchema>(1);
+                    var result = new List<ColumnSchema>(2);
 
                     var databaseName = new ColumnSchema(Columns.DatabaseName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
                     result.Add(databaseName);
 
+                    // Drummersoft.DrummerDB.Core.Structures.Enum.DatabaseType
+                    var databaseType = new ColumnSchema(Columns.DatabaseType, new SQLInt(), 2);
+                    result.Add(databaseType);
+
                     return result;
+                }
+            }
+
+            // contains all the hosts we're cooperating with (co-ops)
+            // in other words, we have a partial database with all these hosts
+            internal static class Hosts
+            {
+                private static ColumnSchemaCollection _columns;
+
+                public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.HOSTS;
+                public const string TABLE_NAME = "HOSTS";
+
+                public static TableSchema Schema(Guid dbId, string dbName)
+                {
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    schema.DatabaseName = dbName;
+                    return schema;
+                }
+
+                public static class Columns
+                {
+                    public const string HostName = "HostName";
+                    public const string Token = "Token";
+                    public const string IP4Address = "IP4Address";
+                    public const string IP6Address = "IP6Address";
+                    public const string PortNumber = "PortNumber";
+                    public const string LastCommunicationUTC = "LastCommunicationUTC";
+                }
+
+                public static ColumnSchemaCollection GetColumns()
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns;
+                }
+
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(6);
+
+                        var hostName = new ColumnSchema(Columns.HostName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
+                        _columns.Add(hostName);
+
+                        var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 2, true);
+                        _columns.Add(token);
+
+                        var ip4 = new ColumnSchema(Columns.IP4Address, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 3);
+                        _columns.Add(ip4);
+
+                        var ip6 = new ColumnSchema(Columns.IP6Address, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 4);
+                        _columns.Add(ip6);
+
+                        var port = new ColumnSchema(Columns.PortNumber, new SQLInt(), 5);
+                        _columns.Add(port);
+
+                        var lastComm = new ColumnSchema(Columns.LastCommunicationUTC, new SQLDateTime(), 6, true);
+                        _columns.Add(lastComm);
+                    }
                 }
             }
         }

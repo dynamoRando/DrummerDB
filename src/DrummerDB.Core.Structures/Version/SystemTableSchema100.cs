@@ -80,6 +80,19 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
             return false;
         }
+
+        public override bool HasAllFixedLengthColumns()
+        {
+            foreach (var column in _columns)
+            {
+                if (!column.IsFixedBinaryLength)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         #endregion
 
         #region Private Methods

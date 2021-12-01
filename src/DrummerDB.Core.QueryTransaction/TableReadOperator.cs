@@ -1,13 +1,14 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -19,6 +20,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private ITableReadFilter _filter;
         private List<ITableReadFilter> _filters;
         private ValueAddressCollection _result;
+        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -30,20 +32,21 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Constructors
-        public TableReadOperator(IDbManager db, TreeAddress address, string[] columnNames)
+        public TableReadOperator(IDbManager db, TreeAddress address, string[] columnNames, LogService log)
         {
             _db = db;
             Address = address;
             _columnNames = columnNames;
             _result = new ValueAddressCollection();
+            _log = log;
         }
 
-        public TableReadOperator(IDbManager db, TreeAddress address, string[] columnNames, ITableReadFilter filter) : this(db, address, columnNames)
+        public TableReadOperator(IDbManager db, TreeAddress address, string[] columnNames, ITableReadFilter filter, LogService log) : this(db, address, columnNames, log)
         {
             _filter = filter;
         }
 
-        public TableReadOperator(IDbManager db, TreeAddress address, string[] columnNames, List<ITableReadFilter> filters) : this(db, address, columnNames)
+        public TableReadOperator(IDbManager db, TreeAddress address, string[] columnNames, List<ITableReadFilter> filters, LogService log) : this(db, address, columnNames, log)
         {
             _filters = filters;
         }
@@ -64,19 +67,25 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             if (_filter is null && _filters is null)
             {
-                _result.AddRange(ExecuteNoFilter(transaction, transactionMode));
+                var result = ExecuteNoFilter(transaction, transactionMode);
+                _result.AddRange(result);
+
                 return Result.List();
             }
 
             if (_filter is not null && _filters is null)
             {
-                _result.AddRange(ExecuteWithFilter());
+                var result = ExecuteWithFilter(transaction, transactionMode);
+                _result.AddRange(result);
+
                 return Result.List();
             }
 
             if (_filters is not null && _filter is null)
             {
-                _result.AddRange(ExecuteWithFilters(transaction, transactionMode));
+                var result = ExecuteWithFilters(transaction, transactionMode);
+                _result.AddRange(result);
+
                 return Result.List();
             }
 
@@ -86,9 +95,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
-        private List<ValueAddress> ExecuteWithFilter()
+        private List<ValueAddress> ExecuteWithFilter(TransactionRequest transaction, TransactionMode transactionMode)
         {
-            throw new NotImplementedException();
+            var result = new List<ValueAddress>();
+            List<RowAddress> rows = _filter.GetRows(_db, transaction, transactionMode);
+            Table table = _db.GetTable(Address);
+
+            foreach (var column in _columnNames)
+            {
+                var results = table.GetValuesForColumnByRows(rows, column, transaction, transactionMode);
+                result.AddRange(results);
+            }
+
+            var item = result.Distinct().ToList();
+            return item;
         }
 
         private List<ValueAddress> ExecuteWithFilters(TransactionRequest transaction, TransactionMode transactionMode)
@@ -114,7 +134,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                 foreach (var column in _columnNames)
                 {
-                    result.AddRange(table.GetValuesForColumnByRows(rows, column, transaction, transactionMode));
+                    var results = table.GetValuesForColumnByRows(rows, column, transaction, transactionMode);
+                    result.AddRange(results);
                 }
             }
 
@@ -124,6 +145,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         private List<ValueAddress> ExecuteNoFilter(TransactionRequest transaction, TransactionMode transactionMode)
         {
+            Stopwatch sw = null;
+            if (_log is not null)
+            {
+                sw = Stopwatch.StartNew();
+            }
+
             Table table = _db.GetTable(Address);
             var result = new List<ValueAddress>();
 
@@ -135,8 +162,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 }
                 else
                 {
-                    result.AddRange(table.GetAllValuesForColumn(column, transaction, transactionMode));
+                    var results = table.GetAllValuesForColumn(column, transaction, transactionMode);
+                    result.AddRange(results);
                 }
+            }
+
+            if (_log is not null)
+            {
+                sw.Stop();
+                _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
             }
 
             return result;

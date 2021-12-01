@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
@@ -9,6 +9,12 @@
 
     <RootNamespace>Drummersoft.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Unit\QueryTransaction\**" />
+    <EmbeddedResource Remove="Unit\QueryTransaction\**" />
+    <None Remove="Unit\QueryTransaction\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
@@ -28,10 +34,6 @@
     <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Structures\DrummerDB.Core.Structures.csproj" />
     <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Systems\DrummerDB.Core.Systems.csproj" />
     <ProjectReference Include="..\DrummerDB.Core.Tests.Mocks\DrummerDB.Core.Tests.Mocks.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Unit\QueryTransaction\" />
   </ItemGroup>
 
 </Project>

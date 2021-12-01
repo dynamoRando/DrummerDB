@@ -1,22 +1,16 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Drummersoft.DrummerDB.Core.Databases;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
-using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using a = Antlr4.Runtime.Misc;
-using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
 {
@@ -40,6 +34,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
         #region Public Fields
         public IDbManager _dbManager;
         public IDatabase Database;
+        public LogService LogService;
         #endregion
 
         #region Public Properties
@@ -71,6 +66,29 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
         #endregion
 
         #region Public Methods
+        public override void EnterDrop_table([NotNull] TSqlParser.Drop_tableContext context)
+        {
+            base.EnterDrop_table(context);
+            DebugContext(context);
+
+            _statement = new DropTableStatement(GetWhiteSpaceFromCurrentContext(context), Database);
+        }
+
+        public override void ExitDrop_table([NotNull] TSqlParser.Drop_tableContext context)
+        {
+            base.ExitDrop_table(context);
+
+            if (_statement is DropTableStatement)
+            {
+                var dropStatement = _statement as DropTableStatement;
+                var dropPart = new DropTablePlanPart();
+                var dropOp = new DropTableOperator(Database, dropStatement.TableName);
+                dropPart.Operations.Add(dropOp);
+
+                _plan.Parts.Add(dropPart);
+            }
+        }
+
         public override void EnterColumn_definition([NotNull] TSqlParser.Column_definitionContext context)
         {
             base.EnterColumn_definition(context);
@@ -498,7 +516,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             base.ExitDelete_statement(context);
             DebugContext(context);
 
-            StatementPlanEvaluator.EvalutateQueryPlanForDelete(_statement as DeleteStatement, _plan, _dbManager, Database);
+            StatementPlanEvaluator.EvalutateQueryPlanForDelete(_statement as DeleteStatement, _plan, _dbManager, Database, LogService);
 
         }
 
@@ -560,7 +578,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             Debug.WriteLine("ExitSearch_condition");
             Debug.WriteLine(debug);
 
-            StatementPlanEvaluator.EvaluateQueryPlanForSearchConditions(_statement, _plan, Database, _dbManager);
+            StatementPlanEvaluator.EvaluateQueryPlanForSearchConditions(_statement, _plan, Database, _dbManager, LogService);
         }
 
         public override void ExitSelect_list([NotNull] TSqlParser.Select_listContext context)
@@ -620,11 +638,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
 
                                 if (statement.Columns.Select(c => c.ColumnName).ToList().Any(x => string.Equals(x, SQLGeneralKeywords.WILDCARD, StringComparison.OrdinalIgnoreCase)))
                                 {
-                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, physicalTable.Schema().Columns.Select(c => c.Name).ToArray());
+                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, physicalTable.Schema().Columns.Select(c => c.Name).ToArray(), LogService);
                                 }
                                 else
                                 {
-                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, statement.Columns.Select(c => c.ColumnName).ToArray());
+                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, statement.Columns.Select(c => c.ColumnName).ToArray(), LogService);
                                 }
 
 
@@ -711,11 +729,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
 
                                 if (statement.Columns.Select(c => c.ColumnName).ToList().Any(x => string.Equals(x, SQLGeneralKeywords.WILDCARD, StringComparison.OrdinalIgnoreCase)))
                                 {
-                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, physicalTable.Schema().Columns.Select(c => c.Name).ToArray());
+                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, physicalTable.Schema().Columns.Select(c => c.Name).ToArray(), LogService);
                                 }
                                 else
                                 {
-                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, statement.Columns.Select(c => c.ColumnName).ToArray());
+                                    readTableOperation = new TableReadOperator(_dbManager, tableAddress, statement.Columns.Select(c => c.ColumnName).ToArray(), LogService);
                                 }
 
 
@@ -814,7 +832,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             {
                 if (_plan is not null)
                 {
-                    StatementPlanEvaluator.EvaluateQueryPlanForUpdate(_statement as UpdateStatement, _plan, _dbManager, Database);
+                    StatementPlanEvaluator.EvaluateQueryPlanForUpdate(_statement as UpdateStatement, _plan, _dbManager, Database, LogService);
                 }
             }
         }

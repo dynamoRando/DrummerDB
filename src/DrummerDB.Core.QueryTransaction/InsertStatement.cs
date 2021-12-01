@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Drummersoft.DrummerDB.Core.Databases.Interface;
+﻿using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using Drummersoft.DrummerDB.Core.Structures;
+using System;
+using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -35,7 +31,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public int GetMaxColumnId()
         {
             int max = 0;
-            foreach(var column in Columns)
+            foreach (var column in Columns)
             {
                 if (column.ColumnIndex > max)
                 {
@@ -47,7 +43,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public StatementColumn GetColumn(int id)
         {
-            foreach(var column in Columns)
+            foreach (var column in Columns)
             {
                 if (column.ColumnIndex == id)
                 {

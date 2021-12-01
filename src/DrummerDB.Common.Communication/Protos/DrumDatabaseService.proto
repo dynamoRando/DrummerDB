@@ -1,5 +1,6 @@
 syntax = "proto3";
 import "Drum.proto";
+import "DrumDB.proto";
 option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication.DatabaseService";
 package DrummerDatabaseService;
 
@@ -17,6 +18,8 @@ service DatabaseService {
 	rpc UpdateRowInTable(UpdateRowInTableRequest) returns (UpdateRowInTableResult);
 	rpc GetRowsFromTable(GetRowsFromTableRequest) returns (GetRowsFromTableResult);
 	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
+	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
+	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
 }
 
 // A message for creating a user database
@@ -152,4 +155,22 @@ message GetRowFromPartialDatabaseResult {
 	bool isSuccessful = 2;
 	string resultMessage = 3;
 	Drum.Row row = 4;
+}
+
+// a message from a host to a participant to save a contract
+message SaveContractRequest {
+	DrumDB.Contract contract = 1;
+}
+
+message SaveContractResult {
+	bool isSaved = 1;
+}
+
+message ParticipantAcceptsContractRequest {
+	DrumDB.Participant participant = 1;
+	string contractGUID = 2;
+}
+
+message ParticipantAcceptsContractResult {
+	bool contractAcceptanceIsAcknowledged = 1;
 }

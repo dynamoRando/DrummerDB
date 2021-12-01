@@ -113,9 +113,9 @@ namespace Drummersoft.DrummerDB.Core.Storage
             throw new NotImplementedException();
         }
 
-        public override void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType)
+        public override void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType, bool isDeleted)
         {
-            _dataFile.WritePageToDisk(pageData, address, type, dataPageType);
+            _dataFile.WritePageToDisk(pageData, address, type, dataPageType, isDeleted);
         }
 
         public override ISystemPage GetSystemPage()

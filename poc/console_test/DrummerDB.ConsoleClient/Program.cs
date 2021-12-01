@@ -18,11 +18,11 @@ namespace DrummerDB.ConsoleClient
             {
                 Console.WriteLine(foo.IsClientOnlineAsync().ToString());
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
-            
+
 
             Console.WriteLine("Testing Info Service");
             int infoPortNumber = 5018;
@@ -33,11 +33,11 @@ namespace DrummerDB.ConsoleClient
             {
                 Console.WriteLine(bar.IsClientOnlineAsync().ToString());
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
-            
+
 
             Console.WriteLine("Testing Db Service");
             int dbPortNumber = 5016;
@@ -46,7 +46,7 @@ namespace DrummerDB.ConsoleClient
             {
                 Console.WriteLine(baz.IsClientOnlineAsync().ToString());
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }

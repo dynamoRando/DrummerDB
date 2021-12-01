@@ -1,16 +1,11 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using Drummersoft.DrummerDB.Core.Databases;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -25,6 +20,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         QueryPlanGeneratorBase _generator;
         ParseTreeWalker _walker;
         IDbManager _db;
+        LogService _log;
         #endregion
 
         #region Public Properties
@@ -34,6 +30,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public StatementHandler(IDbManager db)
         {
             _db = db;
+        }
+
+        public StatementHandler(IDbManager db, LogService log)
+        {
+            _db = db;
+            _log = log;
         }
         #endregion
 
@@ -123,7 +125,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 _generator = new QueryPlanGeneratorBase(_db);
             }
 
-            _generator.QueryPlan = new QueryPlan();
+            _generator.QueryPlan = new QueryPlan(statement);
 
             // not sure if there's a way to not have to allocate new objects each time we evaluate a SQL statement
             AntlrInputStream inputStream = new AntlrInputStream(statement);
@@ -147,6 +149,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
 
             _generator.Database = database;
+            _generator.LogService = _log;
 
             _generator.TokenStream = tokens;
             _walker.Walk(_generator, tree);
@@ -181,7 +184,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 _generator = new QueryPlanGeneratorBase(_db);
             }
 
-            _generator.QueryPlan = new QueryPlan();
+            _generator.QueryPlan = new QueryPlan(statement);
+            _generator.LogService = _log;
 
             // not sure if there's a way to not have to allocate new objects each time we evaluate a SQL statement
             AntlrInputStream inputStream = new AntlrInputStream(statement);

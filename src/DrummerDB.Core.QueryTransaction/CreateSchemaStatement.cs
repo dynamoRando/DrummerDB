@@ -1,10 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -13,7 +8,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public StatementType Type => StatementType.DDL;
         public bool IsValidated { get; set; }
         public string FullText { get; set; }
-        public string Name {  get; set; }   
+        public string Name { get; set; }
 
         public CreateSchemaStatement(string fullText)
         {

@@ -1,10 +1,9 @@
 ﻿using Drummersoft.DrummerDB.Common;
-using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;
 
-namespace Drummersoft.DrummerDB.Core.Databases
+namespace Drummersoft.DrummerDB.Core.Structures
 {
     internal static class DbUtil
     {
@@ -44,6 +43,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     break;
                 case SQLDecimal c:
                     columnType = SQLColumnType.Decimal;
+                    break;
+                case SQLVarbinary d:
+                    columnType = SQLColumnType.Varbinary;
                     break;
                 default:
                     throw new UnknownSQLTypeException($"{column.DataType.GetType().ToString()} is unknown");

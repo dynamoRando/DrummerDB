@@ -1,0 +1,148 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<# string collectionObject = "ColumnSchema"; #>
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Drummersoft.DrummerDB.Core.Structures
+{
+    internal class <#= collectionObject #>Collection : IEnumerable<<#= collectionObject #>>
+    {
+        #region Private Fields
+        private List<<#= collectionObject #>> _<#= collectionObject #>s;
+        #endregion
+
+        #region Public Properties
+        public int Count => _<#= collectionObject #>s.Count;
+        public bool IsReadOnly => false;
+        public List<<#= collectionObject #>> List =>  _<#= collectionObject #>s;
+        #endregion
+
+        #region Constructors
+        public <#= collectionObject #>Collection()
+        {
+            _<#= collectionObject #>s = new List<<#= collectionObject #>>();
+        }
+
+        public <#= collectionObject #>Collection(int size)
+        {
+            _<#= collectionObject #>s = new List<<#= collectionObject #>>(size);
+        }
+        #endregion
+
+        #region Public Methods
+        public <#= collectionObject #> Get(string name)
+        {
+            foreach(var <#= collectionObject #> in _<#= collectionObject #>s)
+            {
+                if (string.Equals(<#= collectionObject #>.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return <#= collectionObject #>;
+                }
+            }
+
+            return null;
+        }
+
+        public void Add(<#= collectionObject #> item)
+        {
+            if (!Contains(item.Name))
+            {
+                _<#= collectionObject #>s.Add(item);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                  $"There is already a <#= collectionObject #> named {item.Name}");
+            }
+        }
+
+        public bool Contains(<#= collectionObject #> <#= collectionObject #>)
+        {
+            foreach (var x in _<#= collectionObject #>s)
+            {
+                if (string.Equals(x.Name, <#= collectionObject #>.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool Contains(string <#= collectionObject #>Name)
+        {
+            foreach (var <#= collectionObject #> in _<#= collectionObject #>s)
+            {
+                if (string.Equals(<#= collectionObject #>.Name, <#= collectionObject #>Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool Remove(<#= collectionObject #> item)
+        {
+            bool result = false;
+
+            // Iterate the inner collection to
+            // find the box to be removed.
+            for (int i = 0; i < _<#= collectionObject #>s.Count; i++)
+            {
+                <#= collectionObject #> current<#= collectionObject #> = _<#= collectionObject #>s[i];
+
+                if (string.Equals(current<#= collectionObject #>.Name, item.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    _<#= collectionObject #>s.RemoveAt(i);
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        public bool Remove(string <#= collectionObject #>Name)
+        {
+            bool result = false;
+
+            // Iterate the inner collection to
+            // find the box to be removed.
+            for (int i = 0; i < _<#= collectionObject #>s.Count; i++)
+            {
+                <#= collectionObject #> current<#= collectionObject #> = _<#= collectionObject #>s[i];
+
+                if (string.Equals(current<#= collectionObject #>.Name, <#= collectionObject #>Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    _<#= collectionObject #>s.RemoveAt(i);
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        public <#= collectionObject #> this[int index]
+        {
+            get { return _<#= collectionObject #>s[index]; }
+            set { _<#= collectionObject #>s[index] = value; }
+        }
+
+        public IEnumerator<<#= collectionObject #>> GetEnumerator()
+        {
+            return new <#= collectionObject #>Enumerator(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new <#= collectionObject #>Enumerator(this);
+        }
+        #endregion
+
+        #region Private Methods
+        #endregion
+
+
+    }
+}

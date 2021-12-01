@@ -1,40 +1,54 @@
 ﻿using Drummersoft.DrummerDB.Common;
-using Drummersoft.DrummerDB.Common.Communication.SQLService;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.General
 {
     /// <summary>
     /// Tests multiple actions to ensure that the Process has no errors during typical startup, shutdown, and re-start. This test suite is intended to mirror real-world actions on a production instance.
     /// </summary>
-    public class Test_Various_Actions_Restart
+    public class Test_Various_Actions_And_Persistence_Thru_Restart
     {
-        [Fact]
-        public void Test_Load_Start_Restart()
+        private string GetCurrentMethod([CallerMemberName] string callerName = "")
         {
+            return callerName;
+        }
+
+        [Fact]
+        public async void Test_Restart_Async()
+        {
+            string testName = GetCurrentMethod();
             /*
-          * 
-          * This is an "up/down" test. We will bring online a new Drummer Process, add an admin login, create a new SQL database, table, and add data to it, and verify that we have information in that table.
-          * Then we will shutdown the process, then bring it back online, and ensure that we still have data for it.
-          * 
-          * The majority of this test is done thru SQL queries from the client object. We want this test suite to simulate real-world actions that a user would perform against an instance.
-          * 
-          * This test differents from the above test in that we do further data manipulation to ensure that data persists between starts.
-          * 
-          */
+            * 
+            * This is an "up/down" test. We will bring online a new Drummer Process, add an admin login, create a new SQL database, table, and add data to it, and verify that we have information in that table.
+            * Then we will shutdown the process, then bring it back online, and ensure that we still have data for it.
+            * 
+            * The majority of this test is done thru SQL queries from the client object. We want this test suite to simulate real-world actions that a user would perform against an instance.
+            * 
+            * This test differents from the above test in that we do further data manipulation to ensure that data persists between starts.
+            * 
+            */
 
             string dbName = "Test0";
             string tableName = "TestTable0";
             string storageFolder = "TestPersistance0";
             var test = new TestHarness();
+
+            test.LoadJournalSettings();
+            await test.ConfigureJournalForProjectAsync(DRUMMER_DB_CLIENT);
+
+            int testId = await test.ConfigureJournalForTestAsync(testName);
+
+            if (testId == 0)
+            {
+                throw new InvalidOperationException("Unable to configure test");
+            }
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
             // --- ARRANGE
             test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.LOAD_RESTART);
@@ -227,8 +241,12 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             // -- ASSERT (x of y)
             // ensure that brandon's id is 99 after restart
             Assert.Equal(99, brandonConvertedId2);
+
+            stopwatch.Stop();
+
+            await test.SaveResultToJournal(testId, (int)stopwatch.ElapsedMilliseconds, true);
         }
-    
+
 
         [Fact]
         #region Tests

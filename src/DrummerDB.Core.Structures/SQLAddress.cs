@@ -2,14 +2,12 @@
 using System;
 using System.Collections.Generic;
 
-
-// will be upgraded to record struct
 namespace Drummersoft.DrummerDB.Core.Structures
 {
     /// <summary>
     ///  Identifies the full location of a row. DatabaseId, TableId, PageId, RowId, RowOffset
     /// </summary>
-    internal record SQLAddress 
+    internal record struct SQLAddress
     {
         public Guid DatabaseId { get; init; }
         public int TableId { get; init; }

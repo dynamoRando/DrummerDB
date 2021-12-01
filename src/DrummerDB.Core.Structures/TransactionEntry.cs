@@ -250,6 +250,16 @@ namespace Drummersoft.DrummerDB.Core.Structures
                         var tableOp = new CreateTableTransaction(tableSchema);
                         Action = tableOp;
                         break;
+                    case TransactionSchemaOperation.CreateDatabase:
+                        var bLengthOfDbName = action.Slice(currentOffset, Constants.SIZE_OF_INT);
+                        int lengthOfDbName = DbBinaryConvert.BinaryToInt(bLengthOfDbName);
+                        currentOffset += Constants.SIZE_OF_INT;
+                        var bDbName = action.Slice(currentOffset, lengthOfDbName);
+                        string dbName = DbBinaryConvert.BinaryToString(bDbName);
+                        var createDb = new CreateDbTransaction(dbName); ;
+                        Action = createDb;
+                        currentOffset += lengthOfDbName;
+                        break;
                     default:
                         throw new InvalidOperationException("Unknown action type");
                 }
@@ -269,6 +279,16 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public void SetUserNameFromBinary(ReadOnlySpan<byte> data)
         {
             UserName = DbBinaryConvert.BinaryToString(data.Slice(0, UserNameLength));
+        }
+
+        public DropTableTransaction GetActionAsDropTable()
+        {
+            if (Action is DropTableTransaction)
+            {
+                return Action as DropTableTransaction;
+            }
+
+            return null;
         }
 
         public DeleteTransaction GetActionAsDelete()

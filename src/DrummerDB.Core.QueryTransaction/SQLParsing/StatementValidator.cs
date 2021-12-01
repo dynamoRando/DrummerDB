@@ -1,14 +1,11 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
-using System;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Drummersoft.DrummerDB.Core.Databases.Interface;
-using Drummersoft.DrummerDB.Core.Databases.Abstract;
-using System.Collections.Generic;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
-using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
-using Drummersoft.DrummerDB.Core.Databases;
 using a = Antlr4.Runtime.Misc;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
@@ -46,6 +43,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Public Methods
+        public override void EnterDrop_table([NotNull] TSqlParser.Drop_tableContext context)
+        {
+            base.EnterDrop_table(context);
+            DebugContext(context);
+
+            _statement = new DropTableStatement(GetWhiteSpaceFromCurrentContext(context), Database);
+            DropTableStatement drop = _statement as DropTableStatement;
+
+            if (!drop.IsValidated)
+            {
+                StatementReport.Errors.Add($"Table {drop.TableName} not found in database {Database.Name}");
+                StatementReport.IsValid = false;
+            }
+        }
 
         public override void EnterColumn_name_list(TSqlParser.Column_name_listContext context)
         {
@@ -59,7 +70,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 List<string> errors;
 
                 if (!statement.TryValidateColumnList(new ContextWrapper(context, _charStream), Database, out errors))
-                { 
+                {
                     StatementReport.Errors.AddRange(errors);
                     StatementReport.IsValid = false;
                 }
@@ -177,26 +188,29 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                 List<string> errors;
 
-                if (!statement.TryValidateEnterTableNameOrCreateTable(new ContextWrapper(context, _charStream), Database, out errors))
+                if (!StatementReport.OriginalStatement.Contains(DDLKeywords.CREATE) && Type != StatementType.DDL)
                 {
-                    StatementReport.Errors.AddRange(errors);
-                    StatementReport.IsValid = false;
-                }
-
-                if (_statement is IContextSelectListElement)
-                {
-                    var state = _statement as IContextSelectListElement;
-
-                    List<string> colErrors = new List<string>();
-                    if (!state.TryValidateSelectListElement(Database, out colErrors))
+                    if (!statement.TryValidateEnterTableNameOrCreateTable(new ContextWrapper(context, _charStream), Database, out errors))
                     {
-                        if (errors is not null)
-                        {
-                            errors.AddRange(colErrors);
-                        }
-
                         StatementReport.Errors.AddRange(errors);
                         StatementReport.IsValid = false;
+                    }
+
+                    if (_statement is IContextSelectListElement)
+                    {
+                        var state = _statement as IContextSelectListElement;
+
+                        List<string> colErrors = new List<string>();
+                        if (!state.TryValidateSelectListElement(Database, out colErrors))
+                        {
+                            if (errors is not null)
+                            {
+                                errors.AddRange(colErrors);
+                            }
+
+                            StatementReport.Errors.AddRange(errors);
+                            StatementReport.IsValid = false;
+                        }
                     }
                 }
             }

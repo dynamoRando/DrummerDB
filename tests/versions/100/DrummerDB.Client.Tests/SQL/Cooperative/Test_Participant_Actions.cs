@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
-namespace Drummersoft.DrummerDB.Client.Tests.SQL
+namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
     public class Test_Participant_Actions
     {
-        [Fact(Skip ="Logical Storage Policy Not Implemented")]
+        [Fact(Skip = "Logical Storage Policy Not Implemented")]
         public void Test_Set_Logical_Storage_Policy()
         {
             string dbName = "TestRemote";
@@ -19,7 +15,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.SET_STORAGE_POLICY);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.TEST_COOP_ACTIONS);
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -94,6 +90,13 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL
             ", dbName);
 
             // this should return the logical storage policy, which we should use to ASSERT that they are saved correctly
+
+            // need syntax to request acceptance of contract from participant
+            test.ExecuteSQL($@"
+            DRUMMER BEGIN;
+            REQUEST PARTICIPANT AliasName ACCEPT CONTRACT;
+            DRUMMER END;
+            ", dbName);
 
             throw new NotImplementedException();
         }

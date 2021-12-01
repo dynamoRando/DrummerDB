@@ -26,21 +26,21 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         #endregion
 
         #region Constructors
-        public UserDatabase(DatabaseMetadata metadata)
-        {
-        }
-
-        
+        public UserDatabase(DatabaseMetadata metadata) { }
         #endregion
 
         #region Public Methods        
+        public abstract DatabaseType DatabaseType { get; }
+        public abstract bool IsReadyForCooperation();
+
         /// <summary>
         /// Adds the table to the database. This will add the table to Cache (and thru Cache, to Storage) and to the database's internal metadata object.
         /// </summary>
         /// <param name="schema">The schema of the table to add</param>
         /// <returns><c>true</c> if successful, otherwise <c>false</c></returns>
-        public abstract bool AddTable(ITableSchema schema, out Guid tableObjectId);
-        public abstract bool TryAddTable(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId);
+        public abstract bool AddTable(TableSchema schema, out Guid tableObjectId);
+        public abstract bool TryAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId);
+        public abstract bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode);
 
         /// <summary>
         /// Checks the db's <seealso cref="DatabaseMetadata"/> (and therefore the System Data Pages) to see if the database has the specified table
@@ -72,6 +72,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         /// <param name="tableName">The name of table to find</param>
         /// <returns>The table specified</returns>
         public abstract Table GetTable(string tableName);
+        public abstract Table GetTable(string tableName, string schemaName);
         public abstract Table GetTable(int tableId);
         public abstract List<TransactionEntry> GetOpenTransactions();
 

@@ -12,6 +12,8 @@
         Alter,
         ViewDefinition,
         FullAccess,
-        Create_Schema
+        Create_Schema,
+        Set_Logical_Storage_Policy,
+        Review_Logical_Storage_Policy
     }
 }

@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
@@ -11,13 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+    <PackageReference Include="PerfJournal.Client" Version="1.0.0.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="3.0.2">
+    <PackageReference Include="coverlet.collector" Version="3.1.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -26,11 +29,29 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\DrummerDB.Client\DrummerDB.Client.csproj" />
     <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Databases\DrummerDB.Core.Databases.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Structures\DrummerDB.Core.Structures.csproj" />
     <ProjectReference Include="..\..\..\..\src\DrummerDB.Core.Systems\DrummerDB.Core.Systems.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Info\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PerfJournal.Client">
+      <HintPath>PerfJournal.Client.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="testSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <RestoreSources>$(RestoreSources);https://api.nuget.org/v3/index.json;http://devserver:9000/v3/index.json</RestoreSources>
+    <UserSecretsId>94189742-f928-4d4f-8390-d1854574feb9</UserSecretsId>
+  </PropertyGroup>
 
 </Project>

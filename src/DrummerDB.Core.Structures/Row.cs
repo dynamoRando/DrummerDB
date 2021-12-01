@@ -184,7 +184,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                             $"of {column.Length.ToString()} for column {column.Name} in table {schema.Name}");
                                     }
                                 }
-                           
+
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
 
@@ -209,7 +209,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                             $"of {column.Length.ToString()} for column {column.Name} in table {schema.Name}");
                                     }
                                 }
-                             
+
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
 
@@ -234,7 +234,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                             $"of {column.Length.ToString()} for column {column.Name} in table {schema.Name}");
                                     }
                                 }
-                            
+
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
 
@@ -258,7 +258,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                             $"of {column.Length.ToString()} for column {column.Name} in table {schema.Name}");
                                     }
                                 }
-                              
+
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
 

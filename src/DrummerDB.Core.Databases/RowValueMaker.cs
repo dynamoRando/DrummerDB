@@ -11,17 +11,5 @@ namespace Drummersoft.DrummerDB.Core.Databases
             result.SetValue(value, padIfNeeded);
             return result;
         }
-
-        internal static RowValueStruct CreateStruct(Table table, string columnNameOfTable, string value, bool padIfNeeded = false)
-        {
-            var column = table.GetColumnStruct(columnNameOfTable);
-            return new RowValueStruct(column, value, padIfNeeded);
-        }
-
-        internal static RowValueSearch CreateSearch(Table table, string columnNameOfTable, string value, bool padIfNeeded = false)
-        {
-            var column = table.GetColumnStruct(columnNameOfTable);
-            return new RowValueSearch(column, value, padIfNeeded);
-        }
     }
 }

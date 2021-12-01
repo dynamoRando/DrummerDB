@@ -10,13 +10,23 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
     internal class MockCacheManager : ICacheManager
     {
         int _rowId = 0;
-    
+
         public void AddSystemDbSystemPage(ISystemPage page)
         {
             throw new NotImplementedException();
         }
 
         public void AddUserDbSystemPage(ISystemPage page)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountOfRowsWithValue(TreeAddress address, IRowValue value)
         {
             throw new NotImplementedException();
         }
@@ -41,12 +51,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValueSearch[] values)
+        public List<IRow> FindRowsWithAllValues(TreeAddress address, ref RowValue[] values)
         {
             throw new NotImplementedException();
         }
 
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValueSearch> values)
+        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
         {
             throw new NotImplementedException();
         }
@@ -56,12 +66,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public List<IRow> FindRowsWithValue(TreeAddress address, RowValueStruct value, ITableSchema schema)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<IRow> FindRowsWithValue(TreeAddress address, RowValueSearch value)
+        public List<IRow> FindRowsWithValue(TreeAddress address, RowValue value)
         {
             throw new NotImplementedException();
         }
@@ -75,6 +80,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         {
             _rowId++;
             return _rowId;
+        }
+
+        public List<PageAddress> GetPageAddressesForTree(TreeAddress address)
+        {
+            throw new NotImplementedException();
         }
 
         public IRow GetRow(int rowId, TreeAddress address)
@@ -92,7 +102,27 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public List<RowAddress> GetRowAddressesWithValue(TreeAddress address, RowValue value)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<RowAddress> GetRows(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<IRow> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
             throw new NotImplementedException();
         }
@@ -122,6 +152,16 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public bool HasRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasRowsWithValue(TreeAddress address, IRowValue value)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool HasUserDataAddress(TreeAddress address)
         {
             throw new NotImplementedException();
@@ -137,12 +177,17 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public bool HasValue(TreeAddress address, RowValueSearch value, ITableSchema schema)
+        public bool RemoveTree(TreeAddress address)
         {
             throw new NotImplementedException();
         }
 
         public CacheAddRowResult TryAddRow(IRow row, TreeAddress address, ITableSchema schema, out int pageId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool TryRemoveTree(TreeAddress address)
         {
             throw new NotImplementedException();
         }
