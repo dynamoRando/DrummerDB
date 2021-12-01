@@ -314,18 +314,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (HasTable(tableName, schemaName))
             {
-                if (
-                    _inMemoryTables.Any(table => string.Equals(table.Schema().Name, tableName, StringComparison.OrdinalIgnoreCase))
-                && _inMemoryTables.Any(table => string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
-                )
+                if (_inMemoryTables.Contains(tableName, schemaName))
                 {
-                    foreach (var table in _inMemoryTables)
-                    {
-                        if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase) && string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            return table;
-                        }
-                    }
+                    return _inMemoryTables.Get(tableName, schemaName);
                 }
                 else
                 {
@@ -353,9 +344,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (HasTable(tableName))
             {
-                if (_inMemoryTables.Any(table => string.Equals(table.Schema().Name, tableName, StringComparison.OrdinalIgnoreCase)))
+                if (_inMemoryTables.Contains(tableName))
                 {
-                    return _inMemoryTables.Where(table => string.Equals(table.Schema().Name, tableName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    return _inMemoryTables.Get(tableName);
                 }
                 else
                 {
