@@ -43,6 +43,7 @@
             public const int PARTICIPANTS = 13;
             public const int TENANTS = 14;
             public const int DATABASE_CONTRACTS = 15;
+            public const int HOSTS = 16;
         }
 
         /// <summary>

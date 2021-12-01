@@ -633,6 +633,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 }
             }
 
+            /// <summary>
+            /// A system database table containing all the contracts we have generated for the database
+            /// </summary>
             public static class DatabaseContracts
             {
                 private static ColumnSchemaCollection _columns;

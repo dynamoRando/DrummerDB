@@ -232,9 +232,69 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 }
             }
 
-            // TO DO: Need a table of hosts that we cooperate with
-            // in other words, if I'm booting up as a participant, who do I cooperate with?
-            // - who are the hosts?
+            // contains all the hosts we're cooperating with (co-ops)
+            // in other words, we have a partial database with all these hosts
+            internal static class Hosts
+            {
+                private static ColumnSchemaCollection _columns;
+
+                public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.HOSTS;
+                public const string TABLE_NAME = "HOSTS";
+
+                public static TableSchema Schema(Guid dbId, string dbName)
+                {
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    schema.DatabaseName = dbName;
+                    return schema;
+                }
+
+                public static class Columns
+                {
+                    public const string HostName = "HostName";
+                    public const string Token = "Token";
+                    public const string IP4Address = "IP4Address";
+                    public const string IP6Address = "IP6Address";
+                    public const string PortNumber = "PortNumber";
+                    public const string LastCommunicationUTC = "LastCommunicationUTC";
+                }
+
+                public static ColumnSchemaCollection GetColumns()
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns;
+                }
+
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(6);
+
+
+                        var hostName = new ColumnSchema(Columns.HostName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
+                        _columns.Add(hostName);
+
+                        var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 2, true);
+                        _columns.Add(token);
+
+                        var ip4 = new ColumnSchema(Columns.IP4Address, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 3);
+                        _columns.Add(ip4);
+
+                        var ip6 = new ColumnSchema(Columns.IP6Address, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 4);
+                        _columns.Add(ip6);
+
+                        var port = new ColumnSchema(Columns.PortNumber, new SQLInt(), 5);
+                        _columns.Add(port);
+
+                        var lastComm = new ColumnSchema(Columns.LastCommunicationUTC, new SQLDateTime(), 6, true);
+                        _columns.Add(lastComm);
+                    }
+                }
+            }
         }
 
         internal static class SystemLoginConstants
