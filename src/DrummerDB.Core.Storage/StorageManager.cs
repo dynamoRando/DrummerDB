@@ -28,6 +28,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
         private string _systemDbExtension = string.Empty;
         private string _contractFolder = string.Empty;
         private string _contractFolderPath = string.Empty;
+        private string _contractFileExtension = string.Empty;
 
         private SystemDbFileHandlerCollection _systemDbFiles;
         private UserDbFileHandlerCollection _userDbFiles;
@@ -44,7 +45,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// <param name="hostDbExtension">The file extension for host dbs</param>
         /// <param name="partialDbExtension">The file extension for partial dbs</param>
         /// <param name="logFileExtension">The file extension for a db log file</param>
-        internal StorageManager(string storageFolder, string hostDbExtension, string partialDbExtension, string logFileExtension, string systemDbExtension, string contractFolder)
+        internal StorageManager(string storageFolder, string hostDbExtension, string partialDbExtension, string logFileExtension, string systemDbExtension, string contractFolder, string contractFileExtension)
         {
             _storageFolder = storageFolder;
             _hostDbExtension = hostDbExtension;
@@ -52,6 +53,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
             _logFileExtension = logFileExtension;
             _systemDbExtension = systemDbExtension;
             _contractFolder = contractFolder;
+            _contractFileExtension = contractFileExtension;
 
             _userDbFiles = new UserDbFileHandlerCollection();
 
@@ -550,7 +552,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
         {
             try
             {
-                string fileName = contract.DatabaseName;
+                string fileName = contract.DatabaseName + _contractFileExtension;
                 string fullPath = Path.Combine(_contractFolderPath, fileName);
 
                 var contractJson = JsonSerializer.Serialize(contract);

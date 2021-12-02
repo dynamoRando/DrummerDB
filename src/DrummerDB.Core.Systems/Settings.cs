@@ -42,6 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public bool EnableLogging { get; set; }
         public string LogFileName { get; set; }
         public string ContractFolderName { get; set; }
+        public string ContractFileExtension { get; set; }
 
         /// <summary>
         /// The location for the database files. If blank, will return the app path + database folder name
