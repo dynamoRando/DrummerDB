@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.Interface;
+﻿using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
 
@@ -10,19 +11,15 @@ namespace Drummersoft.DrummerDB.Core.Structures
         // The GUID of the contract, found in all the schema tables
         // in the HostDb metadata
         public Guid ContractGUID { get; set; }
-        // All the tables in the database. Note that we need
-        // the StoragePolicy property needs to be populated for each
-        // table
-        public List<ITableSchema> Tables { get; set; }
+        // the date the contract was generated
+        public DateTime GeneratedDate { get; set; }
         // The name of the database host, usually the corporation
         // or author of the database.
-        public string DatabaseHost { get; set; }
+        public string AuthorName { get; set; }
         // a hash to uniquely identify the host for authentication
         // purposes
-        public byte[] HostIdentifier { get; set; }
+        public byte[] Token { get; set; }
         // a unique id to identify the host
-        public Guid HostId { get; set; }
-        // a general message about the contract
         public string Description { get; set; }
         // the name of the database, this should be the same as the 
         // actual name of the host database
@@ -30,6 +27,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
         // the acutal id of the database, this should be the value
         // from the host database
         public Guid DatabaseId { get; set; }
+        // All the tables in the database. Note that we need
+        // the StoragePolicy property needs to be populated for each
+        // table
+        public List<ITableSchema> Tables { get; set; }
+        // the version of the contract
+        public Guid Version { get; set; }
+        // the current state of the contract
+        public ContractStatus Status { get; set; }
     }
 
     // the actual object sent to the Participant 

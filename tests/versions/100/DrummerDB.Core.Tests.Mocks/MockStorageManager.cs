@@ -305,5 +305,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
                 }
             }
         }
+
+        public bool SaveContractToDisk(Contract contract)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

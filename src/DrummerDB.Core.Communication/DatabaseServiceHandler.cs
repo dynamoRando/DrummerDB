@@ -2,6 +2,8 @@ using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Storage.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
 using System;
 using System.Diagnostics;
 
@@ -15,6 +17,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         #region Private Fields
         private IAuthenticationManager _authenticationManager;
         private IDbManager _dbManager;
+        private IStorageManager _storageManager;
         #endregion
 
         #region Public Properties
@@ -23,10 +26,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
         #region Constructors
         public DatabaseServiceHandler() { }
 
-        public DatabaseServiceHandler(IAuthenticationManager authenticationManager, IDbManager dbManager)
+        public DatabaseServiceHandler(IAuthenticationManager authenticationManager, IDbManager dbManager, IStorageManager storageManager)
         {
             _authenticationManager = authenticationManager;
             _dbManager = dbManager;
+            _storageManager = storageManager;
         }
         #endregion
 
@@ -39,6 +43,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public void SetDatabase(IDbManager db)
         {
             _dbManager = db;
+        }
+
+        public void SetStorage(IStorageManager storage)
+        {
+            _storageManager = storage;
         }
 
         public bool SystemHasLogin(string userName, string pw)
@@ -68,6 +77,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
         {
             var manager = _dbManager as DbManager;
             return manager.TryCreateNewHostDatabase(databaseName, out databaseId);
+        }
+
+        public bool SaveContract(Contract contract)
+        {
+            return _storageManager.SaveContractToDisk(contract);
         }
         #endregion
 

@@ -37,6 +37,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string partDbExtension = ".drumpart";
             string logDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
 
             var dbName = "TestAddTable";
 
@@ -66,7 +67,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts);
             var cache = new CacheManager();
 
             var mockCrypto = new MockCryptoManager();
@@ -116,6 +117,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string logDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
             Guid tableId;
+            string contracts = "contracts";
 
             var dbName = "TestAddTable2";
 
@@ -146,7 +148,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts);
             var cache = new CacheManager();
 
             var mockCrypto = new MockCryptoManager();

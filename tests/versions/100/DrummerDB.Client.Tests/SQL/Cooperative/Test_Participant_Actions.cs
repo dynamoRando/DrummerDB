@@ -94,7 +94,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // need syntax to request acceptance of contract from participant
             test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            REQUEST PARTICIPANT AliasName ACCEPT CONTRACT;
+            REQUEST PARTICIPANT AliasName SAVE CONTRACT;
             DRUMMER END;
             ", dbName);
 

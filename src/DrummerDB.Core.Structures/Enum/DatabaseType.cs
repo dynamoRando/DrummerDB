@@ -8,6 +8,7 @@
         Unknown,
         Host,
         Partial,
-        System
+        System,
+        Embedded // to be made
     }
 }

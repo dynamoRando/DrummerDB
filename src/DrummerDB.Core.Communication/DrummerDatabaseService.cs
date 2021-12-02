@@ -6,19 +6,33 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using static Drummersoft.DrummerDB.Common.Communication.DatabaseService.DatabaseService;
+using drumContract = Drummersoft.DrummerDB.Core.Structures.Contract;
+using drumTableSchema = Drummersoft.DrummerDB.Core.Structures.TableSchema;
+using drumColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
+using System.Collections.Generic;
+using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
     internal class DrummerDatabaseService : DatabaseServiceBase
     {
+        #region Private Fields
         private readonly ILogger<DrummerDatabaseService> _logger;
         private readonly DatabaseServiceHandler _handler;
+        #endregion
 
+        #region Public Properties
+        #endregion
+
+        #region Constructors
         public DrummerDatabaseService(ILogger<DrummerDatabaseService> logger, DatabaseServiceHandler handler)
         {
             _handler = handler;
         }
+        #endregion
 
+        #region Public Methods
         public override Task<TestReply> IsOnline(TestRequest request, ServerCallContext context)
         {
             _handler.HandleTest();
@@ -73,5 +87,60 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             return Task.FromResult(result);
         }
+
+        public override Task<SaveContractResult> SaveContract(SaveContractRequest request, ServerCallContext context)
+        {
+            var databaseContract = ConvertContractRequestToContract(request);
+            var result = _handler.SaveContract(databaseContract);
+
+            var reply = new SaveContractResult();
+            reply.IsSaved = result;
+
+            return Task.FromResult(reply);
+        }
+        #endregion
+
+        #region Private Methods
+        private drumContract ConvertContractRequestToContract(SaveContractRequest request)
+        {
+            var dContract = new drumContract();
+            dContract.DatabaseName = request.Contract.Schema.DatabaseName;
+            dContract.DatabaseId = Guid.Parse(request.Contract.Schema.DatabaseId);
+            dContract.Token = request.Contract.Token.ToByteArray();
+            dContract.Description = request.Contract.Description;
+            dContract.AuthorName = request.Contract.AuthorName;
+            dContract.Version = Guid.Parse(request.Contract.ContractVersion);
+            dContract.GeneratedDate = request.Contract.GeneratedDate.ToDateTime();
+
+            foreach (var table in request.Contract.Schema.Tables)
+            {
+                int tableId = Convert.ToInt32(table.TableId);
+                string tableName = table.TableName;
+
+                var dColumns = new List<drumColumn>();
+
+                foreach (var column in table.Columns)
+                {
+                    int colOrdinal = Convert.ToInt32(column.Ordinal);
+                    int colLength = Convert.ToInt32(column.ColumnLength);
+                    var enumColType = (SQLColumnType)column.ColumnType;
+                    var colType = SQLColumnTypeConverter.Convert(enumColType, colLength);
+                    var dColumn = new drumColumn(column.ColumnName, colType, colOrdinal);
+                    dColumns.Add(dColumn);
+                }
+
+                var tableSchema = new drumTableSchema(tableId, tableName, dContract.DatabaseId, dColumns);
+                dContract.Tables.Add(tableSchema);
+            }
+
+            return dContract;
+        }
+        #endregion
+
+
+
+
+
+
     }
 }

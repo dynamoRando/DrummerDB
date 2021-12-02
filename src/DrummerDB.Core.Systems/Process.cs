@@ -177,7 +177,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         /// </summary>
         public void StartDbServer()
         {
-            _network.StartServerForDatabaseService(Settings.UseHttpsForConnections, _auth, _dbManager);
+            _network.StartServerForDatabaseService(Settings.UseHttpsForConnections, _auth, _dbManager, _storage);
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         /// <param name="overrideSettingsUseHttps">Overrides the settings file to default true/false for using HTTPS. Used for testing purposes.</param>
         public void StartDbServer(int overrideSettingsPortNumber, bool overrideSettingsUseHttps)
         {
-            _network.StartServerForDatabaseService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber);
+            _network.StartServerForDatabaseService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber, _storage);
         }
 
         /// <summary>
@@ -228,12 +228,12 @@ namespace Drummersoft.DrummerDB.Core.Systems
             if (string.IsNullOrEmpty(_storageFolder))
             {
                 _storage = new StorageManager(Settings.DatabaseFolder, Settings.HostDbExtension, Settings.PartialDbExtension, Settings.DatabaseLogExtension,
-                Settings.SystemDbExtension);
+                Settings.SystemDbExtension, Settings.ContractFolderName);
             }
             else
             {
                 _storage = new StorageManager(_storageFolder, Settings.HostDbExtension, Settings.PartialDbExtension, Settings.DatabaseLogExtension,
-                Settings.SystemDbExtension);
+                Settings.SystemDbExtension, Settings.ContractFolderName);
             }
         }
 

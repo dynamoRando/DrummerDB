@@ -1,6 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using Drummersoft.DrummerDB.Core.Storage.Interface;
 
 namespace Drummersoft.DrummerDB.Core.Communication.Interface
 {
@@ -20,7 +21,7 @@ namespace Drummersoft.DrummerDB.Core.Communication.Interface
         /// <param name="cache">An instance of a cache manager</param>
         /// <param name="crypt">An instance of a crypt manager</param>
         /// <remarks>The managers passed in are normally used in the creation of a new database</remarks>
-        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager);
+        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, IStorageManager storage);
 
         /// <summary>
         /// Starts the Database Service with the supplied parameters. Overrides the port number from what was loaded in settings.
@@ -31,7 +32,8 @@ namespace Drummersoft.DrummerDB.Core.Communication.Interface
         /// <param name="cache">An instance of a cache manager</param>
         /// <param name="crypt">An instance of a crypt manager</param>
         /// <param name="portNumber">The port number the server should listen on. This value overrides what is in the settings file.</param>
-        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber);
+        /// <param name="storage">An instance of the storage manager (used to save pending contracts)</param>
+        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber, IStorageManager storage);
         public void StopServerForSQLService();
         public void StopServerForInfoService();
         public void StopServerForDatabaseService();

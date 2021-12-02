@@ -42,6 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string partDbExtension = ".drumpart";
             string logDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
 
             var dbName = "TestInvalidSQL";
 
@@ -69,7 +70,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("col1", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
@@ -116,6 +117,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string partDbExtension = ".drumpart";
             string logDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
 
             var dbName = "TestInvalidSQL";
 
@@ -143,7 +145,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COLUMN1", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
@@ -190,6 +192,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string partDbExtension = ".drumpart";
             string logDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
 
             var dbName = "TestInvalidSQL";
 
@@ -217,7 +220,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
@@ -267,6 +270,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string partDbExtension = ".drumpart";
             string logDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
 
             var dbName = "TestInvalidSQL";
 
@@ -294,7 +298,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
@@ -330,6 +334,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string logDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
             var dbName = "TestDropTable";
+            string contracts = "contracts";
 
             var directory = new DirectoryInfo(storageFolder);
 
@@ -355,7 +360,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();

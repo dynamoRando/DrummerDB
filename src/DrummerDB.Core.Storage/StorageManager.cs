@@ -7,6 +7,7 @@ using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +26,9 @@ namespace Drummersoft.DrummerDB.Core.Storage
         private string _partialDbExtension = string.Empty;
         private string _storageFolder = string.Empty;
         private string _systemDbExtension = string.Empty;
+        private string _contractFolder = string.Empty;
+        private string _contractFolderPath = string.Empty;
+
         private SystemDbFileHandlerCollection _systemDbFiles;
         private UserDbFileHandlerCollection _userDbFiles;
         #endregion
@@ -40,13 +44,14 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// <param name="hostDbExtension">The file extension for host dbs</param>
         /// <param name="partialDbExtension">The file extension for partial dbs</param>
         /// <param name="logFileExtension">The file extension for a db log file</param>
-        internal StorageManager(string storageFolder, string hostDbExtension, string partialDbExtension, string logFileExtension, string systemDbExtension)
+        internal StorageManager(string storageFolder, string hostDbExtension, string partialDbExtension, string logFileExtension, string systemDbExtension, string contractFolder)
         {
             _storageFolder = storageFolder;
             _hostDbExtension = hostDbExtension;
             _partialDbExtension = partialDbExtension;
             _logFileExtension = logFileExtension;
             _systemDbExtension = systemDbExtension;
+            _contractFolder = contractFolder;
 
             _userDbFiles = new UserDbFileHandlerCollection();
 
@@ -54,11 +59,20 @@ namespace Drummersoft.DrummerDB.Core.Storage
             {
                 Directory.CreateDirectory(_storageFolder);
             }
+
+            string contractFolderPath = Path.Combine(_storageFolder, _contractFolder);
+
+            if (!Directory.Exists(contractFolderPath))
+            {
+                Directory.CreateDirectory(contractFolderPath);
+            }
+
+            _contractFolderPath = contractFolderPath;
         }
         #endregion
 
         #region Public Methods
-      
+
         /// <summary>
         /// Creates the needed database structures on disk for a system database
         /// </summary>
@@ -530,6 +544,24 @@ namespace Drummersoft.DrummerDB.Core.Storage
         public int TotalUserDatabasesOnDisk()
         {
             return Directory.GetFiles(_storageFolder, "*" + _hostDbExtension).Length;
+        }
+
+        public bool SaveContractToDisk(Contract contract)
+        {
+            try
+            {
+                string fileName = contract.DatabaseName;
+                string fullPath = Path.Combine(_contractFolderPath, fileName);
+
+                var contractJson = JsonSerializer.Serialize(contract);
+                File.WriteAllText(fullPath, contractJson);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
         #endregion
 

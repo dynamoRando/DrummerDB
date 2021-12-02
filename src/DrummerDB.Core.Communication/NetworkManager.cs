@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using Drummersoft.DrummerDB.Core.Storage.Interface;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -154,7 +155,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         /// <param name="cache">An instance of a cache manager</param>
         /// <param name="crypt">An instance of a crypt manager</param>
         /// <remarks>The managers passed in are normally used in the creation of a new database</remarks>
-        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager)
+        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, IStorageManager storage)
         {
             string clientUrl;
 
@@ -187,7 +188,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _databaseServiceHandler = new DatabaseServiceHandler();
                 _databaseServiceHandler.SetAuth(authenticationManager);
                 _databaseServiceHandler.SetDatabase(dbManager);
-            }
+                _databaseServiceHandler.SetStorage(storage);
+                }
 
             if (useHttps)
             {
@@ -228,10 +230,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
         /// <param name="cache">An instance of a cache manager</param>
         /// <param name="crypt">An instance of a crypt manager</param>
         /// <param name="portNumber">The port number the server should listen on. This value overrides what is in the settings file.</param>
-        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber)
+        /// <param name="storage">The storage manager (used to save pending contract information)</param>
+        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber, IStorageManager storage)
         {
             _databaseServicePort.PortNumber = portNumber;
-            StartServerForDatabaseService(useHttps, authenticationManager, dbManager);
+            StartServerForDatabaseService(useHttps, authenticationManager, dbManager, storage);
         }
 
         #endregion

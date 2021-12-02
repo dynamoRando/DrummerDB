@@ -8,8 +8,11 @@
         public const string REVIEW_LOGICAL_STORAGE = "REVIEW LOGICAL STORAGE";
         public const string FOR = "FOR";
         public const string ADD_PARTICIPANT = "ADD PARTICIPANT";
+        // prefix denotes anything that will perform network communication with a participant
         public const string REQUEST_PARTICIPANT = "REQUEST PARTICIPANT";
-        public const string ACCEPT_CONTRACT = "ACCEPT CONTRACT";
+        // prefix denotes anything that will perform network communication with a host
+        public const string REQUEST_HOST = "REQUEST HOST";
+        public const string SAVE_CONTRACT = "SAVE CONTRACT";
         public const string GENERATE_CONTRACT_AS_AUTHOR = "GENERATE CONTRACT AS AUTHOR";
         public const string DESCRIPTION = "DESCRIPTION";
 
