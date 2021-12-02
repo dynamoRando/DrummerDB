@@ -47,6 +47,13 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             DRUMMER END;
             ", systemDbName);
 
+            // send message back to host that we accepted the contract
+            test.ExecuteSQL($@"
+            DRUMMER BEGIN;
+            REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {contractAuthor};
+            DRUMMER END;
+            ", systemDbName);
+
             throw new NotImplementedException();
         }
     }

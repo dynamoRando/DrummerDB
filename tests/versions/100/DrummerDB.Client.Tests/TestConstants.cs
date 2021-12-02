@@ -56,6 +56,12 @@ namespace Drummersoft.DrummerDB.Client.Tests
 
             // 6030
             public const int CREATE_TABLE_DROP = 6030;
+
+            // 7000
+            public const int COOP_SQL_MULTI_TEST = 7000;
+
+            // 7050
+            public const int COOP_DB_MULTI_TEST = 7050;
         }
     }
 }

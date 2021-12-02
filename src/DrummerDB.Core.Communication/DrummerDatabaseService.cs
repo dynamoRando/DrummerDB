@@ -99,6 +99,12 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             return Task.FromResult(reply);
         }
+
+        public override Task<ParticipantAcceptsContractResult> AcceptContract(ParticipantAcceptsContractRequest request, ServerCallContext context)
+        {
+            throw new NotImplementedException();
+            return base.AcceptContract(request, context);
+        }
         #endregion
 
         #region Private Methods
