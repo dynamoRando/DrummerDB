@@ -100,6 +100,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             manager.LoadSystemDatabases(cache, storage, crypto);
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
 
+            // -- ACT
             var contract = new Contract();
             contract.ContractGUID = contractGuid;
             contract.GeneratedDate = contractGenDate;
@@ -114,6 +115,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var result = storage.SaveContractToDisk(contract);
 
+            // -- ASSERT
             Assert.True(result);
         }
     }
