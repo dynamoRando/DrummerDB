@@ -1,4 +1,10 @@
-﻿using System;
+﻿using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Structures;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 
@@ -6,97 +12,40 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
     public class Test_Participant_Actions
     {
-        [Fact(Skip = "Logical Storage Policy Not Implemented")]
-        public void Test_Set_Logical_Storage_Policy()
+        [Fact(Skip ="Accept Pending Contract operator not written")]
+        public void Test_Accept_Pending_Contract()
         {
-            string dbName = "TestRemote";
-            string tableName = "Customers";
-            string storageFolder = "TestParticipantActions";
+            // need to modify test harness to account for both a host and a participant
+            // in other words need two instances booted up
+
+            string contractAuthor = "TestAuthor";
+            string dbName = "TestAcceptCon";
+            string tableName = "TestContract";
+            string storageFolder = "TestPendingContract";
             var test = new TestHarness();
+            string systemDbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.TEST_COOP_ACTIONS);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.TEST_PARTICIPANT_ACCEPT_CONTRACT);
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
             test.SetupClient();
 
             // -- ACT
-            test.ExecuteSQL($"CREATE DATABASE {dbName}");
-
-            test.ExecuteSQL($@"
-            CREATE TABLE {tableName}
-            (
-                ID INT IDENTITY(1,1),
-                CUSTOMERNAME NVARCHAR(25) NOT NULL
-            );
-            ", dbName);
-
+            // get the list of pending contracts
             test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            SET LOGICAL STORAGE FOR {tableName} Participant_Owned;
+            REVIEW PENDING CONTRACTS;
             DRUMMER END;
-            ", dbName);
+            ", systemDbName);
 
-            test.ExecuteSQL($@"
-            CREATE TABLE PRODUCTS
-            (
-                ID INT IDENTITY(1,1),
-                PRODUCTNAME NVARCHAR(25) NOT NULL
-            );
-            ", dbName);
-
+            // accept a specifc contract
             test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            SET LOGICAL STORAGE FOR PRODUCTS Host_Only;
+            ACCEPT CONTRACT BY {contractAuthor};
             DRUMMER END;
-            ", dbName);
-
-            test.ExecuteSQL($@"
-            CREATE TABLE ORDERS
-            (
-                ID INT IDENTITY(1,1),
-                ORDERED_ITEMS NVARCHAR(25) NOT NULL
-            );
-            ", dbName);
-
-            test.ExecuteSQL($@"
-            DRUMMER BEGIN;
-            SET LOGICAL STORAGE FOR ORDERS Shared;
-            DRUMMER END;
-            ", dbName);
-
-            // need syntax to generate a contract
-
-            test.ExecuteSQL($@"
-            DRUMMER BEGIN;
-            GENERATE CONTRACT AS AUTHOR RetailerCorporation DESCRIPTION IntroductionMessageGoesHere;
-            DRUMMER END;
-            ", dbName);
-            // need to test failure modes where if not all tables have been assigned a logical storage
-            // policy, throw an error
-            // on contract generation. we want the authors to be explicit about contract generation.
-
-            // need syntax to add participants
-            test.ExecuteSQL($@"
-            DRUMMER BEGIN;
-            ADD PARTICIPANT AliasName AT 127.0.0.1:9000;
-            DRUMMER END;
-            ", dbName);
-
-            // need to check for the policies set on the tables
-            test.ExecuteSQL($@"
-            SELECT * FROM sys.UserTables
-            ", dbName);
-
-            // this should return the logical storage policy, which we should use to ASSERT that they are saved correctly
-
-            // need syntax to request acceptance of contract from participant
-            test.ExecuteSQL($@"
-            DRUMMER BEGIN;
-            REQUEST PARTICIPANT AliasName SAVE CONTRACT;
-            DRUMMER END;
-            ", dbName);
+            ", systemDbName);
 
             throw new NotImplementedException();
         }
