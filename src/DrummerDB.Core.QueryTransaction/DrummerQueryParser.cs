@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases.Interface;
+﻿using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using System;
@@ -102,13 +103,16 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             // validation rule:
             // all tables in the database should have a logical storage policy
             // other than that, we just need to validate the syntax
-
-            if (!_db.IsReadyForCooperation())
+            if (_db is HostDb)
             {
-                errorMessage = $"Database {_db.Name} does not have all tables set with a logical storage policy";
-                return false;
+                var hostDb = _db as HostDb;
+                if (!hostDb.IsReadyForCooperation())
+                {
+                    errorMessage = $"Database {_db.Name} does not have all tables set with a logical storage policy";
+                    return false;
+                }
             }
-
+          
             // example: GENERATE CONTRACT AS AUTHOR RetailerCorporation DESCRIPTION IntroductionMessageGoesHere;
             var lines = statement.Split(";");
             foreach (var line in lines)

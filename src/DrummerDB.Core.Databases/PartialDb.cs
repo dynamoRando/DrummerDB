@@ -10,10 +10,7 @@ using System.Linq;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
-    /// <summary>
-    /// Represents a database hosted by a Process
-    /// </summary>
-    internal class HostDb : UserDatabase
+    internal class PartialDb : UserDatabase
     {
         #region Private Fields
         private BaseUserDatabase _baseDb;
@@ -23,80 +20,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public override string Name => _baseDb.Name;
         public override int Version => _baseDb.Version;
         public override Guid Id => _baseDb.Id;
-        public override DatabaseType DatabaseType => DatabaseType.Host;
+        public override DatabaseType DatabaseType => DatabaseType.Partial;
         #endregion
 
         #region Constructors
-        // TODO - this entire class needs a bit more thoughtfulness.
-        internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager) : base(metadata)
+        public PartialDb(DatabaseMetadata metadata) : base(metadata)
         {
-            _baseDb = new BaseUserDatabase(metadata, xEntryManager);
         }
-
-        internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
-        {
-            _baseDb = new BaseUserDatabase(metadata, xEntryManager, log);
-        }
-
         #endregion
 
         #region Public Methods
-        public bool IsReadyForCooperation()
-        {
-            foreach (var table in _baseDb.InMemoryTables)
-            {
-                string schemaName = table.Schema().Schema.SchemaName;
-                // need to ignore sys tables
-                if (string.Equals(schemaName, Constants.SYS_SCHEMA, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var lsp = table.GetLogicalStoragePolicy();
-                if (lsp == LogicalStoragePolicy.None)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy)
-        {
-            if (_baseDb.HasTable(tableName))
-            {
-                var table = _baseDb.GetTable(tableName);
-                table.SetLogicalStoragePolicy(policy);
-
-                var schema = _baseDb.MetaData.GetSchema(tableName, Name) as TableSchema;
-                schema.SetStoragePolicy(policy);
-                _baseDb.MetaData.UpdateTableSchema(schema);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        // need to refactor to leverage the underlying base db rather than internal objects
-        public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
-        {
-            if (_baseDb.HasTable(tableName))
-            {
-                var table = _baseDb.GetTable(tableName);
-                table.SetLogicalStoragePolicy(policy, transaction, transactionMode);
-
-                var schema = _baseDb.MetaData.GetSchema(tableName, Name) as TableSchema;
-                schema.SetStoragePolicy(policy);
-                _baseDb.MetaData.UpdateTableSchema(schema);
-
-                return true;
-            }
-
-            return false;
-        }
-
         public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             return _baseDb.TryDropTable(tableName, transaction, transactionMode);
@@ -210,6 +143,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         #region Private Methods
         #endregion
+
+
+
 
     }
 }

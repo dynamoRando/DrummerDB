@@ -31,7 +31,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
 
         #region Public Methods        
         public abstract DatabaseType DatabaseType { get; }
-        public abstract bool IsReadyForCooperation();
 
         /// <summary>
         /// Adds the table to the database. This will add the table to Cache (and thru Cache, to Storage) and to the database's internal metadata object.
