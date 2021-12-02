@@ -91,6 +91,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public override Task<SaveContractResult> SaveContract(SaveContractRequest request, ServerCallContext context)
         {
             var databaseContract = ConvertContractRequestToContract(request);
+
             var result = _handler.SaveContract(databaseContract);
 
             var reply = new SaveContractResult();

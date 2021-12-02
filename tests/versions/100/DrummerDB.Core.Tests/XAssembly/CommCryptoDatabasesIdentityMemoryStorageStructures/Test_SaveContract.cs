@@ -95,8 +95,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var xManager = new TransactionEntryManager();
             var manager = new DbManager(storage, cache, crypto, xManager);
             var auth = new AuthenticationManager(manager);
-            var databaseService = new DatabaseServiceHandler(auth, manager, storage);
-
+            
             manager.LoadSystemDatabases(cache, storage, crypto);
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
 
