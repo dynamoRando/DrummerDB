@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
+using Drummersoft.DrummerDB.Core.Databases.Version;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -264,6 +265,42 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                             part.Operations.Add(readTableOp);
                             part.Operations.Add(updateOp);
+                        }
+                    }
+                }
+
+                // need to generate an INSERT value here if there is not a record already in the system table
+                var sysDb = dbManager.GetSystemDatabase();
+                var guidTable = sysDb.GetTable(AuthorGuid.TABLE_NAME);
+                if (guidTable.RowCount() == 0)
+                {
+                    // need to geneate an author guid and insert operation
+                    if (!plan.Parts.Any(part => part is InsertQueryPlanPart))
+                    {
+                        plan.Parts.Add(new InsertQueryPlanPart());
+                    }
+
+                    foreach (var part in plan.Parts)
+                    {
+                        if (part is InsertQueryPlanPart)
+                        {
+                            var ito = new InsertTableOperator(dbManager);
+                            ito.TableName = AuthorGuid.TABLE_NAME;
+                            ito.DatabaseName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
+                            ito.TableSchemaName = Constants.SYS_SCHEMA;
+
+                            var authorGuidColumn = AuthorGuid.GetColumn(AuthorGuid.Columns.AuthorGUID);
+
+                            var contractGuidStatement = new StatementColumn(authorGuidColumn.Id, authorGuidColumn.Name);
+                            ito.Columns.Add(contractGuidStatement);
+
+                            // need to create a row to insert
+                            var insertRow = new InsertRow(1);
+                            var insertValue = new InsertValue(1, authorGuidColumn.Name, Guid.NewGuid().ToString());
+                            insertRow.Values.Add(insertValue);
+
+                            ito.Rows.Add(insertRow);
+                            part.Operations.Add(ito);
                         }
                     }
                 }

@@ -19,6 +19,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #region Private Fields
         private LogService _log;
         private IDatabase _db;
+        private IDbManager _dbManager;
         #endregion
 
         #region Public Properties
@@ -61,6 +62,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (database is not null)
                 {
                     _db = database;
+                    _dbManager = dbManager;
                     if (HasLogicalStoragePolicyKeyword(statement))
                     {
                         return ParseForLogicalStoragePolicy(statement, out errorMessage);
@@ -227,7 +229,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.ACCEPT_CONTRACT_BY))
                 {
+                    // AuthorName;
+                    string author = trimmedLine.Replace(DrummerKeywords.ACCEPT_CONTRACT_BY + " ", string.Empty);
 
+                    var systemDb = _dbManager.GetSystemDatabase();
+                    // we need a table in the system database of pending contracts
+                    // not just contracts that we have saved to disk as pending
                 }
             }
 
@@ -243,11 +250,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.ACCEPT_CONTRACT_BY))
                 {
-
+                    return true;
                 }
             }
 
-            throw new NotImplementedException();
+            return false;
         }
 
         private bool ParseForReviewPendingContracts(string statement, out string errorMessage)
@@ -259,11 +266,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_PENDING_CONTRACTS))
                 {
-
+                    // ??
                 }
             }
 
-            throw new NotImplementedException();
+            errorMessage = string.Empty;
+            return true;
         }
 
         private bool HasReviewPendingContractsKeyword(string statement)
@@ -275,12 +283,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_PENDING_CONTRACTS))
                 {
-
+                    return true;
                 }
             }
 
-
-            throw new NotImplementedException();
+            return false;
         }
 
         private bool ParseForRequestParticipant(string statement, out string errorMessage)
@@ -295,11 +302,25 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_PARTICIPANT))
                 {
-
+                    //ParticipantAlias SAVE CONTRACT
+                    string participant = trimmedLine.Replace(DrummerKeywords.REQUEST_PARTICIPANT + " ", string.Empty).Trim();
+                    //ParticipantAlias
+                    string participantAlias = participant.Replace(DrummerKeywords.SAVE_CONTRACT, string.Empty).Trim();
+                    // need to check to see if database actually has a participant with this alias
+                    if (_db is HostDb)
+                    {
+                        var hostDb = _db as HostDb;
+                        if (!hostDb.HasParticipantAlias(participantAlias))
+                        {
+                            errorMessage = $"Participant alias {participantAlias} was not found in db {hostDb.Name}";
+                            return false;
+                        }
+                    }
                 }
             }
 
-            throw new NotImplementedException();
+            errorMessage = string.Empty;
+            return true;
         }
 
         private bool HasRequestParticipantKeyword(string statement)
@@ -314,11 +335,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_PARTICIPANT))
                 {
-
+                    return true;
                 }
             }
 
-            throw new NotImplementedException();
+            return false;
         }
 
         private bool ParseForAddParticipant(string statement, out string errorMessage)

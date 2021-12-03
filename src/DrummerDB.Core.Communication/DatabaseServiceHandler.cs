@@ -81,6 +81,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public bool SaveContract(Contract contract)
         {
+            throw new NotImplementedException("We want to change this so that we save this data in a table in the system database.");
+            // don't rely on just the contract data being saved to disk
+            // we want this information about coop contracts status in the system database
             return _storageManager.SaveContractToDisk(contract);
         }
         #endregion

@@ -44,6 +44,7 @@
             public const int TENANTS = 14;
             public const int DATABASE_CONTRACTS = 15;
             public const int HOSTS = 16;
+            public const int AUTHOR_GUID = 17;
         }
 
         /// <summary>

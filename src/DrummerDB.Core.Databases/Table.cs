@@ -79,6 +79,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Returns the total number of rows for the table
+        /// </summary>
+        /// <returns>The total number of rows in cache</returns>
+        /// <remarks>This is an expensive operation.</remarks>
+        public int RowCount()
+        {
+            BringTreeOnline();
+            return _cache.GetRows(Address).Count;
+        }
+
         public void SetLogicalStoragePolicy(LogicalStoragePolicy policy)
         {
             if (_schema is TableSchema)

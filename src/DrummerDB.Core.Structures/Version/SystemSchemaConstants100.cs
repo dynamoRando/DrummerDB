@@ -702,6 +702,58 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     }
                 }
             }
+
+            // a table holding a single value - our GUID as a contract author
+            public static class AuthorGuid
+            {
+                private static ColumnSchemaCollection _columns;
+
+                public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.AUTHOR_GUID;
+                public const string TABLE_NAME = "AuthorGuid";
+
+                public static TableSchema Schema(Guid dbId, string dbName)
+                {
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    schema.DatabaseName = dbName;
+                    return schema;
+                }
+
+                public static class Columns
+                {
+                    public const string AuthorGUID = "AuthorGUID";
+                }
+
+                public static ColumnSchema GetColumn(string columName)
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns.Get(columName);
+                }
+
+                public static ColumnSchemaCollection GetColumns()
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns;
+                }
+
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(1);
+
+                        var authorId = new ColumnSchema(Columns.AuthorGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(authorId);
+                    }
+                }
+            }
         }
 
         internal partial class Maps

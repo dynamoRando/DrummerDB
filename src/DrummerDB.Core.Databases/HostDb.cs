@@ -7,6 +7,7 @@ using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -41,6 +42,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public bool HasParticipantAlias(string aliasName)
+        {
+            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
+            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
+            return participants.HasValue(searchItem);
+        }
+
         public bool IsReadyForCooperation()
         {
             foreach (var table in _baseDb.InMemoryTables)
