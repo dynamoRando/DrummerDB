@@ -5,6 +5,7 @@ using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -329,11 +330,46 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.ADD_PARTICIPANT))
                 {
+                    //ParticipantAlias AT 127.0.0.1:5000
+                    string participant = trimmedLine.Replace(DrummerKeywords.ADD_PARTICIPANT + " ", string.Empty).Trim();
+                    var items = participant.Split(" ");
+
+                    if (items.Count() != 3)
+                    {
+                        errorMessage = "Unable to parse participant alias";
+                        return false;
+                    }
+
+                    string participantAlias = items[0];
+                    string participantIPPort = items[2].Trim();
+
+                    var ipItems = participantIPPort.Split(":");
+                    if (ipItems.Count() != 2)
+                    {
+                        errorMessage = "Unable to parse participant ip address and port";
+                        return false;
+                    }
+
+                    string ipAddress = ipItems[0];
+                    string portNumber = ipItems[1];
+
+                    if (!int.TryParse(portNumber, out _))
+                    {
+                        errorMessage = "Unable to parse participant port number";
+                        return false;
+                    }
+
+                    if(!IPAddress.TryParse(ipAddress, out _))
+                    {
+                        errorMessage = "Unable to parse participant ip address";
+                        return false;
+                    }
 
                 }
             }
 
-            throw new NotImplementedException();
+            errorMessage = string.Empty;
+            return true;
         }
 
         private bool HasAddParticipantKeyword(string statement)
