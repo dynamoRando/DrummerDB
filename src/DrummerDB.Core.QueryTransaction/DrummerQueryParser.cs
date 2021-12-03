@@ -111,7 +111,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     if (HasReviewAcceptedContractKeyword(statement))
                     {
-                        return ParseForReviewAcceptedContract(statement, out errorMessage);   
+                        return ParseForReviewAcceptedContract(statement, out errorMessage);
                     }
                 }
             }
@@ -122,74 +122,233 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
-        private bool ParseForRejectContract(string message, out string errorMessage)
+        private bool ParseForRejectContract(string statement, out string errorMessage)
         {
+            //REJECT CONTRACT BY AuthorName;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REJECT_CONTRACT_BY))
+                {
+
+                }
+            }
             throw new NotImplementedException();
         }
 
-        private bool HasRejectContractByKeyword(string message)
+        private bool HasRejectContractByKeyword(string statement)
         {
+            //REJECT CONTRACT BY AuthorName;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REJECT_CONTRACT_BY))
+                {
+
+                }
+            }
             throw new NotImplementedException();
         }
 
-        private bool ParseForReviewAcceptedContract(string mesage, out string errorMessage)
+        private bool ParseForReviewAcceptedContract(string statement, out string errorMessage)
         {
+            //REVIEW ACCEPTED CONTRACTS;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
+                {
+
+                }
+            }
             throw new NotImplementedException();
         }
 
         private bool HasReviewAcceptedContractKeyword(string statement)
         {
+            //REVIEW ACCEPTED CONTRACTS;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
+                {
+
+                }
+            }
+
             throw new NotImplementedException();
         }
 
         private bool HasRequestHostKeyword(string statement)
         {
+            //REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {company.Alias};
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_HOST))
+                {
+
+                }
+            }
             throw new NotImplementedException();
         }
 
         private bool ParseForRequestHost(string statement, out string errorMessage)
         {
+            //REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {company.Alias};
+
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_HOST))
+                {
+
+                }
+            }
+
             throw new NotImplementedException();
         }
 
         private bool ParseForAcceptContract(string statement, out string errorMessage)
         {
+            //ACCEPT CONTRACT BY AuthorName;
+            //need to validate that we have a contract with that author that is pending
+
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.ACCEPT_CONTRACT_BY))
+                {
+
+                }
+            }
+
             throw new NotImplementedException();
         }
 
         private bool HasAcceptContractKeyword(string statement)
         {
+            //ACCEPT CONTRACT BY AuthorName;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.ACCEPT_CONTRACT_BY))
+                {
+
+                }
+            }
+
             throw new NotImplementedException();
         }
 
         private bool ParseForReviewPendingContracts(string statement, out string errorMessage)
         {
+            //REVIEW PENDING CONTRACTS;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_PENDING_CONTRACTS))
+                {
+
+                }
+            }
+
             throw new NotImplementedException();
         }
 
         private bool HasReviewPendingContractsKeyword(string statement)
         {
+            //REVIEW PENDING CONTRACTS;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_PENDING_CONTRACTS))
+                {
+
+                }
+            }
+
+
             throw new NotImplementedException();
         }
 
         private bool ParseForRequestParticipant(string statement, out string errorMessage)
         {
+            //REQUEST PARTICIPANT ParticipantAlias SAVE CONTRACT;
+            //should generate a network communication item via databases => remote database
+            //we need to validate that we actually have a participant with the specified alias
+
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_PARTICIPANT))
+                {
+
+                }
+            }
+
             throw new NotImplementedException();
         }
 
         private bool HasRequestParticipantKeyword(string statement)
         {
+            //REQUEST PARTICIPANT ParticipantAlias SAVE CONTRACT;
+            //should generate a network communication item via databases => remote database
+            // we need to validate that we actually have a participant with the specified alias
+
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_PARTICIPANT))
+                {
+
+                }
+            }
+
             throw new NotImplementedException();
         }
 
         private bool ParseForAddParticipant(string statement, out string errorMessage)
         {
+            //ADD PARTICIPANT ParticipantAlias AT 127.0.0.1:5000;
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.ADD_PARTICIPANT))
+                {
+
+                }
+            }
+
             throw new NotImplementedException();
         }
 
         private bool HasAddParticipantKeyword(string statement)
         {
-            throw new NotImplementedException();
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimLined = line.Trim();
+                if (trimLined.StartsWith(DrummerKeywords.ADD_PARTICIPANT))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool HasGenerateContractKeyword(string statement)
@@ -221,7 +380,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     return false;
                 }
             }
-          
+
             // example: GENERATE CONTRACT AS AUTHOR RetailerCorporation DESCRIPTION IntroductionMessageGoesHere;
             var lines = statement.Split(";");
             foreach (var line in lines)

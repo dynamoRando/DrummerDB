@@ -68,36 +68,73 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         private void EvaluteForReviewAcceptedContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            //REVIEW ACCEPTED CONTRACTS;
+            if (line.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
+            {
+
+            }
+
             throw new NotImplementedException();
         }
 
         private void EvaluteForRejectContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            //REJECT CONTRACT BY AuthorName;
+            if (line.StartsWith(DrummerKeywords.REJECT_CONTRACT_BY))
+            {
+
+            }
             throw new NotImplementedException();
         }
 
         private void EvaluteForAcceptContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            //ACCEPT CONTRACT BY AuthorName;
+            if (line.StartsWith(DrummerKeywords.ACCEPT_CONTRACT_BY))
+            {
+
+            }
             throw new NotImplementedException();
         }
 
         private void EvaluteForReviewPendingContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            //REVIEW PENDING CONTRACTS;
+            if (line.StartsWith(DrummerKeywords.REVIEW_PENDING_CONTRACTS))
+            {
+
+            }
             throw new NotImplementedException();
         }
 
         private void EvaluateForAddParticipant(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            //ADD PARTICIPANT ParticipantAlias AT 127.0.0.1:5000;
+            if (line.StartsWith(DrummerKeywords.ADD_PARTICIPANT))
+            {
+
+            }
             throw new NotImplementedException();
         }
 
         private void EvaluateForRequestHost(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            //REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {company.Alias};
+            if (line.StartsWith(DrummerKeywords.REQUEST_HOST))
+            {
+
+            }
             throw new NotImplementedException();
         }
 
         private void EvaluateForRequestParticipant(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            //REQUEST PARTICIPANT ParticipantAlias SAVE CONTRACT;
+            //should generate a network communication item via databases => remote database
+            if (line.StartsWith(DrummerKeywords.REQUEST_PARTICIPANT))
+            {
+
+            }
             throw new NotImplementedException();
         }
 
