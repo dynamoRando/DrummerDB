@@ -7,12 +7,14 @@ using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants.TestPortNumbers;
 using Xunit;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 
 namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
     public class Test_GenerateAcceptContract
     {
-        [Fact(Skip = "Operators not written yet")]
+        [Fact]
         public void Test_Generate_Accept_Contract()
         {
             // --- ARRANGE
@@ -49,6 +51,19 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             ", dbName);
 
             Assert.False(setPolicyResult.Results.First().IsError);
+
+            var reviewPolicyResult = harness.ExecuteSQL(company,
+            $@"DRUMMER BEGIN;
+            REVIEW LOGICAL STORAGE FOR {customerTableName};
+            DRUMMER END;
+            ", dbName);
+
+           Assert.False(reviewPolicyResult.Results.First().IsError);
+
+            byte[] byteCustomerTablePolicy = reviewPolicyResult.Results.First().Rows[0].Values[0].Value.ToByteArray();
+            int convertedProductPolicy = DbBinaryConvert.BinaryToInt(new Span<byte>(byteCustomerTablePolicy).Slice(1, 4));
+
+            Assert.Equal((int)LogicalStoragePolicy.ParticipantOwned, convertedProductPolicy);
 
             var generateContractResult = harness.ExecuteSQL(company,
             $@"DRUMMER BEGIN;
@@ -124,8 +139,6 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             , systemDbName);
 
             Assert.False(acceptedContracts.Results.First().IsError);
-
-            throw new NotImplementedException();
         }
     }
 }

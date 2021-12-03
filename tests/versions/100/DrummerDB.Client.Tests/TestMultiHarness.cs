@@ -73,15 +73,16 @@ namespace Drummersoft.DrummerDB.Client.Tests
             process.Process = new drummer.Process(directoryPath, true, true);
             process.SQLPort = GetMaxSQLPort() + 1;
             process.DatabasePort = GetMaxDbPort() + 1;
+            process.UserName = _userName;
+            process.Password = _password;
+            process.UserSessionId = _userSessionId;
 
             process.Process.Start();
             process.Process.Test_SetupAdminLogin(process.UserName, process.Password, process.UserSessionId);
             process.Process.StartSQLServer(process.SQLPort, false);
             process.Process.StartDbServer(process.DatabasePort, false);
             process.SQLClient = new DrummerSQLClient(_url, process.SQLPort);
-            process.UserName = _userName;
-            process.Password = _password;
-            process.UserSessionId = _userSessionId;
+           
 
             TestProcessList.Add(process);
 

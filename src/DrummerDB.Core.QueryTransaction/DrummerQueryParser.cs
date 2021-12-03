@@ -74,6 +74,45 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForGenerateContract(statement, out errorMessage);
                     }
+
+                    // --- new commands
+
+                    // will generate network communication
+                    if (HasRequestParticipantKeyword(statement))
+                    {
+                        return ParseForRequestParticipant(statement, out errorMessage);
+                    }
+
+                    // will generate network communication
+                    if (HasRequestHostKeyword(statement))
+                    {
+                        return ParseForRequestHost(statement, out errorMessage);
+                    }
+
+                    if (HasAddParticipantKeyword(statement))
+                    {
+                        return ParseForAddParticipant(statement, out errorMessage);
+                    }
+
+                    if (HasReviewPendingContractsKeyword(statement))
+                    {
+                        return ParseForReviewPendingContracts(statement, out errorMessage);
+                    }
+
+                    if (HasAcceptContractKeyword(statement))
+                    {
+                        return ParseForAcceptContract(statement, out errorMessage);
+                    }
+
+                    if (HasRejectContractByKeyword(statement))
+                    {
+                        return ParseForRejectContract(statement, out errorMessage);
+                    }
+
+                    if (HasReviewAcceptedContractKeyword(statement))
+                    {
+                        return ParseForReviewAcceptedContract(statement, out errorMessage);   
+                    }
                 }
             }
 
@@ -83,6 +122,76 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
+        private bool ParseForRejectContract(string message, out string errorMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool HasRejectContractByKeyword(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool ParseForReviewAcceptedContract(string mesage, out string errorMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool HasReviewAcceptedContractKeyword(string statement)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool HasRequestHostKeyword(string statement)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool ParseForRequestHost(string statement, out string errorMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool ParseForAcceptContract(string statement, out string errorMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool HasAcceptContractKeyword(string statement)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool ParseForReviewPendingContracts(string statement, out string errorMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool HasReviewPendingContractsKeyword(string statement)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool ParseForRequestParticipant(string statement, out string errorMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool HasRequestParticipantKeyword(string statement)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool ParseForAddParticipant(string statement, out string errorMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool HasAddParticipantKeyword(string statement)
+        {
+            throw new NotImplementedException();
+        }
+
         private bool HasGenerateContractKeyword(string statement)
         {
             var lines = statement.Split(";");
