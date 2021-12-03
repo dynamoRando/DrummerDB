@@ -57,6 +57,48 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             EvaluateForLogicalStoragePolicy(line, database, dbManager, ref plan);
             EvaluateForReviewLogicalStoragePolicy(line, database, dbManager, ref plan);
             EvaluateForGenerateContract(line, database, dbManager, ref plan);
+            EvaluateForRequestParticipant(line, database, dbManager, ref plan);
+            EvaluateForRequestHost(line, database, dbManager, ref plan);
+            EvaluateForAddParticipant(line, database, dbManager, ref plan);
+            EvaluteForReviewPendingContract(line, database, dbManager, ref plan);
+            EvaluteForAcceptContract(line, database, dbManager, ref plan);
+            EvaluteForRejectContract(line, database, dbManager, ref plan);
+            EvaluteForReviewAcceptedContract(line, database, dbManager, ref plan);
+        }
+
+        private void EvaluteForReviewAcceptedContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void EvaluteForRejectContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void EvaluteForAcceptContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void EvaluteForReviewPendingContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void EvaluateForAddParticipant(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void EvaluateForRequestHost(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void EvaluateForRequestParticipant(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            throw new NotImplementedException();
         }
 
         private void EvaluateForGenerateContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
