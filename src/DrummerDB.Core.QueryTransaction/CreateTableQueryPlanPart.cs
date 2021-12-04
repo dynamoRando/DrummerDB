@@ -10,12 +10,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public List<IQueryPlanPartOperator> Operations { get; set; }
         public LockObjectRequest LockRequest { get; set; }
         public StatementType StatementType => StatementType.DDL;
+        public PlanPartType Type => PlanPartType.CreateTable;
 
         public CreateTableQueryPlanPart()
         {
             Order = 0;
             Operations = new List<IQueryPlanPartOperator>();
             LockRequest = new LockObjectRequest();
+        }
+
+        public void AddOperation(IQueryPlanPartOperator operation)
+        {
+            Operations.Add(operation);
         }
     }
 }

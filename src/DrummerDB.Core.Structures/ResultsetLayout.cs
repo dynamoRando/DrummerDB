@@ -11,5 +11,10 @@ namespace Drummersoft.DrummerDB.Core.Structures
         {
             Columns = new List<IResultsetSource>();
         }
+
+        public void AddSource(IResultsetSource source)
+        {
+            Columns.Add(source);
+        }
     }
 }

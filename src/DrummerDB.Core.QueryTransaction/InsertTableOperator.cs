@@ -56,7 +56,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             var row = table.GetNewLocalRow();
                             foreach (var insertValue in insertRow.Values)
                             {
-                                row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                if (insertValue.IsNull)
+                                {
+                                    row.SetValueAsNullForColumn(insertValue.ColumnName);
+                                }
+                                else
+                                {
+                                    row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                }
+
                             }
 
                             if (!table.TryAddRow(row, transaction, transactionMode))
@@ -107,7 +115,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             var row = table.GetNewLocalRow();
                             foreach (var insertValue in insertRow.Values)
                             {
-                                row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                if (insertValue.IsNull)
+                                {
+                                    row.SetValueAsNullForColumn(insertValue.ColumnName);
+                                }
+                                else
+                                {
+                                    row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                }
                             }
 
                             if (!table.TryAddRow(row, transaction, transactionMode))
@@ -146,7 +161,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 }
             }
         }
-        
+
 
         #endregion
 

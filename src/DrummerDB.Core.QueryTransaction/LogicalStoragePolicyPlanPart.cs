@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+﻿using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +13,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public int Order { get; set; }
         public List<IQueryPlanPartOperator> Operations { get; set; }
         public LockObjectRequest LockRequest { get; set; }
+        public PlanPartType Type => PlanPartType.LogicalStoragePolicy;
 
         public LogicalStoragePolicyPlanPart()
         {
             Order = 0;
             Operations = new List<IQueryPlanPartOperator>();
             LockRequest = new LockObjectRequest();
+        }
+
+        public void AddOperation(IQueryPlanPartOperator operation)
+        {
+            Operations.Add(operation);
         }
     }
 }

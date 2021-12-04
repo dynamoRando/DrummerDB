@@ -12,12 +12,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public LockObjectRequest LockRequest { get; set; }
         public ResultsetLayout Layout { get; set; }
         public StatementType StatementType => StatementType.DML;
+        public PlanPartType Type => PlanPartType.Select;
 
         public SelectQueryPlanPart()
         {
             Order = 0;
             Operations = new List<IQueryPlanPartOperator>();
             LockRequest = new LockObjectRequest();
+        }
+
+        public void AddOperation(IQueryPlanPartOperator operation)
+        {
+            Operations.Add(operation);
         }
     }
 }

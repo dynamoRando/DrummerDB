@@ -108,7 +108,82 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //ADD PARTICIPANT ParticipantAlias AT 127.0.0.1:5000;
             if (line.StartsWith(DrummerKeywords.ADD_PARTICIPANT))
             {
-                throw new NotImplementedException();
+                var trimmedLine = line.Trim();
+
+                //ParticipantAlias AT 127.0.0.1:5000
+                string participant = trimmedLine.Replace(DrummerKeywords.ADD_PARTICIPANT + " ", string.Empty).Trim();
+                var items = participant.Split(" ");
+
+                string participantAlias = items[0].Trim();
+                string participantIPPort = items[2].Trim();
+
+                var ipItems = participantIPPort.Split(":");
+
+                string ipAddress = ipItems[0];
+                string portNumber = ipItems[1];
+
+                // need to generate an INSERT operator in the query plan to save this to the sys.Participants table in the provided
+                // user table
+
+                if (!plan.HasPart(PlanPartType.Insert))
+                {
+                    plan.AddPart(new InsertQueryPlanPart());
+                }
+
+                var part = plan.GetPart(PlanPartType.Insert);
+                if (part is InsertQueryPlanPart)
+                {
+                    var insert = part as InsertQueryPlanPart;
+
+                    var insertOp = new InsertTableOperator(dbManager);
+                    insertOp.TableName = Participants.TABLE_NAME;
+                    insertOp.DatabaseName = database.Name;
+                    insertOp.TableSchemaName = Constants.SYS_SCHEMA;
+
+                    // get columns to insert values into
+                    var colParticipantGuid = DatabaseContracts.GetColumn(Participants.Columns.ParticpantGUID);
+                    var colAlias = DatabaseContracts.GetColumn(Participants.Columns.Alias);
+                    var colIp4 = DatabaseContracts.GetColumn(Participants.Columns.IP4Address);
+                    var colIp6 = DatabaseContracts.GetColumn(Participants.Columns.IP6Address);
+                    var colPortNumber = DatabaseContracts.GetColumn(Participants.Columns.PortNumber);
+                    var colLastCom = DatabaseContracts.GetColumn(Participants.Columns.LastCommunicationUTC);
+                    var colAcceptedContract = DatabaseContracts.GetColumn(Participants.Columns.HasAcceptedContract);
+                    var colContractVersion = DatabaseContracts.GetColumn(Participants.Columns.AcceptedContractVersion);
+                    var colContractVersionDate = DatabaseContracts.GetColumn(Participants.Columns.AcceptedContractDateTimeUTC);
+                    var colToken = DatabaseContracts.GetColumn(Participants.Columns.Token);
+
+                    var participantId = Guid.NewGuid();
+
+                    // need to create a row to insert
+                    var insertRow = new InsertRow(1);
+
+                    var valueParticipantId = new InsertValue(1, colParticipantGuid.Name, participantId.ToString());
+                    var valueAlias = new InsertValue(2, colAlias.Name, participantAlias);
+                    var valueIp4 = new InsertValue(3, colIp4.Name, ipAddress);
+                    var valueIp6 = new InsertValue(4, colIp6.Name);
+                    var valuePortNumber = new InsertValue(5, colPortNumber.Name, portNumber);
+                    var valueLastCom = new InsertValue(6, colLastCom.Name);
+                    var valueAcceptedContract = new InsertValue(7, colAcceptedContract.Name, "false");
+                    var valueContractVersion = new InsertValue(8, colContractVersion.Name);
+                    var valueContractVersionDate = new InsertValue(9, colContractVersionDate.Name);
+                    var valueToken = new InsertValue(10, colToken.Name);
+
+                    insertRow.AddValue(valueParticipantId);
+                    insertRow.AddValue(valueAlias);
+                    insertRow.AddValue(valueIp4);
+                    insertRow.AddValue(valueIp6);
+                    insertRow.AddValue(valuePortNumber);
+                    insertRow.AddValue(valueLastCom);
+                    insertRow.AddValue(valueAcceptedContract);
+                    insertRow.AddValue(valueContractVersion);
+                    insertRow.AddValue(valueContractVersionDate);
+                    insertRow.AddValue(valueToken);
+
+                    insertOp.Rows.Add(insertRow);
+
+                    part.AddOperation(insertOp);
+
+                }
             }
         }
 
@@ -128,7 +203,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (line.StartsWith(DrummerKeywords.REQUEST_PARTICIPANT))
             {
                 throw new NotImplementedException();
-            }   
+            }
         }
 
         private void EvaluateForGenerateContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -169,95 +244,91 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         descriptionData = descriptionData.Replace(DrummerKeywords.DESCRIPTION, string.Empty).Trim();
                     }
 
-
                     // create an insert table operation for sys.DatabaseContracts
                     // and then an update table operation for sys.UserTables
-                    if (!plan.Parts.Any(part => part is InsertQueryPlanPart))
+                    if (!plan.HasPart(PlanPartType.Insert))
                     {
-                        plan.Parts.Add(new InsertQueryPlanPart());
+                        plan.AddPart(new InsertQueryPlanPart());
                     }
 
-                    foreach (var part in plan.Parts)
+                    var part = plan.GetPart(PlanPartType.Insert);
+                    if (part is InsertQueryPlanPart)
                     {
-                        if (part is InsertQueryPlanPart)
-                        {
-                            var insertDatabaseContractsOp = new InsertTableOperator(dbManager);
-                            insertDatabaseContractsOp.TableName = DatabaseContracts.TABLE_NAME;
-                            insertDatabaseContractsOp.DatabaseName = database.Name;
-                            insertDatabaseContractsOp.TableSchemaName = Constants.SYS_SCHEMA;
+                        var insertDatabaseContractsOp = new InsertTableOperator(dbManager);
+                        insertDatabaseContractsOp.TableName = DatabaseContracts.TABLE_NAME;
+                        insertDatabaseContractsOp.DatabaseName = database.Name;
+                        insertDatabaseContractsOp.TableSchemaName = Constants.SYS_SCHEMA;
 
-                            contractGuid = Guid.NewGuid();
+                        contractGuid = Guid.NewGuid();
 
-                            var contractGuidColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.ContractGUID);
-                            var generatedDateColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.GeneratedDate);
-                            var authorColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Author);
-                            var tokenColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Token);
-                            var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
+                        var contractGuidColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.ContractGUID);
+                        var generatedDateColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.GeneratedDate);
+                        var authorColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Author);
+                        var tokenColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Token);
+                        var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
 
-                            var contractGuidStatement = new StatementColumn(contractGuidColumn.Id, contractGuidColumn.Name);
-                            insertDatabaseContractsOp.Columns.Add(contractGuidStatement);
+                        var contractGuidStatement = new StatementColumn(contractGuidColumn.Id, contractGuidColumn.Name);
+                        insertDatabaseContractsOp.Columns.Add(contractGuidStatement);
 
-                            // need to create a row to insert
-                            var insertRow = new InsertRow(1);
+                        // need to create a row to insert
+                        var insertRow = new InsertRow(1);
 
-                            var insertValueContractGuid = new InsertValue(1, contractGuidColumn.Name, contractGuid.ToString());
-                            var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
-                            var insertValueAuthor = new InsertValue(3, authorColumn.Name, authorName);
+                        var insertValueContractGuid = new InsertValue(1, contractGuidColumn.Name, contractGuid.ToString());
+                        var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
+                        var insertValueAuthor = new InsertValue(3, authorColumn.Name, authorName);
 
-                            var tokenString = CryptoManager.GenerateTokenString();
-                            var insertValueToken = new InsertValue(4, tokenColumn.Name, tokenString);
+                        var tokenString = CryptoManager.GenerateTokenString();
+                        var insertValueToken = new InsertValue(4, tokenColumn.Name, tokenString);
 
-                            var insertValueDescription = new InsertValue(5, descriptionColumn.Name, descriptionData);
+                        var insertValueDescription = new InsertValue(5, descriptionColumn.Name, descriptionData);
 
-                            insertRow.Values.Add(insertValueContractGuid);
-                            insertRow.Values.Add(insertValueGeneratedDate);
-                            insertRow.Values.Add(insertValueAuthor);
-                            insertRow.Values.Add(insertValueToken);
-                            insertRow.Values.Add(insertValueDescription);
+                        insertRow.Values.Add(insertValueContractGuid);
+                        insertRow.Values.Add(insertValueGeneratedDate);
+                        insertRow.Values.Add(insertValueAuthor);
+                        insertRow.Values.Add(insertValueToken);
+                        insertRow.Values.Add(insertValueDescription);
 
-                            insertDatabaseContractsOp.Rows.Add(insertRow);
+                        insertDatabaseContractsOp.Rows.Add(insertRow);
 
-                            part.Operations.Add(insertDatabaseContractsOp);
-                        }
+                        part.AddOperation(insertDatabaseContractsOp);
                     }
+
 
                     // need to update all rows in the table with the generated contract value
-                    if (!plan.Parts.Any(part => part is UpdateQueryPlanPart))
+                    if (!plan.HasPart(PlanPartType.Update))
                     {
-                        plan.Parts.Add(new UpdateQueryPlanPart());
+                        plan.AddPart(new UpdateQueryPlanPart());
                     }
 
-                    foreach (var part in plan.Parts)
+                    part = plan.GetPart(PlanPartType.Update);
+                    if (part is UpdateQueryPlanPart)
                     {
-                        if (part is UpdateQueryPlanPart)
-                        {
-                            var address = new TreeAddress { DatabaseId = database.Id, TableId = UserTable.TABLE_ID, SchemaId = Guid.Parse(Constants.SYS_SCHEMA_GUID) };
-                            // need to create update column sources
+                        var address = new TreeAddress { DatabaseId = database.Id, TableId = UserTable.TABLE_ID, SchemaId = Guid.Parse(Constants.SYS_SCHEMA_GUID) };
+                        // need to create update column sources
 
-                            var columns = new List<IUpdateColumnSource>();
+                        var columns = new List<IUpdateColumnSource>();
 
-                            // create value object that we're going to update the contract guid to
-                            var column = new UpdateTableValue();
-                            var tableColumn = UserTable.GetColumn(UserTable.Columns.ContractGUID);
+                        // create value object that we're going to update the contract guid to
+                        var column = new UpdateTableValue();
+                        var tableColumn = UserTable.GetColumn(UserTable.Columns.ContractGUID);
 
-                            column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
-                            column.Value = contractGuid.ToString();
+                        column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
+                        column.Value = contractGuid.ToString();
 
-                            columns.Add(column);
-                            var updateOp = new UpdateOperator(dbManager, address, columns);
+                        columns.Add(column);
+                        var updateOp = new UpdateOperator(dbManager, address, columns);
 
-                            // we need to create a read table operator to specify to update all the columns in the user table with the contract
-                            // and set it as the previous operation
+                        // we need to create a read table operator to specify to update all the columns in the user table with the contract
+                        // and set it as the previous operation
 
-                            // only reading 1 column from the table that we want to update, the contract GUID column in sys.UserTables
-                            string[] colNames = new string[1] { UserTable.Columns.ContractGUID };
+                        // only reading 1 column from the table that we want to update, the contract GUID column in sys.UserTables
+                        string[] colNames = new string[1] { UserTable.Columns.ContractGUID };
 
-                            var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
-                            updateOp.PreviousOperation = readTableOp;
+                        var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
+                        updateOp.PreviousOperation = readTableOp;
 
-                            part.Operations.Add(readTableOp);
-                            part.Operations.Add(updateOp);
-                        }
+                        part.AddOperation(readTableOp);
+                        part.AddOperation(updateOp);
                     }
                 }
 
@@ -292,7 +363,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             insertRow.Values.Add(insertValue);
 
                             ito.Rows.Add(insertRow);
-                            part.Operations.Add(ito);
+                            part.AddOperation(ito);
                         }
                     }
                 }
@@ -321,41 +392,37 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     // and ensure that SELECT part has a Layout with the above schema
 
                     // need a new set policy operator in the plan
-                    if (!plan.Parts.Any(part => part is SelectQueryPlanPart))
+                    if (!plan.HasPart(PlanPartType.Select))
                     {
-                        plan.Parts.Add(new SelectQueryPlanPart());
+                        plan.AddPart(new SelectQueryPlanPart());
                     }
 
-                    foreach (var part in plan.Parts)
+                    var part = plan.GetPart(PlanPartType.Select);
+                    if (part is SelectQueryPlanPart)
                     {
-                        if (part is SelectQueryPlanPart)
-                        {
-                            var selectPart = part as SelectQueryPlanPart;
-                            var layout = new ResultsetLayout();
-                            ResultsetSourceTable sourceTable = new ResultsetSourceTable();
+                        var selectPart = part as SelectQueryPlanPart;
+                        var layout = new ResultsetLayout();
+                        ResultsetSourceTable sourceTable = new ResultsetSourceTable();
 
-                            Table userTable = database.GetTable(UserTable.TABLE_NAME, Constants.SYS_SCHEMA);
+                        Table userTable = database.GetTable(UserTable.TABLE_NAME, Constants.SYS_SCHEMA);
 
-                            sourceTable.Table = userTable.Address;
+                        sourceTable.Table = userTable.Address;
 
-                            // return the LogicalStoragePolicy column
-                            sourceTable.ColumnId = UserTable.GetColumns().
-                                Where(c => c.Name == UserTable.Columns.LogicalStoragePolicy).FirstOrDefault().Id;
+                        // return the LogicalStoragePolicy column
+                        sourceTable.ColumnId = UserTable.GetColumn(UserTable.Columns.LogicalStoragePolicy).Id;
+                        sourceTable.Order = 1;
 
-                            sourceTable.Order = 1;
+                        layout.AddSource(sourceTable);
+                        selectPart.Layout = layout;
+                        var columns = new string[] { UserTable.Columns.LogicalStoragePolicy };
 
-                            layout.Columns.Add(sourceTable);
-                            selectPart.Layout = layout;
-                            var columns = new string[] { UserTable.Columns.LogicalStoragePolicy };
+                        // filter by the table name
+                        var value = RowValueMaker.Create(userTable, UserTable.Columns.TableName, tableName, true);
+                        var trv = new TableRowValue(value, userTable.Address.TableId, userTable.Address.DatabaseId, userTable.Address.SchemaId);
+                        TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
 
-                            // filter by the table name
-                            var value = RowValueMaker.Create(userTable, UserTable.Columns.TableName, tableName, true);
-                            var trv = new TableRowValue(value, userTable.Address.TableId, userTable.Address.DatabaseId, userTable.Address.SchemaId);
-                            TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
-
-                            TableReadOperator readTable = new TableReadOperator(dbManager, sourceTable.Table, columns, filter, _log);
-                            selectPart.Operations.Add(readTable);
-                        }
+                        TableReadOperator readTable = new TableReadOperator(dbManager, sourceTable.Table, columns, filter, _log);
+                        selectPart.AddOperation(readTable);
                     }
                 }
             }
@@ -390,44 +457,42 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         StoragePolicies.Any(p => string.Equals(p, policy, StringComparison.OrdinalIgnoreCase)))
                     {
                         // need a new set policy operator in the plan
-                        if (!plan.Parts.Any(part => part is LogicalStoragePolicyPlanPart))
+                        if (!plan.HasPart(PlanPartType.LogicalStoragePolicy))
                         {
-                            plan.Parts.Add(new LogicalStoragePolicyPlanPart());
+                            plan.AddPart(new LogicalStoragePolicyPlanPart());
                         }
 
-                        foreach (var part in plan.Parts)
+                        var part = plan.GetPart(PlanPartType.LogicalStoragePolicy);
+                        if (part is LogicalStoragePolicyPlanPart)
                         {
-                            if (part is LogicalStoragePolicyPlanPart)
+                            var item = part as LogicalStoragePolicyPlanPart;
+
+                            var table = database.GetTable(tableName);
+                            LogicalStoragePolicy enumPolicy = LogicalStoragePolicy.None;
+
+                            switch (policy)
                             {
-                                var item = part as LogicalStoragePolicyPlanPart;
-
-                                var table = database.GetTable(tableName);
-                                LogicalStoragePolicy enumPolicy = LogicalStoragePolicy.None;
-
-                                switch (policy)
-                                {
-                                    case DrummerKeywords.LogicalStoragePolicyKeywords.HOST_ONLY:
-                                        enumPolicy = LogicalStoragePolicy.HostOnly;
-                                        break;
-                                    case DrummerKeywords.LogicalStoragePolicyKeywords.MIRROR:
-                                        enumPolicy = LogicalStoragePolicy.Mirror;
-                                        break;
-                                    case DrummerKeywords.LogicalStoragePolicyKeywords.PARTICIPANT_OWNED:
-                                        enumPolicy = LogicalStoragePolicy.ParticipantOwned;
-                                        break;
-                                    case DrummerKeywords.LogicalStoragePolicyKeywords.SHARED:
-                                        enumPolicy = LogicalStoragePolicy.Shared;
-                                        break;
-                                    case DrummerKeywords.LogicalStoragePolicyKeywords.NONE:
-                                        enumPolicy = LogicalStoragePolicy.None;
-                                        break;
-                                    default:
-                                        throw new InvalidOperationException("Unknown storage policy");
-                                }
-
-                                var op = new LogicalStoragePolicyOperator(database, table, enumPolicy, database.Name);
-                                item.Operations.Add(op);
+                                case DrummerKeywords.LogicalStoragePolicyKeywords.HOST_ONLY:
+                                    enumPolicy = LogicalStoragePolicy.HostOnly;
+                                    break;
+                                case DrummerKeywords.LogicalStoragePolicyKeywords.MIRROR:
+                                    enumPolicy = LogicalStoragePolicy.Mirror;
+                                    break;
+                                case DrummerKeywords.LogicalStoragePolicyKeywords.PARTICIPANT_OWNED:
+                                    enumPolicy = LogicalStoragePolicy.ParticipantOwned;
+                                    break;
+                                case DrummerKeywords.LogicalStoragePolicyKeywords.SHARED:
+                                    enumPolicy = LogicalStoragePolicy.Shared;
+                                    break;
+                                case DrummerKeywords.LogicalStoragePolicyKeywords.NONE:
+                                    enumPolicy = LogicalStoragePolicy.None;
+                                    break;
+                                default:
+                                    throw new InvalidOperationException("Unknown storage policy");
                             }
+
+                            var op = new LogicalStoragePolicyOperator(database, table, enumPolicy, database.Name);
+                            item.AddOperation(op);
                         }
                     }
                     else
@@ -441,6 +506,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 }
             }
         }
+
         #endregion
     }
 }
