@@ -7,7 +7,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
 {
     internal class MockRemoteDataManager : IRemoteDataManager
     {
-        public IRow GetRowFromParticipant(IParticipant participant, SQLAddress address)
+        public IRow GetRowFromParticipant(Participant participant, SQLAddress address)
         {
             throw new NotImplementedException();
         }

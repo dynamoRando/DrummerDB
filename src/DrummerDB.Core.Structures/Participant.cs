@@ -3,7 +3,7 @@ using System;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
-    internal class Participant : IParticipant
+    internal record struct Participant 
     {
         public Guid Id { get; set; }
         public string IP4Address { get; set; }

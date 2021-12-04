@@ -19,6 +19,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.Enum
         CreateTable,
         DropDb,
         DropTable,
-        ReviewLogicalStoragePolicy
+        ReviewLogicalStoragePolicy,
+        RemoteSaveContract
     }
 }

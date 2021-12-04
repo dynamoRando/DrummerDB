@@ -5,6 +5,8 @@ using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using Grpc.Net.Client;
 using System;
+using structParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
+using structContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -16,21 +18,38 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
          * in getting remote data. It will need to identify itself (so we need to pass the identity to the call)
          */
         #region Private Fields
+        private ParticipantSinkCollection _sinkCollection;
         #endregion
 
         #region Public Properties
         #endregion
 
         #region Constructors
+        public RemoteDataManager()
+        {
+            _sinkCollection = new ParticipantSinkCollection();
+        }
         #endregion
 
         #region Public Methods
+        public bool SaveContractAtParticipant(structParticipant participant, structContract contract)
+        {
+            ParticipantSink sink;
+            sink = GetOrAddSink(participant);
+
+            // need to build a gRPC contract object to send over the wire
+
+            var result = sink.Client.SaveContract(null);
+
+            throw new NotImplementedException();
+        }
+
         // should probably include username/pw or token as a method of auth'd the request
-        public IRow GetRowFromParticipant(IParticipant participant, SQLAddress address)
+        public IRow GetRowFromParticipant(structParticipant participant, SQLAddress address)
         {
             throw new NotImplementedException();
 
-            string url = $"https://{participant.Url}:{participant.PortNumber.ToString()}";
+            string url = $"https://{participant.IP4Address}:{participant.PortNumber.ToString()}";
 
             var channel = GrpcChannel.ForAddress(url);
             var client = new DatabaseService.DatabaseServiceClient(channel);
@@ -73,6 +92,44 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Tries to get the sink for the specified participant from the current collection. If it does
+        /// not exist, it will create it and then add it to the collection and return it.
+        /// </summary>
+        /// <param name="participant">The participant to find the sink for</param>
+        /// <returns>A sink from the sink collection</returns>
+        private ParticipantSink GetOrAddSink(structParticipant participant)
+        {
+            ParticipantSink sink;
+
+            if (_sinkCollection.Contains(participant))
+            {
+                sink = _sinkCollection.GetSink(participant);
+            }
+            else
+            {
+                sink = new ParticipantSink();
+                sink.Participant = participant;
+
+                string url = string.Empty;
+
+                if (participant.UseHttps)
+                {
+                    url = $"https://{participant.IP4Address}:{participant.PortNumber.ToString()}";
+                }
+                else
+                {
+                    url = $"http://{participant.IP4Address}:{participant.PortNumber.ToString()}";
+                }
+
+                sink.Channel = GrpcChannel.ForAddress(url);
+                sink.Client = new DatabaseService.DatabaseServiceClient(sink.Channel);
+
+                _sinkCollection.Add(sink);
+            }
+
+            return sink;
+        }
         #endregion
 
     }

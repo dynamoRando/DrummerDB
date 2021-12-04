@@ -189,7 +189,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     insertOp.Rows.Add(insertRow);
 
                     part.AddOperation(insertOp);
-
                 }
             }
         }
@@ -209,6 +208,29 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //should generate a network communication item via databases => remote database
             if (line.StartsWith(DrummerKeywords.REQUEST_PARTICIPANT))
             {
+                var trimmedLine = line.Trim();
+
+                //ParticipantAlias SAVE CONTRACT;
+                string participantAliasCommand = trimmedLine.Replace(DrummerKeywords.REQUEST_PARTICIPANT + " ", string.Empty);
+
+                if (participantAliasCommand.Contains(DrummerKeywords.SAVE_CONTRACT))
+                {
+                    string participantAlias = participantAliasCommand.Replace(DrummerKeywords.SAVE_CONTRACT, string.Empty).Trim();
+                    if (database.HasParticipantAlias(participantAlias))
+                    {
+                        var participant = database.GetParticipant(participantAlias);
+                        // generate a query plan to request the participant to save the latest contract
+                        if (!plan.HasPart(PlanPartType.RemoteSaveContract))
+                        {
+                            plan.AddPart(new RemoteSaveContractPlanPart());
+
+                            var part = plan.GetPart(PlanPartType.RemoteSaveContract);
+
+                            var op = new RemoteSaveContractOperator(database, participant);
+                        }
+                    }
+                }
+
                 throw new NotImplementedException();
             }
         }

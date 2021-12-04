@@ -56,7 +56,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <summary>
         /// The participants of the database
         /// </summary>
-        internal IParticipant[] Participants { get; set; }
+        internal Participant[] Participants { get; set; }
 
         /// <summary>
         /// The database contract

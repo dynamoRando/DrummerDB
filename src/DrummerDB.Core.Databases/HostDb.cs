@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -47,6 +48,43 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
             var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
             return participants.HasValue(searchItem);
+        }
+
+        public Participant GetParticipant(string aliasName)
+        {
+            Participant result = new();
+            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
+            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
+            int resultCount = participants.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple participants with the same alias {aliasName}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no participants with the alias {aliasName}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = participants.GetRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+                    result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
+                    result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
+                    result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
+                    result.Alias = row.GetValueInString(Participants.Columns.Alias);
+
+                    result.Url = string.Empty;
+                    result.UseHttps = false;
+                }
+            }
+
+            return result;
+
         }
 
         public bool IsReadyForCooperation()
