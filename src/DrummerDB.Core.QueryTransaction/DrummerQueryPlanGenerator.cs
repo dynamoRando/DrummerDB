@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using System.Net;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -135,22 +136,28 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 {
                     var insert = part as InsertQueryPlanPart;
 
+                    IPAddress parsedAddress;
+                    IPAddress.TryParse(ipAddress, out parsedAddress);
+
+                    string stringIP6 = parsedAddress.MapToIPv6().ToString();
+                    string stringIP4 = parsedAddress.MapToIPv4().ToString();
+
                     var insertOp = new InsertTableOperator(dbManager);
                     insertOp.TableName = Participants.TABLE_NAME;
                     insertOp.DatabaseName = database.Name;
                     insertOp.TableSchemaName = Constants.SYS_SCHEMA;
 
                     // get columns to insert values into
-                    var colParticipantGuid = DatabaseContracts.GetColumn(Participants.Columns.ParticpantGUID);
-                    var colAlias = DatabaseContracts.GetColumn(Participants.Columns.Alias);
-                    var colIp4 = DatabaseContracts.GetColumn(Participants.Columns.IP4Address);
-                    var colIp6 = DatabaseContracts.GetColumn(Participants.Columns.IP6Address);
-                    var colPortNumber = DatabaseContracts.GetColumn(Participants.Columns.PortNumber);
-                    var colLastCom = DatabaseContracts.GetColumn(Participants.Columns.LastCommunicationUTC);
-                    var colAcceptedContract = DatabaseContracts.GetColumn(Participants.Columns.HasAcceptedContract);
-                    var colContractVersion = DatabaseContracts.GetColumn(Participants.Columns.AcceptedContractVersion);
-                    var colContractVersionDate = DatabaseContracts.GetColumn(Participants.Columns.AcceptedContractDateTimeUTC);
-                    var colToken = DatabaseContracts.GetColumn(Participants.Columns.Token);
+                    var colParticipantGuid = Participants.GetColumn(Participants.Columns.ParticpantGUID);
+                    var colAlias = Participants.GetColumn(Participants.Columns.Alias);
+                    var colIp4 = Participants.GetColumn(Participants.Columns.IP4Address);
+                    var colIp6 = Participants.GetColumn(Participants.Columns.IP6Address);
+                    var colPortNumber = Participants.GetColumn(Participants.Columns.PortNumber);
+                    var colLastCom = Participants.GetColumn(Participants.Columns.LastCommunicationUTC);
+                    var colAcceptedContract = Participants.GetColumn(Participants.Columns.HasAcceptedContract);
+                    var colContractVersion = Participants.GetColumn(Participants.Columns.AcceptedContractVersion);
+                    var colContractVersionDate = Participants.GetColumn(Participants.Columns.AcceptedContractDateTimeUTC);
+                    var colToken = Participants.GetColumn(Participants.Columns.Token);
 
                     var participantId = Guid.NewGuid();
 
@@ -159,8 +166,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     var valueParticipantId = new InsertValue(1, colParticipantGuid.Name, participantId.ToString());
                     var valueAlias = new InsertValue(2, colAlias.Name, participantAlias);
-                    var valueIp4 = new InsertValue(3, colIp4.Name, ipAddress);
-                    var valueIp6 = new InsertValue(4, colIp6.Name);
+                    var valueIp4 = new InsertValue(3, colIp4.Name, stringIP4);
+                    var valueIp6 = new InsertValue(4, colIp6.Name, stringIP6);
                     var valuePortNumber = new InsertValue(5, colPortNumber.Name, portNumber);
                     var valueLastCom = new InsertValue(6, colLastCom.Name);
                     var valueAcceptedContract = new InsertValue(7, colAcceptedContract.Name, "false");

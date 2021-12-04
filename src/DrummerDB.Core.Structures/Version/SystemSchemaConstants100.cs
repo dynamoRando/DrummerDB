@@ -543,6 +543,16 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     return _columns;
                 }
 
+                public static ColumnSchema GetColumn(string columName)
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns.Get(columName);
+                }
+
                 private static void GenerateColumns()
                 {
                     if (_columns is null)
