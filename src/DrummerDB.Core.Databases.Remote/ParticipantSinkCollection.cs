@@ -14,7 +14,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #region Public Properties
         public int Count => _ParticipantSinks.Count;
         public bool IsReadOnly => false;
-        public List<ParticipantSink> List =>  _ParticipantSinks;
+        public List<ParticipantSink> List => _ParticipantSinks;
         #endregion
 
         #region Constructors
@@ -32,7 +32,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #region Public Methods
         public ParticipantSink GetSink(string alias)
         {
-            foreach(var ParticipantSink in _ParticipantSinks)
+            foreach (var ParticipantSink in _ParticipantSinks)
             {
                 if (string.Equals(ParticipantSink.Participant.Alias, alias, StringComparison.OrdinalIgnoreCase))
                 {
@@ -71,7 +71,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
         public bool Contains(structParticipant participant)
         {
-            foreach(var p in _ParticipantSinks)
+            foreach (var p in _ParticipantSinks)
             {
                 if (string.Equals(participant.Alias, p.Participant.Alias, StringComparison.OrdinalIgnoreCase))
                 {
