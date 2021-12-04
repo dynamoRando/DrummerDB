@@ -40,7 +40,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             bool rowsAdded = true;
 
-            var db = _db.GetUserDatabase(DatabaseName);
+            var db = _db.GetDatabase(DatabaseName);
+
 
             if (string.IsNullOrEmpty(TableSchemaName))
             {

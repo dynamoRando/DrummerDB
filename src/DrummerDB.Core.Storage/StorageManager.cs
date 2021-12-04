@@ -454,7 +454,15 @@ namespace Drummersoft.DrummerDB.Core.Storage
             }
             else
             {
-                throw new InvalidOperationException();
+                var systemFile = _systemDbFiles.Get(databaseId);
+                if (systemFile is not null)
+                {
+                    systemFile.LogCloseOpenTransactionToDisk(transaction);
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
             }
         }
 

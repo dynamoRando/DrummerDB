@@ -30,7 +30,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private ICryptoManager _crypt;
         private IStorageManager _storage;
         private ITransactionEntryManager _xEntryManager;
-        private List<Table> _systemTables;
+        private TableCollection _systemTables;
 
         // internal objects
         DatabaseMetadata _metadata;
@@ -43,6 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private Table _databaseSchemas;
         private Table _databaseSchemaPermissions;
         private Table _databaseTableDatabases;
+        private Table _authorGuid;
         private LogService _log;
         #endregion
 
@@ -61,7 +62,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _dbId = dbId;
             _xEntryManager = xEntryManager;
 
-            _systemTables = new List<Table>();
+            _systemTables = new TableCollection();
 
             SetupTables();
         }
@@ -77,7 +78,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _storage = metadata.StorageManager;
             _xEntryManager = metadata.TransactionEntryManager;
 
-            _systemTables = new List<Table>();
+            _systemTables = new TableCollection();
 
             SetupTables();
         }
@@ -103,29 +104,39 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 string schema = values[0];
                 string name = values[1];
 
-                return _systemTables.Any(table =>
-                string.Equals(table.Name, name, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(table.Schema().Schema.SchemaName, schema, StringComparison.OrdinalIgnoreCase)
-                );
-
+                return _systemTables.Contains(name, schema);
             }
             else
             {
-                return _systemTables.Any(table => string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase));
+                return _systemTables.Contains(tableName);
             }
         }
 
         public bool HasTable(string tableName, string schemaName)
         {
-            return _systemTables.Any(table =>
-              string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase) &&
-              string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase)
-              );
+            return _systemTables.Contains(tableName, schemaName);
         }
 
         public Table GetTable(int tableId)
         {
-            return _systemTables.Where(table => table.Address.TableId == tableId).FirstOrDefault();
+            return _systemTables.Get(tableId);
+        }
+
+        public Table GetTable(string tableName, string schemaName)
+        {
+            if (tableName.Contains('.'))
+            {
+                var values = tableName.Split('.');
+                string schema = values[0];
+                string name = values[1];
+
+                return _systemTables.Get(name, schema);
+
+            }
+            else
+            {
+                return _systemTables.Get(tableName, schemaName);
+            }
         }
 
         public Table GetTable(string tableName)
@@ -136,15 +147,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 string schema = values[0];
                 string name = values[1];
 
-                return _systemTables.Where(table =>
-                string.Equals(table.Name, name, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(table.Schema().Schema.SchemaName, schema, StringComparison.OrdinalIgnoreCase)).FirstOrDefault()
-               ;
+                return _systemTables.Get(name, schema);
 
             }
             else
             {
-                return _systemTables.Where(table => string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                return _systemTables.Get(tableName);
             }
         }
 
@@ -373,6 +381,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             AddDefaultRolesAndPermissionsToTable();
             SetupSchemas();
             SetupDatabaseTable();
+            SetupAuthorGuid();
+        }
+
+        private void SetupAuthorGuid()
+        {
+            _authorGuid = new Table(AuthorGuid.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_authorGuid);
         }
 
         private void SetupDatabaseTable()

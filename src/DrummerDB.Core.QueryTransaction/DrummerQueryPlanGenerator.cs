@@ -72,10 +72,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //REVIEW ACCEPTED CONTRACTS;
             if (line.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
             {
-
+                throw new NotImplementedException();
             }
-
-            throw new NotImplementedException();
         }
 
         private void EvaluteForRejectContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -83,9 +81,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //REJECT CONTRACT BY AuthorName;
             if (line.StartsWith(DrummerKeywords.REJECT_CONTRACT_BY))
             {
-
+                throw new NotImplementedException();
             }
-            throw new NotImplementedException();
         }
 
         private void EvaluteForAcceptContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -93,9 +90,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //ACCEPT CONTRACT BY AuthorName;
             if (line.StartsWith(DrummerKeywords.ACCEPT_CONTRACT_BY))
             {
-
+                throw new NotImplementedException();
             }
-            throw new NotImplementedException();
         }
 
         private void EvaluteForReviewPendingContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -103,9 +99,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //REVIEW PENDING CONTRACTS;
             if (line.StartsWith(DrummerKeywords.REVIEW_PENDING_CONTRACTS))
             {
-
+                throw new NotImplementedException();
             }
-            throw new NotImplementedException();
         }
 
         private void EvaluateForAddParticipant(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -113,9 +108,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //ADD PARTICIPANT ParticipantAlias AT 127.0.0.1:5000;
             if (line.StartsWith(DrummerKeywords.ADD_PARTICIPANT))
             {
-
+                throw new NotImplementedException();
             }
-            throw new NotImplementedException();
         }
 
         private void EvaluateForRequestHost(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -123,9 +117,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {company.Alias};
             if (line.StartsWith(DrummerKeywords.REQUEST_HOST))
             {
-
+                throw new NotImplementedException();
             }
-            throw new NotImplementedException();
         }
 
         private void EvaluateForRequestParticipant(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -134,9 +127,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //should generate a network communication item via databases => remote database
             if (line.StartsWith(DrummerKeywords.REQUEST_PARTICIPANT))
             {
-
-            }
-            throw new NotImplementedException();
+                throw new NotImplementedException();
+            }   
         }
 
         private void EvaluateForGenerateContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -271,7 +263,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                 // need to generate an INSERT value here if there is not a record already in the system table
                 var sysDb = dbManager.GetSystemDatabase();
-                var guidTable = sysDb.GetTable(AuthorGuid.TABLE_NAME);
+                var guidTable = sysDb.GetTable(AuthorGuid.TABLE_NAME, Constants.SYS_SCHEMA);
                 if (guidTable.RowCount() == 0)
                 {
                     // need to geneate an author guid and insert operation

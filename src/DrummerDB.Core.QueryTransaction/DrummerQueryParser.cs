@@ -134,10 +134,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REJECT_CONTRACT_BY))
                 {
-
+                    throw new NotImplementedException();
                 }
             }
-            throw new NotImplementedException();
+
+            errorMessage = string.Empty;
+            return true;
         }
 
         private bool HasRejectContractByKeyword(string statement)
@@ -149,10 +151,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REJECT_CONTRACT_BY))
                 {
+                    throw new NotImplementedException();
 
                 }
             }
-            throw new NotImplementedException();
+
+            return false;
         }
 
         private bool ParseForReviewAcceptedContract(string statement, out string errorMessage)
@@ -164,10 +168,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
                 {
-
+                    throw new NotImplementedException();
                 }
             }
-            throw new NotImplementedException();
+
+            errorMessage = string.Empty;
+            return true;
         }
 
         private bool HasReviewAcceptedContractKeyword(string statement)
@@ -179,11 +185,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
                 {
-
+                    throw new NotImplementedException();
                 }
             }
 
-            throw new NotImplementedException();
+            return false;
         }
 
         private bool HasRequestHostKeyword(string statement)
@@ -195,10 +201,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_HOST))
                 {
-
+                    throw new NotImplementedException();
                 }
             }
-            throw new NotImplementedException();
+
+            return false;
         }
 
         private bool ParseForRequestHost(string statement, out string errorMessage)
@@ -211,11 +218,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_HOST))
                 {
-
+                    throw new NotImplementedException();
                 }
             }
 
-            throw new NotImplementedException();
+            errorMessage = string.Empty;
+            return true;
         }
 
         private bool ParseForAcceptContract(string statement, out string errorMessage)
@@ -235,10 +243,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var systemDb = _dbManager.GetSystemDatabase();
                     // we need a table in the system database of pending contracts
                     // not just contracts that we have saved to disk as pending
+
+                    throw new NotImplementedException();
                 }
             }
 
-            throw new NotImplementedException();
+            errorMessage = string.Empty;
+            return true;
         }
 
         private bool HasAcceptContractKeyword(string statement)
