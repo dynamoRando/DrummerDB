@@ -4,6 +4,8 @@ using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
+using Drummersoft.DrummerDB.Core.Databases.Remote;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +21,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
     {
         #region Private Fields
         private BaseUserDatabase _baseDb;
+        private RemoteDataManager _remote;
         #endregion
 
         #region Public Properties
@@ -33,21 +36,90 @@ namespace Drummersoft.DrummerDB.Core.Databases
         internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager) : base(metadata)
         {
             _baseDb = new BaseUserDatabase(metadata, xEntryManager);
+            _remote = new RemoteDataManager();
         }
 
         internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
         {
             _baseDb = new BaseUserDatabase(metadata, xEntryManager, log);
+            _remote = new RemoteDataManager();
         }
 
         #endregion
 
         #region Public Methods
-        public Contract GetCurrentContract()
+        public bool SendContractToParticipant(string aliasName, Guid contractGUID)
+        {
+            var participant = GetParticipant(aliasName);
+            Guid currentId = GetCurrentContractGUID();
+            var contract = GetContract(currentId);
+
+            return _remote.SaveContractAtParticipant(participant, contract);
+        }
+
+        public Guid GetCurrentContractGUID()
         {
             // need to find the max contract in the sys.DatabaseContracts table
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+            DateTime maxDate = DateTime.MinValue;
 
-            throw new NotImplementedException();
+            var rows = contracts.GetRows();
+            foreach (var row in rows)
+            {
+                var data = contracts.GetRow(row);
+                var stringDate = data.GetValueInString(Tables.DatabaseContracts.Columns.GeneratedDate);
+
+                var date = DateTime.Parse(stringDate);
+                if (date > maxDate)
+                {
+                    maxDate = date;
+                }
+            }
+
+            var maxDateValue = RowValueMaker.Create(contracts, DatabaseContracts.Columns.GeneratedDate, maxDate.ToString());
+            var maxContractRow = contracts.GetRowsWithValue(maxDateValue);
+
+            if (maxContractRow.Count != 1)
+            {
+                throw new InvalidOperationException("Max contract not found");
+            }
+
+            string stringContractGuid = maxContractRow.First().GetValueInString(DatabaseContracts.Columns.ContractGUID);
+
+            return Guid.Parse(stringContractGuid);
+        }
+
+        public Contract GetContract(Guid contractGUID)
+        {
+            string guid = contractGUID.ToString();
+
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+
+            var contractValue = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, guid);
+            var rows = contracts.GetRowsWithValue(contractValue);
+
+            if (rows.Count != 1)
+            {
+                throw new InvalidOperationException("Contract not found");
+            }
+
+            var contractData = rows.First();
+
+            var contract = new Contract();
+            contract.ContractGUID = Guid.Parse(contractData.GetValueInString(DatabaseContracts.Columns.ContractGUID));
+            contract.AuthorName = contractData.GetValueInString(DatabaseContracts.Columns.Author);
+            contract.Description = contractData.GetValueInString(DatabaseContracts.Columns.Description);
+            contract.GeneratedDate = DateTime.Parse(contractData.GetValueInString(DatabaseContracts.Columns.GeneratedDate));
+            contract.Token = contractData.GetValueInByte(DatabaseContracts.Columns.Token);
+
+            // now we need to send the entire database schema over as part of the contract
+            // note: we exclude the sys schema since it is reserved and should not participate in logical storage policies
+            // also, we should neevr allow the user to create tables in the sys schema to "hide" data
+            contract.DatabaseName = Name;
+            contract.DatabaseId = Id;
+            contract.Tables = _baseDb.MetaData.GetCopyOfUserTables();
+
+            return contract;
         }
 
         public bool HasParticipantAlias(string aliasName)
@@ -91,7 +163,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             return result;
-
         }
 
         public bool IsReadyForCooperation()

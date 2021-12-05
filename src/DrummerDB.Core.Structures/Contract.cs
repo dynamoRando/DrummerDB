@@ -5,14 +5,18 @@ using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
-    // this is scaffolding, this may be deleted
+    // note: contracts are issued per database
+    // a host may issue multiple contracts to the same participant if it's for a different database
+    // this may mean we need to refactor how this object works
     internal record struct Contract
     {
         // The GUID of the contract, found in all the schema tables
-        // in the HostDb metadata
+        // in the HostDb metadata. this is unique to the contract but does not change between schema changes
         public Guid ContractGUID { get; set; }
         // the date the contract was generated
         public DateTime GeneratedDate { get; set; }
+        // a unique identifer for the author (host) of the contract
+        public Guid AuthorGUID { get; set; }
         // The name of the database host, usually the corporation
         // or author of the database.
         public string AuthorName { get; set; }
@@ -31,7 +35,9 @@ namespace Drummersoft.DrummerDB.Core.Structures
         // the StoragePolicy property needs to be populated for each
         // table
         public List<ITableSchema> Tables { get; set; }
-        // the version of the contract
+        // the version of the contract. this value changes if the schema changes in the database
+        // and a new contract needs to be issued to participants. in that case, the contractGUID is the same,
+        // but the version changes
         public Guid Version { get; set; }
         // the current state of the contract
         public ContractStatus Status { get; set; }

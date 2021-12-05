@@ -20,5 +20,20 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         public structParticipant Participant { get; set; }
         public GrpcChannel? Channel { get; set; }
         public DatabaseServiceClient? Client { get; set; }
+
+        public bool IsOnline()
+        {
+            var request = new TestRequest();
+            string echo = "Test";
+            request.RequestEchoMessage = echo;
+            var reply = Client.IsOnline(request);
+
+            if (string.Equals(reply.ReplyEchoMessage, echo))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

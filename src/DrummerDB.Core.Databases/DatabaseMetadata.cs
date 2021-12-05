@@ -182,6 +182,31 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public List<ITableSchema> GetCopyOfUserTables()
+        {
+            int totalUserTables = 0;
+            foreach (var table in _tables)
+            {
+                if (string.Equals(table.Schema.SchemaName, Constants.SYS_SCHEMA, StringComparison.OrdinalIgnoreCase))
+                {
+                    totalUserTables++;
+                }
+            }
+
+            var result = new List<ITableSchema>(totalUserTables);
+
+            foreach (var table in _tables)
+            {
+                if (!string.Equals(table.Schema.SchemaName, Constants.SYS_SCHEMA, StringComparison.OrdinalIgnoreCase))
+                {
+                    result.Add(table);
+                }
+            }
+
+            return result;
+        }
+
+
         public TableSchema GetTableSchema(string tableName)
         {
             foreach (var item in _tables)

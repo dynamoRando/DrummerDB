@@ -24,6 +24,8 @@
         public const string SYS_SCHEMA_GUID = "eb0610b3-f0a2-4c9e-a94b-64c8d74a939e";
         public const string DBO_SCHEMA = "dbo";
         public const string DBO_SCHEMA_GUID = "6cc4df44-95bc-4f0e-a10d-130e6c0b0acf";
+        public const string COOP_SCHEMA = "coop";
+        public const string COOP_SCHEMA_GUID = "4cd4eb47-51nc-4e0x-a17d-130g6c0b0kdx";
 
         // all system defined tables, see SystemSchemaConstants100.cs and SystemDatabaseConstants100.cs
         public static class SYS_TABLE_ID_LIST
@@ -45,6 +47,9 @@
             public const int DATABASE_CONTRACTS = 15;
             public const int HOSTS = 16;
             public const int AUTHOR_GUID = 17;
+            public const int COOPERATIVE_CONTRACTS = 18;
+            public const int COOPERATIVE_TABLES = 19;
+            public const int COOPERATIVE_TABLE_SCHEMAS = 20;
         }
 
         /// <summary>

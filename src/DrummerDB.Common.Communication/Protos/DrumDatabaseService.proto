@@ -159,10 +159,12 @@ message GetRowFromPartialDatabaseResult {
 
 // a message from a host to a participant to save a contract
 message SaveContractRequest {
+	//Drum.AuthRequest authentication = 1;
 	DrumDB.Contract contract = 1;
 }
 
 message SaveContractResult {
+	//Drum.AuthResult authenticationResult = 1;
 	bool isSaved = 1;
 }
 

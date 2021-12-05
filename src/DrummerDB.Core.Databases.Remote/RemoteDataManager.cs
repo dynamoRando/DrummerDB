@@ -37,11 +37,17 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             ParticipantSink sink;
             sink = GetOrAddSink(participant);
 
-            // need to build a gRPC contract object to send over the wire
+            if (!sink.IsOnline())
+            {
+                return false;
+            }
 
+            var request = new SaveContractRequest();
+            //request.Authentication = GenerateAuthRequest();
+            request.Contract = ContractConverter.ConvertContractForCommunication(contract);
             var result = sink.Client.SaveContract(null);
 
-            throw new NotImplementedException();
+            return result.IsSaved;
         }
 
         // should probably include username/pw or token as a method of auth'd the request
@@ -92,6 +98,12 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #endregion
 
         #region Private Methods
+        private AuthRequest GenerateAuthRequest()
+        {
+            throw new NotImplementedException();
+        }
+
+
         /// <summary>
         /// Tries to get the sink for the specified participant from the current collection. If it does
         /// not exist, it will create it and then add it to the collection and return it.

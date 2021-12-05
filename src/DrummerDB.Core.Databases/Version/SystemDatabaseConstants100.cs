@@ -294,6 +294,73 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     }
                 }
             }
+
+            // note: should we create a new schema for this? debating on putting these tables in a 
+            // cooperative or "coop" schema
+            internal static class CooperativeContracts
+            {
+                private static ColumnSchemaCollection _columns;
+
+                public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.COOPERATIVE_CONTRACTS;
+                public const string TABLE_NAME = "CONTRACTS";
+
+                public static TableSchema Schema(Guid dbId, string dbName)
+                {
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.COOP_SCHEMA, Guid.Parse(Constants.COOP_SCHEMA_GUID)));
+                    schema.DatabaseName = dbName;
+                    return schema;
+                }
+
+                public static class Columns
+                {
+                    public const string HostName = "HostName";
+                    public const string ContractGUID = "ContractGUID";
+                    public const string DatabaseName = "DatabaseName";
+                    public const string DatabaseId = "DatabaseId";
+                    public const string Description = "Description";
+                    public const string ContractVersion = "ContractVersion";
+
+                    // we need supporting tables to handle the table schema
+                    // we will need to flatten the table structure for a list of table names
+                    // and then the columns for each table
+                }
+
+                public static ColumnSchemaCollection GetColumns()
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns;
+                }
+
+                private static void GenerateColumns()
+                {
+                    if (_columns is null)
+                    {
+                        _columns = new ColumnSchemaCollection(6);
+
+                        var hostName = new ColumnSchema(Columns.HostName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
+                        _columns.Add(hostName);
+
+                        var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 2);
+                        _columns.Add(contractGuid);
+
+                        var dbName = new ColumnSchema(Columns.DatabaseName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 3);
+                        _columns.Add(dbName);
+
+                        var dbId = new ColumnSchema(Columns.DatabaseId, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 4);
+                        _columns.Add(dbId);
+
+                        var description = new ColumnSchema(Columns.Description, new SQLVarChar(2000), 5);
+                        _columns.Add(description);
+
+                        var version = new ColumnSchema(Columns.ContractVersion, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 6);
+                        _columns.Add(version);
+                    }
+                }
+            }
         }
 
         internal static class SystemLoginConstants
