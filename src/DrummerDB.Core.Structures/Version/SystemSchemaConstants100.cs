@@ -714,6 +714,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             }
 
             // a table holding a single value - our GUID as a contract author
+            // this value is also in
+            // Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.Hosts
             public static class AuthorGuid
             {
                 private static ColumnSchemaCollection _columns;

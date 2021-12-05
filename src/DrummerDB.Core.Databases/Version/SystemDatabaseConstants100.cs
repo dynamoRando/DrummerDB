@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Core.Structures.Interface;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;
 using System.Collections.Generic;
+using Drummersoft.DrummerDB.Core.Structures.Version;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Version
 {
@@ -232,8 +233,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 }
             }
 
-            // contains all the hosts we're cooperating with (co-ops)
-            // in other words, we have a partial database with all these hosts
+            // begin Cooperative schema objects
+
+            /// <summary>
+            /// Holds all the hosts that we're cooperating with
+            /// </summary>
             internal static class Hosts
             {
                 private static ColumnSchemaCollection _columns;
@@ -243,19 +247,47 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.COOP_SCHEMA, Guid.Parse(Constants.COOP_SCHEMA_GUID)));
                     schema.DatabaseName = dbName;
                     return schema;
                 }
 
                 public static class Columns
                 {
+                    /// <summary>
+                    /// Also known as AuthorName in a contract
+                    /// </summary>
                     public const string HostName = "HostName";
+
+                    /// <summary>
+                    /// Unique binary identifer for the host for authorization purpose
+                    /// </summary>
                     public const string Token = "Token";
+
+                    /// <summary>
+                    /// The IP address for the host in v4 format
+                    /// </summary>
                     public const string IP4Address = "IP4Address";
+
+                    /// <summary>
+                    /// The IP address for the host in v6 format
+                    /// </summary>
                     public const string IP6Address = "IP6Address";
+
+                    /// <summary>
+                    /// The database port number
+                    /// </summary>
                     public const string PortNumber = "PortNumber";
+
+                    /// <summary>
+                    /// The last time any communication occured with the host
+                    /// </summary>
                     public const string LastCommunicationUTC = "LastCommunicationUTC";
+
+                    /// <summary>
+                    /// Represents the value from <see cref="SystemSchemaConstants100.Tables.AuthorGuid"/>
+                    /// </summary>
+                    public const string HostGUID = "HostGUID";
                 }
 
                 public static ColumnSchemaCollection GetColumns()
@@ -291,12 +323,18 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
 
                         var lastComm = new ColumnSchema(Columns.LastCommunicationUTC, new SQLDateTime(), 6, true);
                         _columns.Add(lastComm);
+
+                        var hostGUID = new ColumnSchema(Columns.HostGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 7);
+                        _columns.Add(hostGUID);
                     }
                 }
             }
 
-            // note: should we create a new schema for this? debating on putting these tables in a 
-            // cooperative or "coop" schema
+      
+            
+            /// <summary>
+            /// Host schema information for objects that are participating with a remote host
+            /// </summary>
             internal static class CooperativeContracts
             {
                 private static ColumnSchemaCollection _columns;
@@ -313,12 +351,13 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
 
                 public static class Columns
                 {
-                    public const string HostName = "HostName";
+                    public const string HostGuid = "HostGUID";
                     public const string ContractGUID = "ContractGUID";
                     public const string DatabaseName = "DatabaseName";
                     public const string DatabaseId = "DatabaseId";
                     public const string Description = "Description";
-                    public const string ContractVersion = "ContractVersion";
+                    public const string Version = "Version";
+                    public const string GeneratedDate = "GeneratedDate";
 
                     // we need supporting tables to handle the table schema
                     // we will need to flatten the table structure for a list of table names
@@ -341,8 +380,8 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     {
                         _columns = new ColumnSchemaCollection(6);
 
-                        var hostName = new ColumnSchema(Columns.HostName, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 1);
-                        _columns.Add(hostName);
+                        var hostId = new ColumnSchema(Columns.HostGuid, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(hostId);
 
                         var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 2);
                         _columns.Add(contractGuid);
@@ -356,8 +395,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                         var description = new ColumnSchema(Columns.Description, new SQLVarChar(2000), 5);
                         _columns.Add(description);
 
-                        var version = new ColumnSchema(Columns.ContractVersion, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 6);
+                        var version = new ColumnSchema(Columns.Version, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 6);
                         _columns.Add(version);
+
+                        var genDate = new ColumnSchema(Columns.GeneratedDate, new SQLDateTime(), 7);
+                        _columns.Add(genDate);
                     }
                 }
             }

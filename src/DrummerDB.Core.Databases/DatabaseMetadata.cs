@@ -1,6 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
-using Drummersoft.DrummerDB.Core.Databases.Remote.Interface;
+using Drummersoft.DrummerDB.Core.Databases.Remote;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Interface;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
@@ -41,7 +41,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public readonly IStorageManager StorageManager;
 
         // is this ever set?
-        public readonly IRemoteDataManager RemoteDataManager;
+        public readonly RemoteDataManager RemoteDataManager;
 
         public ITransactionEntryManager TransactionEntryManager => _xEntryManager;
 
@@ -77,7 +77,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Constructors
-        public DatabaseMetadata(ISystemPage page, ICacheManager cache, ICryptoManager crypt, IDbManager dbManager, IStorageManager storage, ITransactionEntryManager xEntryManager)
+        public DatabaseMetadata(
+            ISystemPage page, 
+            ICacheManager cache, 
+            ICryptoManager crypt, 
+            IDbManager dbManager, 
+            IStorageManager storage, 
+            ITransactionEntryManager xEntryManager,
+            RemoteDataManager remote)
         {
             _xEntryManager = xEntryManager;
 
@@ -89,6 +96,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _version = page.DatabaseVersion;
             _dbName = page.DatabaseName;
             _dbId = page.DatabaseId;
+            RemoteDataManager = remote;
 
             _systemDataPages = new DbMetaSystemDataPages(cache, _dbId, _version, crypt, storage, _xEntryManager, _dbName);
             _systemPage = new DbMetaSystemPage(cache, _dbId, _version);
@@ -109,11 +117,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        public DatabaseMetadata(ICacheManager cache, Guid dbId, int version, ICryptoManager crypt, IStorageManager storage, string dbName)
+        public DatabaseMetadata(ICacheManager cache, 
+            Guid dbId, 
+            int version, 
+            ICryptoManager crypt, 
+            IStorageManager storage, 
+            string dbName,
+            RemoteDataManager remote)
         {
             CryptoManager = crypt;
             CacheManager = cache;
             StorageManager = storage;
+            RemoteDataManager = remote;
 
             _systemDataPages = new DbMetaSystemDataPages(cache, dbId, version, crypt, storage, _xEntryManager, dbName);
             _systemPage = new DbMetaSystemPage(cache, dbId, version);

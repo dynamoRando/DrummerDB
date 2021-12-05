@@ -36,13 +36,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
         internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager) : base(metadata)
         {
             _baseDb = new BaseUserDatabase(metadata, xEntryManager);
-            _remote = new RemoteDataManager();
+            _remote = metadata.RemoteDataManager;
         }
 
         internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
         {
             _baseDb = new BaseUserDatabase(metadata, xEntryManager, log);
-            _remote = new RemoteDataManager();
+            _remote = metadata.RemoteDataManager;
         }
 
         #endregion
