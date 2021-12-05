@@ -39,6 +39,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public readonly ICacheManager CacheManager;
         public readonly IDbManager DbManager;
         public readonly IStorageManager StorageManager;
+
+        // is this ever set?
         public readonly IRemoteDataManager RemoteDataManager;
 
         public ITransactionEntryManager TransactionEntryManager => _xEntryManager;

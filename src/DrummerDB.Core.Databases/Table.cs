@@ -20,7 +20,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Private Fields
         private TableSchema _schema;
         private ICacheManager _cache;
+
+        // this is never set?
         private IRemoteDataManager _remoteManager;
+
         private IStorageManager _storage;
         private ProcessUserDatabaseSettings _settings;
         private ITransactionEntryManager _xEntryManager;
