@@ -93,7 +93,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             _dbManager = manager;
 
-            manager.LoadSystemDatabases(cache, storage, crypto);
+            manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             Guid dbId;
             manager.TryCreateNewHostDatabase(userDbName, out dbId);
 
@@ -1075,7 +1075,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var dbManager = new DbManager(storage, cache, crypto, xManager);
             var auth = new AuthenticationManager(dbManager);
 
-            dbManager.LoadSystemDatabases(cache, storage, crypto);
+            dbManager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
 
             dbManager.TryCreateNewHostDatabase(userDbName, out _);
             dbManager.TryCreateNewHostDatabase("TestDb2", out _);

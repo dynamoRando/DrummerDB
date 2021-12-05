@@ -96,15 +96,14 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var manager = new DbManager(storage, cache, crypto, xManager);
             var auth = new AuthenticationManager(manager);
             
-            manager.LoadSystemDatabases(cache, storage, crypto);
+            manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
 
             // -- ACT
             var contract = new Contract();
+            contract.Host = new HostInfo();
             contract.ContractGUID = contractGuid;
             contract.GeneratedDate = contractGenDate;
-            contract.AuthorName = authorName;
-            contract.Token = contractToken;
             contract.Description = description;
             contract.DatabaseName = partialDbName;
             contract.DatabaseId = partialDbId;

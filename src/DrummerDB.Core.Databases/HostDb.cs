@@ -48,6 +48,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+
         public bool SendContractToParticipant(string aliasName, Guid contractGUID)
         {
             var participant = GetParticipant(aliasName);
@@ -106,11 +107,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var contractData = rows.First();
 
             var contract = new Contract();
+            contract.Host = _remote.HostInfo;
+
             contract.ContractGUID = Guid.Parse(contractData.GetValueInString(DatabaseContracts.Columns.ContractGUID));
-            contract.AuthorName = contractData.GetValueInString(DatabaseContracts.Columns.Author);
             contract.Description = contractData.GetValueInString(DatabaseContracts.Columns.Description);
             contract.GeneratedDate = DateTime.Parse(contractData.GetValueInString(DatabaseContracts.Columns.GeneratedDate));
-            contract.Token = contractData.GetValueInByte(DatabaseContracts.Columns.Token);
 
             // now we need to send the entire database schema over as part of the contract
             // note: we exclude the sys schema since it is reserved and should not participate in logical storage policies

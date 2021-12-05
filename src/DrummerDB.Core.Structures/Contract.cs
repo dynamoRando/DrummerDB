@@ -10,20 +10,13 @@ namespace Drummersoft.DrummerDB.Core.Structures
     // this may mean we need to refactor how this object works
     internal record struct Contract
     {
+        public HostInfo Host { get; set; }
         // The GUID of the contract, found in all the schema tables
         // in the HostDb metadata. this is unique to the contract but does not change between schema changes
         public Guid ContractGUID { get; set; }
         // the date the contract was generated
         public DateTime GeneratedDate { get; set; }
-        // a unique identifer for the author (host) of the contract
-        public Guid AuthorGUID { get; set; }
-        // The name of the database host, usually the corporation
-        // or author of the database.
-        public string AuthorName { get; set; }
-        // a hash to uniquely identify the host for authentication
-        // purposes
-        public byte[] Token { get; set; }
-        // a unique id to identify the host
+        // a description of the contract agreement
         public string Description { get; set; }
         // the name of the database, this should be the same as the 
         // actual name of the host database

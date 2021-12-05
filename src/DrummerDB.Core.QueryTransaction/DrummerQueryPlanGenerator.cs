@@ -244,40 +244,23 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private void EvaluateForGenerateContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
             // example:
-            // GENERATE CONTRACT AS AUTHOR RetailerCorporation DESCRIPTION IntroductionMessageGoesHere;
+            // GENERATE CONTRACT WITH DESCRIPTION IntroductionMessageGoesHere;
             // this data should be inserted into the sys.DatabaseContracts table in the database
             // once the contract has been generated, all the records in sys.UserTables should be updated with the new
             // contract GUID
-            string authorName = string.Empty;
+            string description = string.Empty;
             string descriptionData = string.Empty;
             Guid contractGuid = Guid.Empty;
 
-            if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+            if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_WITH_DESCRIPTION))
             {
-                if (database.IsReadyForCooperation())
+                if (database.IsReadyForCooperation() && dbManager.HasHostInfo())
                 {
                     string lineAnalysis = line;
-                    string keywords = DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR + " ";
+                    string keywords = DrummerKeywords.GENERATE_CONTRACT_WITH_DESCRIPTION + " ";
 
-                    // AuthorName DESCRIPTION IntroductionMessageGoesHere
-                    authorName = lineAnalysis.Replace(keywords, string.Empty).Trim();
-
-                    if (authorName.Contains(DrummerKeywords.DESCRIPTION))
-                    {
-                        // need to remove the description keyword and parse the description
-                        int indexOfDescriptionKeyword = authorName.IndexOf(DrummerKeywords.DESCRIPTION + " ");
-                        int lengthOfAuthorName = authorName.Length;
-                        int remainingLength = lengthOfAuthorName - indexOfDescriptionKeyword;
-
-                        // DESCRIPTION IntroductionMessageGoesHere
-                        descriptionData = authorName.Substring(indexOfDescriptionKeyword, remainingLength).Trim();
-
-                        // AuthorName
-                        authorName = authorName.Replace(descriptionData, string.Empty).Trim();
-
-                        // IntroductionMessageGoesHere
-                        descriptionData = descriptionData.Replace(DrummerKeywords.DESCRIPTION, string.Empty).Trim();
-                    }
+                    // IntroductionMessageGoesHere
+                    description = lineAnalysis.Replace(keywords, string.Empty).Trim();
 
                     // create an insert table operation for sys.DatabaseContracts
                     // and then an update table operation for sys.UserTables
@@ -298,9 +281,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                         var contractGuidColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.ContractGUID);
                         var generatedDateColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.GeneratedDate);
-                        var authorColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Author);
-                        var tokenColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Token);
                         var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
+                        var retiredColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RetiredDate);
 
                         var contractGuidStatement = new StatementColumn(contractGuidColumn.Id, contractGuidColumn.Name);
                         insertDatabaseContractsOp.Columns.Add(contractGuidStatement);
@@ -310,18 +292,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                         var insertValueContractGuid = new InsertValue(1, contractGuidColumn.Name, contractGuid.ToString());
                         var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
-                        var insertValueAuthor = new InsertValue(3, authorColumn.Name, authorName);
-
-                        var tokenString = CryptoManager.GenerateTokenString();
-                        var insertValueToken = new InsertValue(4, tokenColumn.Name, tokenString);
-
-                        var insertValueDescription = new InsertValue(5, descriptionColumn.Name, descriptionData);
+                        var insertValueDescription = new InsertValue(3, descriptionColumn.Name, descriptionData);
+                        var insertValueRetiredDate = new InsertValue(4, retiredColumn.Name);
 
                         insertRow.Values.Add(insertValueContractGuid);
                         insertRow.Values.Add(insertValueGeneratedDate);
-                        insertRow.Values.Add(insertValueAuthor);
-                        insertRow.Values.Add(insertValueToken);
                         insertRow.Values.Add(insertValueDescription);
+                        insertRow.Values.Add(insertValueRetiredDate);
 
                         insertDatabaseContractsOp.Rows.Add(insertRow);
 
@@ -367,41 +344,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                 }
 
-                // need to generate an INSERT value here if there is not a record already in the system table
-                var sysDb = dbManager.GetSystemDatabase();
-                var guidTable = sysDb.GetTable(AuthorGuid.TABLE_NAME, Constants.SYS_SCHEMA);
-                if (guidTable.RowCount() == 0)
-                {
-                    // need to geneate an author guid and insert operation
-                    if (!plan.Parts.Any(part => part is InsertQueryPlanPart))
-                    {
-                        plan.Parts.Add(new InsertQueryPlanPart());
-                    }
-
-                    foreach (var part in plan.Parts)
-                    {
-                        if (part is InsertQueryPlanPart)
-                        {
-                            var ito = new InsertTableOperator(dbManager);
-                            ito.TableName = AuthorGuid.TABLE_NAME;
-                            ito.DatabaseName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
-                            ito.TableSchemaName = Constants.SYS_SCHEMA;
-
-                            var authorGuidColumn = AuthorGuid.GetColumn(AuthorGuid.Columns.AuthorGUID);
-
-                            var contractGuidStatement = new StatementColumn(authorGuidColumn.Id, authorGuidColumn.Name);
-                            ito.Columns.Add(contractGuidStatement);
-
-                            // need to create a row to insert
-                            var insertRow = new InsertRow(1);
-                            var insertValue = new InsertValue(1, authorGuidColumn.Name, Guid.NewGuid().ToString());
-                            insertRow.Values.Add(insertValue);
-
-                            ito.Rows.Add(insertRow);
-                            part.AddOperation(ito);
-                        }
-                    }
-                }
             }
         }
 

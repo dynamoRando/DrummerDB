@@ -33,6 +33,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         // internal objects
         private UserDatabaseCollection _userDatabases;
         private SystemDatabaseCollection _systemDatabases;
+        private HostInfo _hostInfo;
 
         // settings
         private ProcessUserDatabaseSettings _settings;
@@ -84,6 +85,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public int SystemDatabaseCount() => _systemDatabases.Count();
         public string[] SystemDatabaseNames() => _systemDatabases.Names();
 
+        /// <summary>
+        /// Checks the system database to see if we have generated host information. 
+        /// This data is used to authorize ourselves to participants.
+        /// </summary>
+        /// <returns><c>TRUE</c> if there are values in the coop.HostInfo table, otherwise <c>FALSE</c></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public bool HasHostInfo()
+        {
+            var sysDb = GetSystemDatabase();
+            var hostInfo = sysDb.GetTable(SystemDatabaseConstants100.Tables.HostInfo.TABLE_NAME);
+            return hostInfo.RowCount() > 0;
+        }
+        
         public bool HasUserDatabase(Guid dbId)
         {
             return _userDatabases.Contains(dbId);
@@ -179,8 +193,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <summary>
         /// Loads database references into memory
         /// </summary>
-        internal void LoadUserDatabases(ICacheManager cache, IStorageManager storage, ICryptoManager crypt)
+        internal void LoadUserDatabases(ICacheManager cache, IStorageManager storage, ICryptoManager crypt, HostInfo hostInfo)
         {
+            _hostInfo = hostInfo;
+
             // set the managers if they have not already been set
             if (_storage is null)
             {
@@ -208,7 +224,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var meta in userDbMeta)
             {
-                var remote = new RemoteDataManager();
+                var remote = new RemoteDataManager(hostInfo);
                 var metadata = new DatabaseMetadata(_cache, meta.DatabaseId, meta.DatabaseVersion, _crypt, _storage, meta.DatabaseName, remote);
                 var hostDb = new HostDb(metadata, _xEntryManager, _log);
                 _userDatabases.Add(hostDb);
@@ -234,7 +250,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <param name="cache">A reference to cache for each system database</param>
         /// <param name="storage">A reference to storage for each system database</param>
         /// <param name="crypt">A reference to crypt for each system database</param>
-        internal void LoadSystemDatabases(ICacheManager cache, IStorageManager storage, ICryptoManager crypt)
+        internal void LoadSystemDatabases(ICacheManager cache, IStorageManager storage, ICryptoManager crypt, HostInfo hostInfo)
         {
             // set the managers if they have not already been set
             if (_storage is null)
@@ -282,7 +298,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     {
                         var systemPage = _storage.GetSystemPageForSystemDatabase(dbName);
                         _cache.AddSystemDbSystemPage(systemPage);
-                        var metaData = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager());
+                        var metaData = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(hostInfo));
                         var system = new SystemDatabase(metaData, _log);
 
                         _systemDatabases.Add(system);
@@ -587,7 +603,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager());
+            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(_hostInfo));
             var hostDb = new HostDb(metadata, _xEntryManager);
 
             if (!HasUserDatabase(hostDb.Name))
@@ -626,7 +642,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, xEntryManager, new RemoteDataManager());
+            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, xEntryManager, new RemoteDataManager(_hostInfo));
             var system = new SystemDatabase(metadata);
 
             return system;

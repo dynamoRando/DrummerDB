@@ -664,9 +664,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     public const string ContractGUID = "ContractGUID";
                     public const string GeneratedDate = "GeneratedDate";
-                    public const string Author = "Author";
-                    public const string Token = "Token";
                     public const string Description = "Description";
+                    public const string RetiredDate = "RetiredDate";
                 }
 
                 public static ColumnSchema GetColumn(string columName)
@@ -693,79 +692,23 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(5);
+                        _columns = new ColumnSchemaCollection(4);
 
-                        var participantId = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                        _columns.Add(participantId);
+                        var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(contractGuid);
 
                         var alias = new ColumnSchema(Columns.GeneratedDate, new SQLDateTime(), 2);
                         _columns.Add(alias);
 
-                        var author = new ColumnSchema(Columns.Author, new SQLVarChar(50), 3);
-                        _columns.Add(author);
-
-                        var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 4, true);
-                        _columns.Add(token);
-
-                        var description = new ColumnSchema(Columns.Description, new SQLVarChar(128), 5, true);
+                        var description = new ColumnSchema(Columns.Description, new SQLVarChar(128), 3, true);
                         _columns.Add(description);
+
+                        var retireDate = new ColumnSchema(Columns.RetiredDate, new SQLDateTime(), 4, true);
+                        _columns.Add(retireDate);
                     }
                 }
             }
 
-            // a table holding a single value - our GUID as a contract author
-            // this value is also in
-            // Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.Hosts
-            public static class AuthorGuid
-            {
-                private static ColumnSchemaCollection _columns;
-
-                public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.AUTHOR_GUID;
-                public const string TABLE_NAME = "AuthorGuid";
-
-                public static TableSchema Schema(Guid dbId, string dbName)
-                {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
-                    return schema;
-                }
-
-                public static class Columns
-                {
-                    public const string AuthorGUID = "AuthorGUID";
-                }
-
-                public static ColumnSchema GetColumn(string columName)
-                {
-                    if (_columns is null)
-                    {
-                        GenerateColumns();
-                    }
-
-                    return _columns.Get(columName);
-                }
-
-                public static ColumnSchemaCollection GetColumns()
-                {
-                    if (_columns is null)
-                    {
-                        GenerateColumns();
-                    }
-
-                    return _columns;
-                }
-
-                private static void GenerateColumns()
-                {
-                    if (_columns is null)
-                    {
-                        _columns = new ColumnSchemaCollection(1);
-
-                        var authorId = new ColumnSchema(Columns.AuthorGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                        _columns.Add(authorId);
-                    }
-                }
-            }
         }
 
         internal partial class Maps

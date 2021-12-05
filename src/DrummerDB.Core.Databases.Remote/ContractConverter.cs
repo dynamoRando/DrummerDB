@@ -17,12 +17,20 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
     internal class ContractConverter
     {
-        public static comContract ConvertContractForCommunication(structContract contract)
+        public static comContract ConvertContractForCommunication(structContract contract, HostInfo host)
         {
+            var comHost = new Host();
+            comHost.Token = ByteString.CopyFrom(host.Token);
+            comHost.HostName = host.HostName;
+            comHost.HostGUID = host.HostGUID.ToString();
+            comHost.Ip4Address = host.IP4Address;
+            comHost.Ip6Address = host.IP6Address;
+            comHost.DatabasePortNumber = Convert.ToUInt32(host.DatabasePortNumber);
+
             var comContract = new comContract();
-            comContract.AuthorName = contract.AuthorName;
+            comContract.HostInfo = comHost;
+
             comContract.ContractGUID = contract.ContractGUID.ToString();
-            comContract.Token = ByteString.CopyFrom(contract.Token);
             comContract.Description = contract.Description;
             comContract.ContractVersion = contract.Version.ToString();
             comContract.GeneratedDate = contract.GeneratedDate.ToTimestamp();

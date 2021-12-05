@@ -17,5 +17,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Interface
         public IDatabase GetDatabase(string dbName);
         public bool HasDatabase(string dbName);
         public HostDb GetHostDatabase(string dbName);
+        public bool HasHostInfo();
     }
 }

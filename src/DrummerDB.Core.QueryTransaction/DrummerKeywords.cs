@@ -6,6 +6,7 @@
         public const string DRUMMER_BEGIN = "DRUMMER BEGIN";
         public const string DRUMMER_END = "DRUMMER END";
 
+        public const string GENERATE_HOST_INFO_AS_HOSTNAME = "GENERATE HOST INFO AS HOSTNAME";
         public const string SET_LOGICAL_STORAGE = "SET LOGICAL STORAGE";
         public const string REVIEW_LOGICAL_STORAGE = "REVIEW LOGICAL STORAGE";
         public const string REVIEW_PENDING_CONTRACTS = "REVIEW PENDING CONTRACTS";
@@ -15,7 +16,7 @@
         public const string FOR = "FOR";
         public const string ADD_PARTICIPANT = "ADD PARTICIPANT";
         public const string SAVE_CONTRACT = "SAVE CONTRACT";
-        public const string GENERATE_CONTRACT_AS_AUTHOR = "GENERATE CONTRACT AS AUTHOR";
+        public const string GENERATE_CONTRACT_WITH_DESCRIPTION = "GENERATE CONTRACT WITH DESCRIPTION";
         public const string DESCRIPTION = "DESCRIPTION";
         public const string AT = "AT";
 

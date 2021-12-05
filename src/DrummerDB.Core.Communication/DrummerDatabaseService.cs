@@ -111,11 +111,10 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private drumContract ConvertContractRequestToContract(SaveContractRequest request)
         {
             var dContract = new drumContract();
+            dContract.Host = _handler.HostInfo;
             dContract.DatabaseName = request.Contract.Schema.DatabaseName;
             dContract.DatabaseId = Guid.Parse(request.Contract.Schema.DatabaseId);
-            dContract.Token = request.Contract.Token.ToByteArray();
             dContract.Description = request.Contract.Description;
-            dContract.AuthorName = request.Contract.AuthorName;
             dContract.Version = Guid.Parse(request.Contract.ContractVersion);
             dContract.GeneratedDate = request.Contract.GeneratedDate.ToDateTime();
 

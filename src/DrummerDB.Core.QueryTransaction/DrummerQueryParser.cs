@@ -425,7 +425,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             foreach (var line in lines)
             {
                 var trimLined = line.Trim();
-                if (trimLined.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+                if (trimLined.StartsWith(DrummerKeywords.GENERATE_CONTRACT_WITH_DESCRIPTION))
                 {
                     return true;
                 }
@@ -454,10 +454,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             foreach (var line in lines)
             {
                 var trimmedLine = line.Trim();
-                if (trimmedLine.StartsWith(DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR))
+                if (trimmedLine.StartsWith(DrummerKeywords.GENERATE_CONTRACT_WITH_DESCRIPTION))
                 {
                     string lineAnalysis = trimmedLine;
-                    string keywords = DrummerKeywords.GENERATE_CONTRACT_AS_AUTHOR + " ";
+                    string keywords = DrummerKeywords.GENERATE_CONTRACT_WITH_DESCRIPTION + " ";
 
                     // AuthorName DESCRIPTION IntroductionMessageGoesHere
                     string authorName = lineAnalysis.Replace(keywords, string.Empty).Trim();

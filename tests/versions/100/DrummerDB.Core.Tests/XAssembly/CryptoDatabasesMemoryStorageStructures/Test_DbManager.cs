@@ -53,7 +53,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var dbManager = new DbManager();
 
             // --- ACT
-            dbManager.LoadSystemDatabases(cache, storage, crypt);
+            dbManager.LoadSystemDatabases(cache, storage, crypt, new HostInfo());
 
             // --- ASSERT
             Assert.True(dbManager.HasSystemDatabaseInCollection(dbName));
@@ -103,7 +103,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var crypt = new CryptoManager();
 
             var dbManager = new DbManager();
-            dbManager.LoadSystemDatabases(cache, storage, crypt);
+            dbManager.LoadSystemDatabases(cache, storage, crypt, new HostInfo());
 
             // --- ACT
             // --- ASSERT
@@ -155,7 +155,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var crypt = new CryptoManager();
 
             var dbManager = new DbManager();
-            dbManager.LoadSystemDatabases(cache, storage, crypt);
+            dbManager.LoadSystemDatabases(cache, storage, crypt, new HostInfo());
 
             // --- ACT
             var resultCreateUser = dbManager.CreateLogin(userName, pwInput, userGUID);
@@ -209,7 +209,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var xManager = new TransactionEntryManager();
 
             var dbManager = new DbManager(storage, cache, crypt, xManager);
-            dbManager.LoadSystemDatabases(cache, storage, crypt);
+            dbManager.LoadSystemDatabases(cache, storage, crypt, new HostInfo());
 
             // --- ACT
             dbManager.TryCreateNewHostDatabase(dbName, out _);

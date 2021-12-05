@@ -12,16 +12,13 @@ message Contract {
 	string contractGUID = 1;
 	// the date the contract was generated
 	google.protobuf.Timestamp generatedDate = 2;
-	// the author of the contract 
-	string authorName = 3;
-	// the unique identifer token for authorization purposes
-	bytes token = 4;
 	// a description of the rights in the contract 
-	string description = 5;
+	string description = 3;
 	// the schema of the entire database
-	Drum.DatabaseSchema schema = 6;
+	Drum.DatabaseSchema schema = 4;
 	// a GUID representing the version of the contract
-	string contractVersion = 7;
+	string contractVersion = 5;
+	Host hostInfo = 6;
 }
 
 // a message representing information about a participant in the system
@@ -30,6 +27,15 @@ message Participant {
 	string alias = 2;
 	string ip4Address = 3;
 	string ip6Address = 4;
-	uint32 portNumber = 5;
+	uint32 databasePortNumber = 5;
+	bytes token = 6;
+}
+
+message Host{
+	string hostGUID = 1;
+	string hostName = 2;
+	string ip4Address = 3;
+	string ip6Address = 4;
+	uint32 databasePortNumber = 5;
 	bytes token = 6;
 }

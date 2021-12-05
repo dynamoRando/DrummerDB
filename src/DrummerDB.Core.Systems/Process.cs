@@ -40,11 +40,12 @@ namespace Drummersoft.DrummerDB.Core.Systems
         private ITransactionEntryManager _xEntryManager;
         private LogService _logService;
 
-
         // test variables
         private string _storageFolder;
         private bool _loadSystemDatabases = true;
         private bool _loadUserDatabases = true;
+
+        private HostInfo _hostInfo;
         #endregion
 
         #region Public Properties
@@ -119,6 +120,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public void Start()
         {
             LoadConfiguration();
+           
 
             if (Settings.EnableLogging)
             {
@@ -246,12 +248,13 @@ namespace Drummersoft.DrummerDB.Core.Systems
         {
             if (_loadSystemDatabases)
             {
-                _dbManager.LoadSystemDatabases(_cache, _storage, _crypt);
+                _dbManager.LoadSystemDatabases(_cache, _storage, _crypt, _hostInfo);
+                ConfigureHostInfo();
             }
 
             if (_loadUserDatabases)
             {
-                _dbManager.LoadUserDatabases(_cache, _storage, _crypt);
+                _dbManager.LoadUserDatabases(_cache, _storage, _crypt, _hostInfo);
             }
 
             if (_loadUserDatabases && _loadSystemDatabases)
@@ -296,7 +299,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
             var sqlPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.SQLServicePort };
             var databasePort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.DatabaseServicePort };
             var infoPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.InfoServicePort };
-            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager, _logService);
+            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager, _logService, _hostInfo);
         }
 
         private void SetupAuth()
@@ -364,6 +367,16 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
             _logService.Info(currentMessage);
             _logService.Info(offsetMessage);
+        }
+
+        private void ConfigureHostInfo()
+        {
+            var sysDb = _dbManager.GetSystemDatabase();
+            _hostInfo.HostGUID = sysDb.HostGUID();
+            _hostInfo.HostName = sysDb.HostName();
+            _hostInfo.Token = sysDb.HostToken();
+            _hostInfo.DatabasePortNumber = Settings.DatabaseServicePort;
+            _hostInfo.IP4Address = Settings.IP4Adress;
         }
 
         #endregion

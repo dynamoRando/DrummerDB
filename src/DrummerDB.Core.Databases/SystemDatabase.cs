@@ -43,7 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private Table _databaseSchemas;
         private Table _databaseSchemaPermissions;
         private Table _databaseTableDatabases;
-        private Table _authorGuid;
+        private Table _hostInfo;
         private LogService _log;
         #endregion
 
@@ -91,6 +91,32 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public byte[] HostToken()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Returns <c>TRUE</c> if this host has generated contracts for participants, otherwise <c>FALSE</c>.
+        /// </summary>
+        /// <returns>Returns <c>TRUE</c> if this host has generated contracts for participants, otherwise <c>FALSE</c>.</returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public bool IsCooperating()
+        {
+            // need to check the Host table to see if we have records
+            throw new NotImplementedException();
+        }
+
+        public Guid HostGUID()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string HostName()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsReadyForCooperation()
         {
             return false;
@@ -154,6 +180,36 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 return _systemTables.Get(tableName);
             }
+        }
+
+        public bool SaveContract(Contract contract)
+        {
+            var hosts = GetTable(Hosts.TABLE_NAME);
+            string hostId = contract.Host.HostGUID.ToString();
+
+            var hostValue = RowValueMaker.Create(hosts, Hosts.Columns.HostGUID, hostId);
+            int countOfHosts = hosts.CountOfRowsWithValue(hostValue);
+
+            if (countOfHosts == 0)
+            {
+                // need host, we need to add this
+                SaveNewContract(contract);
+            }
+
+            if (countOfHosts == 1)
+            {
+                // we need to update an existing contract
+                SaveExistingContract(contract);
+            }
+
+            if (countOfHosts > 1)
+            {
+                throw new InvalidOperationException("There somehow exists mutiple hosts with the same id");
+            }
+
+
+            // need to write contract information to all tables in the coop schema
+            throw new NotImplementedException();
         }
 
         public bool HasLogin(string userName)
@@ -332,7 +388,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     int dbType = (int)db.DatabaseType;
                     record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, dbType.ToString());
-            
+
                     _databaseTableDatabases.TryAddRow(record);
                 }
             }
@@ -381,14 +437,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             AddDefaultRolesAndPermissionsToTable();
             SetupSchemas();
             SetupDatabaseTable();
-            SetupAuthorGuid();
+            SetupHostInfo();
         }
 
-        private void SetupAuthorGuid()
+        private void SetupHostInfo()
         {
-            _authorGuid = new Table(AuthorGuid.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _hostInfo = new Table(SystemDatabaseConstants100.Tables.HostInfo.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
-            _systemTables.Add(_authorGuid);
+            _systemTables.Add(_hostInfo);
         }
 
         private void SetupDatabaseTable()
@@ -518,6 +574,23 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 throw new InvalidOperationException($"{role.Name} is not a defined system role");
             }
+        }
+
+        private bool SaveNewContract(Contract contract)
+        {
+            // add record to hosts table
+            var hosts = GetTable(Hosts.TABLE_NAME);
+            
+            string hostId = contract.Host.HostGUID.ToString();
+            
+            
+
+            throw new NotImplementedException();
+        }
+
+        private bool SaveExistingContract(Contract contract)
+        {
+            throw new NotImplementedException();
         }
 
         private void SetupSystemLoginsTable()

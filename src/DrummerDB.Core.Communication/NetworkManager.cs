@@ -4,6 +4,7 @@ using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -29,13 +30,14 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private PortSettings _sqlServicePort;
         private PortSettings _databaseServicePort;
         private PortSettings _infoServicePort;
+        private HostInfo _hostInfo;
         #endregion
 
         #region Public Properties
         #endregion
 
         #region Constructors
-        public NetworkManager(PortSettings databaseServiceSettings, PortSettings sqlServiceSettings, PortSettings infoServiceSettings, IQueryManager queryManager, IDbManager dbManager, LogService logService)
+        public NetworkManager(PortSettings databaseServiceSettings, PortSettings sqlServiceSettings, PortSettings infoServiceSettings, IQueryManager queryManager, IDbManager dbManager, LogService logService, HostInfo hostInfo)
         {
             _queryManager = queryManager;
             _dbManager = dbManager;
@@ -44,6 +46,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             _databaseServicePort = databaseServiceSettings;
             _infoServicePort = infoServiceSettings;
             _logService = logService;
+            _hostInfo = hostInfo;   
         }
         #endregion
 
@@ -189,6 +192,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _databaseServiceHandler.SetAuth(authenticationManager);
                 _databaseServiceHandler.SetDatabase(dbManager);
                 _databaseServiceHandler.SetStorage(storage);
+                _databaseServiceHandler.SetHostInfo(_hostInfo);
                 }
 
             if (useHttps)

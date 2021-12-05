@@ -11,6 +11,7 @@ using static Drummersoft.DrummerDB.Client.Tests.TestConstants.TestPortNumbers;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Databases.Version;
 
 namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
@@ -124,7 +125,8 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
         [Fact]
         public void Test_Generate_Contract()
-        { 
+        {
+            string sysDbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
             string dbName = "TestGenCont";
             string tableName = "CUSTOMERS";
             string storageFolder = "TestGenCont";
@@ -226,10 +228,19 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // -- ACT
             // ------------ generate contract ------------
-            
+
+            throw new NotImplementedException("Need new syntax to generate HostInfo. Will need to fix parsing and need new " +
+                "query operators.");
+
+            var generateHostName = test.ExecuteSQL($@"
+            DRUMMER BEGIN;
+            GENERATE HOST INFO AS HOSTNAME {contractAuthorName};
+            DRUMMER END;
+            ", sysDbName);
+
             var generateContractResult = test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            GENERATE CONTRACT AS AUTHOR {contractAuthorName} DESCRIPTION IntroductionMessageGoesHere;
+            GENERATE CONTRACT WITH DESCRIPTION IntroductionMessageGoesHere;
             DRUMMER END;
             ", dbName);
 

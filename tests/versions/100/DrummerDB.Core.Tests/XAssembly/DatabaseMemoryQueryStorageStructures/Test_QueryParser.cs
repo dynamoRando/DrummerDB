@@ -76,7 +76,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
             var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
@@ -152,7 +152,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
             var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
@@ -228,7 +228,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
             var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
@@ -306,7 +306,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
             var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
 
             var statementHandler = new StatementHandler(manager);
@@ -368,7 +368,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
             var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);

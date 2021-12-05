@@ -19,15 +19,20 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
          */
         #region Private Fields
         private ParticipantSinkCollection _sinkCollection;
+
+        // used to identify/authorize ourselves to our participants
+        private HostInfo _hostInfo;
         #endregion
 
         #region Public Properties
+        public HostInfo HostInfo => _hostInfo;
         #endregion
 
         #region Constructors
-        public RemoteDataManager()
+        public RemoteDataManager(HostInfo hostInfo)
         {
             _sinkCollection = new ParticipantSinkCollection();
+            _hostInfo = hostInfo;
         }
         #endregion
 
@@ -44,7 +49,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             var request = new SaveContractRequest();
             //request.Authentication = GenerateAuthRequest();
-            request.Contract = ContractConverter.ConvertContractForCommunication(contract);
+            request.Contract = ContractConverter.ConvertContractForCommunication(contract, _hostInfo);
             var result = sink.Client.SaveContract(null);
 
             return result.IsSaved;

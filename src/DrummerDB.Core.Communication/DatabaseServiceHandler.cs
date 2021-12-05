@@ -18,19 +18,22 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private IAuthenticationManager _authenticationManager;
         private IDbManager _dbManager;
         private IStorageManager _storageManager;
+        private HostInfo _hostInfo;
         #endregion
 
         #region Public Properties
+        public HostInfo HostInfo => _hostInfo;
         #endregion
 
         #region Constructors
         public DatabaseServiceHandler() { }
 
-        public DatabaseServiceHandler(IAuthenticationManager authenticationManager, IDbManager dbManager, IStorageManager storageManager)
+        public DatabaseServiceHandler(IAuthenticationManager authenticationManager, IDbManager dbManager, IStorageManager storageManager, HostInfo hostInfo)
         {
             _authenticationManager = authenticationManager;
             _dbManager = dbManager;
             _storageManager = storageManager;
+            _hostInfo = hostInfo;
         }
         #endregion
 
@@ -68,6 +71,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
             _authenticationManager = authenticationManager;
         }
 
+        public void SetHostInfo(HostInfo hostInfo)
+        {
+            _hostInfo = hostInfo;
+        }
+
         public bool UserHasSystemPermission(string userName, SystemPermission permission)
         {
             return _authenticationManager.UserHasSystemPermission(userName, permission);
@@ -81,10 +89,19 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public bool SaveContract(Contract contract)
         {
-            throw new NotImplementedException("We want to change this so that we save this data in a table in the system database.");
-            // don't rely on just the contract data being saved to disk
-            // we want this information about coop contracts status in the system database
-            return _storageManager.SaveContractToDisk(contract);
+            var sysDb = _dbManager.GetSystemDatabase();
+            
+            if (!sysDb.SaveContract(contract))
+            {
+                return false;
+            }
+   
+            if (!_storageManager.SaveContractToDisk(contract))
+            {
+                return false;
+            }
+
+            return true;
         }
         #endregion
 

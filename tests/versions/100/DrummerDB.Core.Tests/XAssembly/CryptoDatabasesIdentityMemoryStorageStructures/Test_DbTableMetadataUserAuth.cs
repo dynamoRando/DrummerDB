@@ -86,7 +86,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var manager = new DbManager(storage, cache, crypto, xManager);
             var auth = new AuthenticationManager(manager);
 
-            manager.LoadSystemDatabases(cache, storage, crypto);
+            manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
 
             manager.TryCreateNewHostDatabase(userDbName, out _);
@@ -177,7 +177,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var manager = new DbManager(storage, cache, crypto, xManager);
             var auth = new AuthenticationManager(manager);
 
-            manager.LoadSystemDatabases(cache, storage, crypto);
+            manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
             manager.TryCreateNewHostDatabase(userDbName, out _);
             var db = manager.GetUserDatabase(userDbName);
