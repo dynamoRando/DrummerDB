@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Drummersoft.DrummerDB.Core.Structures
 {
     // this is scaffolding, this may be deleted
-    internal class Contract
+    internal record struct Contract
     {
         // The GUID of the contract, found in all the schema tables
         // in the HostDb metadata

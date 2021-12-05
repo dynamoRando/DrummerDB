@@ -43,6 +43,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public Contract GetCurrentContract()
+        {
+            // need to find the max contract in the sys.DatabaseContracts table
+
+            throw new NotImplementedException();
+        }
+
         public bool HasParticipantAlias(string aliasName)
         {
             var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
