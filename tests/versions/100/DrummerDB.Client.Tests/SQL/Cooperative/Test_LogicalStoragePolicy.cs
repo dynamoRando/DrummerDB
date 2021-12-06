@@ -229,9 +229,6 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // -- ACT
             // ------------ generate contract ------------
 
-            throw new NotImplementedException("Need new syntax to generate HostInfo. Will need to fix parsing and need new " +
-                "query operators.");
-
             var generateHostName = test.ExecuteSQL($@"
             DRUMMER BEGIN;
             GENERATE HOST INFO AS HOSTNAME {contractAuthorName};

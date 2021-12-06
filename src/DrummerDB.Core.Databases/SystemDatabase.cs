@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100;
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.LoginTable.Columns;
@@ -93,32 +94,66 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Public Methods
         public byte[] HostToken()
         {
-            throw new NotImplementedException();
+            var hostTable = GetTable(Tables.HostInfo.TABLE_NAME);
+
+            if (hostTable.RowCount() > 0)
+            {
+                var rowAddresses = hostTable.GetRows();
+                foreach (var address in rowAddresses)
+                {
+                    var row = hostTable.GetRow(address);
+                    return row.GetValueInByte(Tables.HostInfo.Columns.Token);
+                }
+            }
+
+            return new byte[0];
         }
 
-        /// <summary>
-        /// Returns <c>TRUE</c> if this host has generated contracts for participants, otherwise <c>FALSE</c>.
-        /// </summary>
-        /// <returns>Returns <c>TRUE</c> if this host has generated contracts for participants, otherwise <c>FALSE</c>.</returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public bool IsCooperating()
+        public bool IsCooperatingAsParticipant()
         {
-            // need to check the Host table to see if we have records
-            throw new NotImplementedException();
+            var hosts = GetTable(Tables.Hosts.TABLE_NAME);
+            return hosts.RowCount() > 0;
         }
 
         public Guid HostGUID()
         {
-            throw new NotImplementedException();
+            var hostTable = GetTable(Tables.HostInfo.TABLE_NAME);
+
+            if (hostTable.RowCount() > 0)
+            {
+                var rowAddresses = hostTable.GetRows();
+                foreach (var address in rowAddresses)
+                {
+                    var row = hostTable.GetRow(address);
+                    string stringGuid = row.GetValueInString(Tables.HostInfo.Columns.HostGUID);
+                    return Guid.Parse(stringGuid);
+                }
+            }
+
+            return Guid.Empty;
         }
 
         public string HostName()
         {
-            throw new NotImplementedException();
+            var hostTable = GetTable(Tables.HostInfo.TABLE_NAME);
+
+            if (hostTable.RowCount() > 0)
+            {
+                var rowAddresses = hostTable.GetRows();
+                foreach (var address in rowAddresses)
+                {
+                    var row = hostTable.GetRow(address);
+                    return row.GetValueInString(Tables.HostInfo.Columns.HostName);
+                }
+            }
+
+            return string.Empty;
         }
 
         public bool IsReadyForCooperation()
         {
+            // in the system database, this will always be false becuase we don't store cooperative tables
+            // in the system database, only in user databases
             return false;
         }
 
@@ -580,10 +615,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             // add record to hosts table
             var hosts = GetTable(Hosts.TABLE_NAME);
-            
+
             string hostId = contract.Host.HostGUID.ToString();
-            
-            
+
+
 
             throw new NotImplementedException();
         }

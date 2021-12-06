@@ -66,6 +66,29 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             EvaluteForAcceptContract(line, database, dbManager, ref plan);
             EvaluteForRejectContract(line, database, dbManager, ref plan);
             EvaluteForReviewAcceptedContract(line, database, dbManager, ref plan);
+            EvaluateForGenerateHostInfo(line, database, dbManager, ref plan);
+        }
+
+        private void EvaluateForGenerateHostInfo(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            //GENERATE HOST INFO AS HOSTNAME {hostName};
+            if (line.StartsWith(DrummerKeywords.GENERATE_HOST_INFO_AS_HOSTNAME))
+            {
+
+                string hostName = line.Replace(DrummerKeywords.GENERATE_HOST_INFO_AS_HOSTNAME, string.Empty).Trim();
+
+                if (!plan.HasPart(PlanPartType.GenerateHostInfo))
+                {
+                    plan.AddPart(new GenerateHostInfoPlanPart());
+                }
+
+                var part = plan.GetPart(PlanPartType.GenerateHostInfo);
+                if (part is not null)
+                {
+                    var generateHostInfoOp = new GenerateHostInfoOperation(hostName, dbManager);
+                    part.AddOperation(generateHostInfoOp);
+                }
+            }
         }
 
         private void EvaluteForReviewAcceptedContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)

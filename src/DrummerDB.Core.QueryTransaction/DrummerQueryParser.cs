@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -391,7 +392,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return false;
                     }
 
-                    if(!IPAddress.TryParse(ipAddress, out _))
+                    if (!IPAddress.TryParse(ipAddress, out _))
                     {
                         errorMessage = "Unable to parse participant ip address";
                         return false;
@@ -411,6 +412,50 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 var trimLined = line.Trim();
                 if (trimLined.StartsWith(DrummerKeywords.ADD_PARTICIPANT))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ParseForGenerateHostInfo(string statement, out string errorMessage)
+        {
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.GENERATE_HOST_INFO_AS_HOSTNAME))
+                {
+                    // we need to make sure that we haven't already generated host information
+
+                    // GENERATE HOST INFO AS HOSTNAME {contractAuthorName};
+
+                    string hostName = trimmedLine.Replace(DrummerKeywords.GENERATE_HOST_INFO_AS_HOSTNAME, string.Empty).Trim();
+                    var sysDb = _dbManager.GetSystemDatabase();
+                    var hostInfo = sysDb.GetTable(Tables.HostInfo.TABLE_NAME);
+                    var searchItem = RowValueMaker.Create(hostInfo, Tables.HostInfo.Columns.HostName, hostName);
+
+                    if (hostInfo.CountOfRowsWithValue(searchItem) > 0)
+                    {
+                        errorMessage = $"There is already a generated host name with {hostName}";
+                        return false;
+                    }
+                }
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        private bool HasGenerateHostInfoKeyword(string statement)
+        {
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimLined = line.Trim();
+                if (trimLined.StartsWith(DrummerKeywords.GENERATE_HOST_INFO_AS_HOSTNAME))
                 {
                     return true;
                 }
