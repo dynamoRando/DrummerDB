@@ -37,8 +37,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #endregion
 
         #region Public Methods
-        public bool SaveContractAtParticipant(structParticipant participant, structContract contract)
+        public bool SaveContractAtParticipant(structParticipant participant, structContract contract, out string errorMessage)
         {
+            errorMessage = string.Empty;
+
+            SaveContractResult? result = null;
             ParticipantSink sink;
             sink = GetOrAddSink(participant);
 
@@ -48,11 +51,25 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             }
 
             var request = new SaveContractRequest();
-            //request.Authentication = GenerateAuthRequest();
             request.Contract = ContractConverter.ConvertContractForCommunication(contract, _hostInfo);
-            var result = sink.Client.SaveContract(null);
 
-            return result.IsSaved;
+            try 
+            {
+                result = sink.Client.SaveContract(null);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+            
+            if (result is null)
+            {
+                return false;
+            }
+            else
+            {
+                return result.IsSaved;
+            }
         }
 
         // should probably include username/pw or token as a method of auth'd the request

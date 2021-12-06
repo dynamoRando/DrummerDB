@@ -217,6 +217,27 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
+        public bool HasContract(Contract contract)
+        {
+            var hosts = GetTable(Hosts.TABLE_NAME);
+            string hostId = contract.Host.HostGUID.ToString();
+
+            var hostValue = RowValueMaker.Create(hosts, Hosts.Columns.HostGUID, hostId);
+            int countOfHosts = hosts.CountOfRowsWithValue(hostValue);
+
+            if (countOfHosts > 0)
+            {
+                var coContractsTable = GetTable(CooperativeContracts.TABLE_NAME);
+                var contractGUID = contract.ContractGUID;
+                var contractGUIDValue = RowValueMaker.Create(coContractsTable, CooperativeContracts.Columns.ContractGUID, contractGUID.ToString());
+                int countOfExistingContracts = coContractsTable.CountOfRowsWithValue(contractGUIDValue);
+
+                return countOfExistingContracts > 0;
+            }
+
+            return false;
+        }
+
         public bool SaveContract(Contract contract)
         {
             var hosts = GetTable(Hosts.TABLE_NAME);

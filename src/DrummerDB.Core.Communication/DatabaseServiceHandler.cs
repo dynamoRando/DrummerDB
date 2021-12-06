@@ -91,15 +91,23 @@ namespace Drummersoft.DrummerDB.Core.Communication
         {
             var sysDb = _dbManager.GetSystemDatabase();
             
-            if (!sysDb.SaveContract(contract))
+            if (!sysDb.HasContract(contract))
+            {
+                if (!sysDb.SaveContract(contract))
+                {
+                    return false;
+                }
+
+                if (!_storageManager.SaveContractToDisk(contract))
+                {
+                    return false;
+                }
+            }
+            else
             {
                 return false;
             }
-   
-            if (!_storageManager.SaveContractToDisk(contract))
-            {
-                return false;
-            }
+           
 
             return true;
         }

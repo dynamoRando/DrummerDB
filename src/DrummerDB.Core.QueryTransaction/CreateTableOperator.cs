@@ -46,14 +46,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                             if (!targetDb.HasTable(tableName) && transactionMode == TransactionMode.Try)
                             {
-                                if (targetDb.TryAddTable(schema, transaction, transactionMode, out tableId))
+                                if (targetDb.XactAddTable(schema, transaction, transactionMode, out tableId))
                                 {
                                     messages.Add($"Table {tableName} created with Id {tableId.ToString()}");
                                 }
                             }
                             else if (targetDb.HasTable(tableName) && (transactionMode == TransactionMode.Commit || transactionMode == TransactionMode.Rollback))
                             {
-                                if (targetDb.TryAddTable(schema, transaction, transactionMode, out tableId))
+                                if (targetDb.XactAddTable(schema, transaction, transactionMode, out tableId))
                                 {
                                     messages.Add($"Table {tableName} created with Id {tableId.ToString()}");
                                 }
@@ -74,14 +74,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                         if (!targetDb.HasTable(TableName) && transactionMode == TransactionMode.Try)
                         {
-                            if (targetDb.TryAddTable(schema, transaction, transactionMode, out tableId))
+                            if (targetDb.XactAddTable(schema, transaction, transactionMode, out tableId))
                             {
                                 messages.Add($"Table {TableName} created with Id {tableId.ToString()}");
                             }
                         }
                         else if (targetDb.HasTable(TableName) && (transactionMode == TransactionMode.Commit || transactionMode == TransactionMode.Rollback))
                         {
-                            if (targetDb.TryAddTable(schema, transaction, transactionMode, out tableId))
+                            if (targetDb.XactAddTable(schema, transaction, transactionMode, out tableId))
                             {
                                 messages.Add($"Table {TableName} created with Id {tableId.ToString()}");
                             }

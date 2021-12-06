@@ -26,7 +26,17 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
-            throw new NotImplementedException();
+            string errorMessage = string.Empty;
+            var isError = _database.RequestParticipantSaveLatestContract(transaction, transactionMode, _participant, out errorMessage);
+
+            if (isError)
+            {
+                errorMessages.Add(errorMessage);
+            }
+            else
+            {
+                messages.Add($"Request sent to Participant Alias {_participant.Alias} at {_participant.IP4Address}:{_participant.PortNumber}");
+            }
         }
     }
 }

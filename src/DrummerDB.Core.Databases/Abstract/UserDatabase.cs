@@ -38,8 +38,8 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         /// <param name="schema">The schema of the table to add</param>
         /// <returns><c>true</c> if successful, otherwise <c>false</c></returns>
         public abstract bool AddTable(TableSchema schema, out Guid tableObjectId);
-        public abstract bool TryAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId);
-        public abstract bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode);
+        public abstract bool XactAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId);
+        public abstract bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode);
 
         /// <summary>
         /// Checks the db's <seealso cref="DatabaseMetadata"/> (and therefore the System Data Pages) to see if the database has the specified table
@@ -51,7 +51,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         public abstract bool HasTable(int tableId);
         public abstract bool HasUser(string userName);
         public abstract bool HasUser(string userName, Guid userId);
-        public abstract bool TryCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode);
+        public abstract bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode);
         public abstract bool HasSchema(string schemaName);
         public abstract DatabaseSchemaInfo GetSchemaInformation(string schemaName);
 

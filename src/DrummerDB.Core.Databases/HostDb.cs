@@ -49,13 +49,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         #region Public Methods
 
-        public bool SendContractToParticipant(string aliasName, Guid contractGUID)
+        public bool SendContractToParticipant(string aliasName, Guid contractGUID, out string errorMessage)
         {
             var participant = GetParticipant(aliasName);
             Guid currentId = GetCurrentContractGUID();
             var contract = GetContract(currentId);
 
-            return _remote.SaveContractAtParticipant(participant, contract);
+            return _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
         }
 
         public Guid GetCurrentContractGUID()
@@ -128,6 +128,21 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
             var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
             return participants.HasValue(searchItem);
+        }
+
+        public bool RequestParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, out string errorMessage )
+        {
+            var contractId = GetCurrentContractGUID();
+            var contract = GetContract(contractId);
+            _baseDb.LogParticipantSaveLatestContract(transaction, transactionMode, participant, contract);
+            var isError = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
+
+            if (!isError)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public Participant GetParticipant(string aliasName)
@@ -222,9 +237,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
-        public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
+        public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
-            return _baseDb.TryDropTable(tableName, transaction, transactionMode);
+            return _baseDb.XactDropTable(tableName, transaction, transactionMode);
         }
 
         public override DatabaseSchemaInfo GetSchemaInformation(string schemaName)
@@ -232,9 +247,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.GetSchemaInformation(schemaName);
         }
 
-        public override bool TryCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
+        public override bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
         {
-            return _baseDb.TryCreateSchema(schemaName, request, transactionMode);
+            return _baseDb.XactCreateSchema(schemaName, request, transactionMode);
         }
 
         public override bool HasSchema(string schemaName)
@@ -292,9 +307,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.AddTable(schema, out tableObjectId);
         }
 
-        public override bool TryAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
+        public override bool XactAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
         {
-            return _baseDb.TryAddTable(schema, transaction, transactionMode, out tableObjectId);
+            return _baseDb.XactAddTable(schema, transaction, transactionMode, out tableObjectId);
         }
 
         public override bool HasTable(string tableName)

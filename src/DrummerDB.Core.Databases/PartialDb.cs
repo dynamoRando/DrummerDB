@@ -30,9 +30,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
-        public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
+        public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
-            return _baseDb.TryDropTable(tableName, transaction, transactionMode);
+            return _baseDb.XactDropTable(tableName, transaction, transactionMode);
         }
 
         public override DatabaseSchemaInfo GetSchemaInformation(string schemaName)
@@ -40,9 +40,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.GetSchemaInformation(schemaName);
         }
 
-        public override bool TryCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
+        public override bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
         {
-            return _baseDb.TryCreateSchema(schemaName, request, transactionMode);
+            return _baseDb.XactCreateSchema(schemaName, request, transactionMode);
         }
 
         public override bool HasSchema(string schemaName)
@@ -100,9 +100,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.AddTable(schema, out tableObjectId);
         }
 
-        public override bool TryAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
+        public override bool XactAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
         {
-            return _baseDb.TryAddTable(schema, transaction, transactionMode, out tableObjectId);
+            return _baseDb.XactAddTable(schema, transaction, transactionMode, out tableObjectId);
         }
 
         public override bool HasTable(string tableName)

@@ -34,7 +34,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     UserDatabase db = dbMan.GetUserDatabase(DatabaseName);
                     if (!db.HasSchema(SchemaName))
                     {
-                        if (db.TryCreateSchema(SchemaName, transaction, transactionMode))
+                        if (db.XactCreateSchema(SchemaName, transaction, transactionMode))
                         {
                             messages.Add($"Successfully created {SchemaName} in Database {DatabaseName}");
                         }

@@ -8,6 +8,7 @@
         AlterColumn,
         DropTable,
         DropDatabase,
-        Unknown
+        Unknown,
+        ParticipantSaveContract
     }
 }

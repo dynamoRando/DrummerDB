@@ -510,19 +510,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             plan.AddPart(new RemoteSaveContractPlanPart());
 
                             var part = plan.GetPart(PlanPartType.RemoteSaveContract);
-
                             var op = new RemoteSaveContractOperator(database, participant);
 
-                            // we need to determine if we'll expose remote data manager at the 
-                            // host db level. currently we only have it at the table level.
-                            // we will need it at the host db level to send the request to save
-                            // the contract here
-
+                            part.Operations.Add(op);
                         }
                     }
                 }
-
-                throw new NotImplementedException();
             }
         }
 

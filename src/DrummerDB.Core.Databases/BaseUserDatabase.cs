@@ -55,7 +55,53 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
-        public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
+        public bool XactLogParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, Contract contract)
+        {
+            var storage = _metaData.StorageManager;
+            TransactionEntry xact = null;
+
+            switch (transactionMode)
+            {
+                case TransactionMode.None:
+
+                    xact = GetTransactionEntryForParticipantSaveContract(GetParticipantSaveContractTransaction(participant, contract), transaction);
+                    _xEntryManager.AddEntry(xact);
+                    storage.LogOpenTransaction(_metaData.Id, xact);
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkComplete();
+                    storage.LogCloseTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                case TransactionMode.Try:
+
+                    xact = GetTransactionEntryForParticipantSaveContract(GetParticipantSaveContractTransaction(participant, contract), transaction);
+                    _xEntryManager.AddEntry(xact);
+                    storage.LogOpenTransaction(_metaData.Id, xact);
+
+                    return true;
+                case TransactionMode.Rollback:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkDeleted();
+                    storage.RemoveOpenTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                case TransactionMode.Commit:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkComplete();
+                    storage.LogCloseTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                default:
+                    throw new InvalidOperationException("Unknown transaction mode");
+            }
+        }
+
+        public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             var storage = _metaData.StorageManager;
             TransactionEntry xact = null;
@@ -221,7 +267,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
-        public override bool TryCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
+        public override bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
         {
             if (!_metaData.HasSchema(schemaName))
             {
@@ -377,7 +423,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public override bool TryAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
+        public override bool XactAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
         {
             var storage = _metaData.StorageManager;
 
@@ -533,6 +579,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new DropTableTransaction(schema, table, pages);
         }
 
+        private ParticipantSaveContractTransaction GetParticipantSaveContractTransaction(Participant participant, Contract contract)
+        {
+            return new ParticipantSaveContractTransaction(participant, contract);
+        }
+
         private TransactionEntry GetTransactionEntryForCreateTable(CreateTableTransaction transaction, TransactionRequest request)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
@@ -553,6 +604,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             return entry;
         }
+
+        private TransactionEntry GetTransactionEntryForParticipantSaveContract(ParticipantSaveContractTransaction transaction, TransactionRequest request)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
+            var entry = new TransactionEntry(request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
+                transaction, request.UserName, false, sequenceId);
+
+            return entry;
+        }
+
         private void LoadTablesIntoMemory()
         {
             foreach (var table in _metaData.Schemas())
