@@ -117,10 +117,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForReviewAcceptedContract(statement, out errorMessage);
                     }
+
+                    if (HasReviewHostInfoKeyword(statement))
+                    {
+                        return ParseForReviewHostInfo(statement, out errorMessage);
+                    }
+
+                    if (HasGenerateHostInfoKeyword(statement))
+                    {
+                        return ParseForGenerateHostInfo(statement, out errorMessage);
+                    }
                 }
             }
 
-            errorMessage = string.Empty;
+            errorMessage = "Unknown DrummerDB keywords.";
             return false;
         }
         #endregion
@@ -403,6 +413,38 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             errorMessage = string.Empty;
             return true;
+        }
+
+        private bool ParseForReviewHostInfo(string statement, out string errorMessage)
+        {
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.GENERATE_HOST_INFO_AS_HOSTNAME))
+                {
+                    errorMessage = string.Empty;
+                    return true;
+                }
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        private bool HasReviewHostInfoKeyword(string statement)
+        {
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimLined = line.Trim();
+                if (trimLined.StartsWith(DrummerKeywords.REVIEW_HOST_INFO))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool HasAddParticipantKeyword(string statement)

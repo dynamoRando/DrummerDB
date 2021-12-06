@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 using Drummersoft.DrummerDB.Core.Databases.Version;
 using System.Net;
+using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100;
+using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -67,6 +69,57 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             EvaluteForRejectContract(line, database, dbManager, ref plan);
             EvaluteForReviewAcceptedContract(line, database, dbManager, ref plan);
             EvaluateForGenerateHostInfo(line, database, dbManager, ref plan);
+            EvaluateForReviewHostInfo(line, database, dbManager, ref plan);
+        }
+
+        private void EvaluateForReviewHostInfo(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            // this needs to translate to a SELECT * FROM coop.HostInfo 
+            // from the SystemDb
+            if (line.StartsWith(DrummerKeywords.REVIEW_HOST_INFO))
+            {
+                var sysDb = dbManager.GetSystemDatabase();
+                var hostInfoTable = sysDb.GetTable(Tables.HostInfo.TABLE_NAME);
+
+                // need a new set policy operator in the plan
+                if (!plan.HasPart(PlanPartType.Select))
+                {
+                    plan.AddPart(new SelectQueryPlanPart());
+                }
+
+                var part = plan.GetPart(PlanPartType.Select);
+                if (part is SelectQueryPlanPart)
+                {
+                    var selectPart = part as SelectQueryPlanPart;
+                    var layout = new ResultsetLayout();
+
+                    // add the columns, starting with HostGuid
+                    ResultsetSourceTable sourceTableColumnGuid = new ResultsetSourceTable();
+                    sourceTableColumnGuid.Table = hostInfoTable.Address;
+                    sourceTableColumnGuid.ColumnId = Tables.HostInfo.GetColumn(Tables.HostInfo.Columns.HostGUID).Id;
+                    sourceTableColumnGuid.Order = 1;
+                    layout.AddSource(sourceTableColumnGuid);
+
+                    ResultsetSourceTable sourceTableColumnName = new ResultsetSourceTable();
+                    sourceTableColumnName.Table = hostInfoTable.Address;
+                    sourceTableColumnName.ColumnId = Tables.HostInfo.GetColumn(Tables.HostInfo.Columns.HostName).Id;
+                    sourceTableColumnName.Order = 2;
+                    layout.AddSource(sourceTableColumnName);
+
+                    selectPart.Layout = layout;
+                    var columns = new string[] { Tables.HostInfo.Columns.HostGUID, Tables.HostInfo.Columns.HostName };
+
+                    TableReadOperator readTable = new TableReadOperator(dbManager, hostInfoTable.Address, columns, _log);
+                    selectPart.AddOperation(readTable);
+                }
+
+                if (plan.TransactionPlan is null)
+                {
+                    var xplan = new TransactionPlan();
+                    xplan.Behavior = TransactionBehavior.Normal;
+                    plan.TransactionPlan = xplan;
+                }
+            }
         }
 
         private void EvaluateForGenerateHostInfo(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -74,19 +127,44 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //GENERATE HOST INFO AS HOSTNAME {hostName};
             if (line.StartsWith(DrummerKeywords.GENERATE_HOST_INFO_AS_HOSTNAME))
             {
-
                 string hostName = line.Replace(DrummerKeywords.GENERATE_HOST_INFO_AS_HOSTNAME, string.Empty).Trim();
+                var sysDb = dbManager.GetSystemDatabase();
 
-                if (!plan.HasPart(PlanPartType.GenerateHostInfo))
+                // create an insert table operation for coop.HostInfo
+                if (!plan.HasPart(PlanPartType.Insert))
                 {
-                    plan.AddPart(new GenerateHostInfoPlanPart());
+                    plan.AddPart(new InsertQueryPlanPart());
                 }
 
-                var part = plan.GetPart(PlanPartType.GenerateHostInfo);
-                if (part is not null)
+                var part = plan.GetPart(PlanPartType.Insert);
+                if (part is InsertQueryPlanPart)
                 {
-                    var generateHostInfoOp = new GenerateHostInfoOperation(hostName, dbManager);
-                    part.AddOperation(generateHostInfoOp);
+                    var insertHostOp = new InsertTableOperator(dbManager);
+                    insertHostOp.TableName = Tables.HostInfo.TABLE_NAME;
+                    insertHostOp.DatabaseName = sysDb.Name;
+                    insertHostOp.TableSchemaName = Constants.COOP_SCHEMA;
+
+                    var hostGuid = Guid.NewGuid();
+                    var token = CryptoManager.GenerateToken();
+
+                    var hostGuidColumn = Tables.HostInfo.GetColumn(Tables.HostInfo.Columns.HostGUID);
+                    var hostNameColumn = Tables.HostInfo.GetColumn(Tables.HostInfo.Columns.HostName);
+                    var hostToken = Tables.HostInfo.GetColumn(Tables.HostInfo.Columns.Token);
+
+                    // need to create a row to insert
+                    var insertRow = new InsertRow(1);
+
+                    var insertValueHostGuid = new InsertValue(1, hostGuidColumn.Name, hostGuid.ToString());
+                    var insertValueHostName = new InsertValue(2, hostNameColumn.Name, hostName);
+                    var insertValueToken = new InsertValue(3, hostToken.Name, token.ToString());
+                    
+                    insertRow.Values.Add(insertValueHostGuid);
+                    insertRow.Values.Add(insertValueHostName);
+                    insertRow.Values.Add(insertValueToken);
+
+                    insertHostOp.Rows.Add(insertRow);
+
+                    part.AddOperation(insertHostOp);
                 }
             }
         }
@@ -96,7 +174,99 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //REVIEW ACCEPTED CONTRACTS;
             if (line.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
             {
-                throw new NotImplementedException();
+                var sysDb = dbManager.GetSystemDatabase();
+                var table = sysDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+
+                // need a new set policy operator in the plan
+                if (!plan.HasPart(PlanPartType.Select))
+                {
+                    plan.AddPart(new SelectQueryPlanPart());
+                }
+
+                var part = plan.GetPart(PlanPartType.Select);
+                if (part is SelectQueryPlanPart)
+                {
+                    var selectPart = part as SelectQueryPlanPart;
+                    var layout = new ResultsetLayout();
+
+                    // add the columns, starting with HostGuid
+                    ResultsetSourceTable sourceTableColumnHostGuid = new ResultsetSourceTable();
+                    sourceTableColumnHostGuid.Table = table.Address;
+                    sourceTableColumnHostGuid.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.HostGuid).Id;
+                    sourceTableColumnHostGuid.Order = 1;
+                    layout.AddSource(sourceTableColumnHostGuid);
+
+                    ResultsetSourceTable sourceTableColumnContractGuid = new ResultsetSourceTable();
+                    sourceTableColumnContractGuid.Table = table.Address;
+                    sourceTableColumnContractGuid.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.ContractGUID).Id;
+                    sourceTableColumnContractGuid.Order = 2;
+                    layout.AddSource(sourceTableColumnContractGuid);
+
+                    ResultsetSourceTable sourceTableColumnDatabaseName = new ResultsetSourceTable();
+                    sourceTableColumnDatabaseName.Table = table.Address;
+                    sourceTableColumnDatabaseName.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.DatabaseName).Id;
+                    sourceTableColumnDatabaseName.Order = 3;
+                    layout.AddSource(sourceTableColumnDatabaseName);
+
+                    ResultsetSourceTable sourceTableColumnDatabaseId = new ResultsetSourceTable();
+                    sourceTableColumnDatabaseId.Table = table.Address;
+                    sourceTableColumnDatabaseId.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.DatabaseId).Id;
+                    sourceTableColumnDatabaseId.Order = 4;
+                    layout.AddSource(sourceTableColumnDatabaseId);
+
+                    ResultsetSourceTable sourceTableColumnDescription = new ResultsetSourceTable();
+                    sourceTableColumnDescription.Table = table.Address;
+                    sourceTableColumnDescription.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Description).Id;
+                    sourceTableColumnDescription.Order = 5;
+                    layout.AddSource(sourceTableColumnDescription);
+
+                    ResultsetSourceTable sourceTableColumnVersion = new ResultsetSourceTable();
+                    sourceTableColumnVersion.Table = table.Address;
+                    sourceTableColumnVersion.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Version).Id;
+                    sourceTableColumnVersion.Order = 6;
+                    layout.AddSource(sourceTableColumnVersion);
+
+                    ResultsetSourceTable sourceTableColumnGeneratedDate = new ResultsetSourceTable();
+                    sourceTableColumnGeneratedDate.Table = table.Address;
+                    sourceTableColumnGeneratedDate.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.GeneratedDate).Id;
+                    sourceTableColumnGeneratedDate.Order = 7;
+                    layout.AddSource(sourceTableColumnGeneratedDate);
+
+                    ResultsetSourceTable sourceTableColumnStatus = new ResultsetSourceTable();
+                    sourceTableColumnStatus.Table = table.Address;
+                    sourceTableColumnStatus.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Status).Id;
+                    sourceTableColumnStatus.Order = 8;
+                    layout.AddSource(sourceTableColumnStatus);
+
+                    selectPart.Layout = layout;
+                    var columns = new string[]
+                    {
+                        Tables.CooperativeContracts.Columns.HostGuid,
+                        Tables.CooperativeContracts.Columns.ContractGUID,
+                        Tables.CooperativeContracts.Columns.DatabaseName,
+                        Tables.CooperativeContracts.Columns.DatabaseId,
+                        Tables.CooperativeContracts.Columns.Description,
+                        Tables.CooperativeContracts.Columns.Version,
+                        Tables.CooperativeContracts.Columns.GeneratedDate,
+                        Tables.CooperativeContracts.Columns.Status
+                    };
+
+                    // filter by accepted contracts
+                    var acceptedStatus = ContractStatus.Accepted;
+                    var value = RowValueMaker.Create(table, UserTable.Columns.TableName, Convert.ToInt32(acceptedStatus).ToString(), false);
+                    var trv = new TableRowValue(value, table.Address.TableId, table.Address.DatabaseId, table.Address.SchemaId);
+                    TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
+
+                    TableReadOperator readTable = new TableReadOperator(dbManager, table.Address, columns, filter, _log);
+                    selectPart.AddOperation(readTable);
+                }
+
+                if (plan.TransactionPlan is null)
+                {
+                    var xplan = new TransactionPlan();
+                    xplan.Behavior = TransactionBehavior.Normal;
+                    plan.TransactionPlan = xplan;
+                }
             }
         }
 
@@ -123,7 +293,99 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //REVIEW PENDING CONTRACTS;
             if (line.StartsWith(DrummerKeywords.REVIEW_PENDING_CONTRACTS))
             {
-                throw new NotImplementedException();
+                var sysDb = dbManager.GetSystemDatabase();
+                var table = sysDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+
+                // need a new set policy operator in the plan
+                if (!plan.HasPart(PlanPartType.Select))
+                {
+                    plan.AddPart(new SelectQueryPlanPart());
+                }
+
+                var part = plan.GetPart(PlanPartType.Select);
+                if (part is SelectQueryPlanPart)
+                {
+                    var selectPart = part as SelectQueryPlanPart;
+                    var layout = new ResultsetLayout();
+
+                    // add the columns, starting with HostGuid
+                    ResultsetSourceTable sourceTableColumnHostGuid = new ResultsetSourceTable();
+                    sourceTableColumnHostGuid.Table = table.Address;
+                    sourceTableColumnHostGuid.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.HostGuid).Id;
+                    sourceTableColumnHostGuid.Order = 1;
+                    layout.AddSource(sourceTableColumnHostGuid);
+
+                    ResultsetSourceTable sourceTableColumnContractGuid = new ResultsetSourceTable();
+                    sourceTableColumnContractGuid.Table = table.Address;
+                    sourceTableColumnContractGuid.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.ContractGUID).Id;
+                    sourceTableColumnContractGuid.Order = 2;
+                    layout.AddSource(sourceTableColumnContractGuid);
+
+                    ResultsetSourceTable sourceTableColumnDatabaseName = new ResultsetSourceTable();
+                    sourceTableColumnDatabaseName.Table = table.Address;
+                    sourceTableColumnDatabaseName.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.DatabaseName).Id;
+                    sourceTableColumnDatabaseName.Order = 3;
+                    layout.AddSource(sourceTableColumnDatabaseName);
+
+                    ResultsetSourceTable sourceTableColumnDatabaseId = new ResultsetSourceTable();
+                    sourceTableColumnDatabaseId.Table = table.Address;
+                    sourceTableColumnDatabaseId.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.DatabaseId).Id;
+                    sourceTableColumnDatabaseId.Order = 4;
+                    layout.AddSource(sourceTableColumnDatabaseId);
+
+                    ResultsetSourceTable sourceTableColumnDescription = new ResultsetSourceTable();
+                    sourceTableColumnDescription.Table = table.Address;
+                    sourceTableColumnDescription.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Description).Id;
+                    sourceTableColumnDescription.Order = 5;
+                    layout.AddSource(sourceTableColumnDescription);
+
+                    ResultsetSourceTable sourceTableColumnVersion = new ResultsetSourceTable();
+                    sourceTableColumnVersion.Table = table.Address;
+                    sourceTableColumnVersion.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Version).Id;
+                    sourceTableColumnVersion.Order = 6;
+                    layout.AddSource(sourceTableColumnVersion);
+
+                    ResultsetSourceTable sourceTableColumnGeneratedDate = new ResultsetSourceTable();
+                    sourceTableColumnGeneratedDate.Table = table.Address;
+                    sourceTableColumnGeneratedDate.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.GeneratedDate).Id;
+                    sourceTableColumnGeneratedDate.Order = 7;
+                    layout.AddSource(sourceTableColumnGeneratedDate);
+
+                    ResultsetSourceTable sourceTableColumnStatus = new ResultsetSourceTable();
+                    sourceTableColumnStatus.Table = table.Address;
+                    sourceTableColumnStatus.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Status).Id;
+                    sourceTableColumnStatus.Order = 8;
+                    layout.AddSource(sourceTableColumnStatus);
+
+                    selectPart.Layout = layout;
+                    var columns = new string[]
+                    {
+                        Tables.CooperativeContracts.Columns.HostGuid,
+                        Tables.CooperativeContracts.Columns.ContractGUID,
+                        Tables.CooperativeContracts.Columns.DatabaseName,
+                        Tables.CooperativeContracts.Columns.DatabaseId,
+                        Tables.CooperativeContracts.Columns.Description,
+                        Tables.CooperativeContracts.Columns.Version,
+                        Tables.CooperativeContracts.Columns.GeneratedDate,
+                        Tables.CooperativeContracts.Columns.Status
+                    };
+
+                    // filter by pending contracts
+                    var acceptedStatus = ContractStatus.Pending;
+                    var value = RowValueMaker.Create(table, UserTable.Columns.TableName, Convert.ToInt32(acceptedStatus).ToString(), false);
+                    var trv = new TableRowValue(value, table.Address.TableId, table.Address.DatabaseId, table.Address.SchemaId);
+                    TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
+
+                    TableReadOperator readTable = new TableReadOperator(dbManager, table.Address, columns, filter, _log);
+                    selectPart.AddOperation(readTable);
+                }
+
+                if (plan.TransactionPlan is null)
+                {
+                    var xplan = new TransactionPlan();
+                    xplan.Behavior = TransactionBehavior.Normal;
+                    plan.TransactionPlan = xplan;
+                }
             }
         }
 
@@ -272,7 +534,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             // once the contract has been generated, all the records in sys.UserTables should be updated with the new
             // contract GUID
             string description = string.Empty;
-            string descriptionData = string.Empty;
             Guid contractGuid = Guid.Empty;
 
             if (line.StartsWith(DrummerKeywords.GENERATE_CONTRACT_WITH_DESCRIPTION))
@@ -307,16 +568,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
                         var retiredColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RetiredDate);
 
-                        var contractGuidStatement = new StatementColumn(contractGuidColumn.Id, contractGuidColumn.Name);
-                        insertDatabaseContractsOp.Columns.Add(contractGuidStatement);
-
                         // need to create a row to insert
                         var insertRow = new InsertRow(1);
 
                         var insertValueContractGuid = new InsertValue(1, contractGuidColumn.Name, contractGuid.ToString());
                         var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
-                        var insertValueDescription = new InsertValue(3, descriptionColumn.Name, descriptionData);
-                        var insertValueRetiredDate = new InsertValue(4, retiredColumn.Name);
+                        var insertValueDescription = new InsertValue(3, descriptionColumn.Name, description);
+                        var insertValueRetiredDate = new InsertValue(4, retiredColumn.Name, DateTime.MinValue.ToString());
 
                         insertRow.Values.Add(insertValueContractGuid);
                         insertRow.Values.Add(insertValueGeneratedDate);

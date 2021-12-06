@@ -700,10 +700,10 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                         var alias = new ColumnSchema(Columns.GeneratedDate, new SQLDateTime(), 2);
                         _columns.Add(alias);
 
-                        var description = new ColumnSchema(Columns.Description, new SQLVarChar(128), 3, true);
+                        var description = new ColumnSchema(Columns.Description, new SQLVarChar(128), 3);
                         _columns.Add(description);
 
-                        var retireDate = new ColumnSchema(Columns.RetiredDate, new SQLDateTime(), 4, true);
+                        var retireDate = new ColumnSchema(Columns.RetiredDate, new SQLDateTime(), 4);
                         _columns.Add(retireDate);
                     }
                 }

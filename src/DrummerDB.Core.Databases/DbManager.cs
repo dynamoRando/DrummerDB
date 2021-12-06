@@ -95,9 +95,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             var sysDb = GetSystemDatabase();
             var hostInfo = sysDb.GetTable(SystemDatabaseConstants100.Tables.HostInfo.TABLE_NAME);
-            return hostInfo.RowCount() > 0;
+            var totalCount = hostInfo.RowCount();
+            return totalCount > 0;
         }
-        
+
         public bool HasUserDatabase(Guid dbId)
         {
             return _userDatabases.Contains(dbId);

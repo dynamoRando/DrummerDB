@@ -207,7 +207,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 return _cache.GetValueAtAddress(address, column);
             }
 
-            throw new NotImplementedException();
+            throw new InvalidOperationException($"Column: {address.ColumnName} is not part of table {Name}");
+            
         }
 
         /// <summary>

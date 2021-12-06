@@ -18,6 +18,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
         public void Test_Generate_Accept_Contract()
         {
             // --- ARRANGE
+            string sysDbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
             string rootFolder = "TestGenAccept";
             var harness = new TestMultiHarness(rootFolder, COOP_SQL_MULTI_TEST, COOP_DB_MULTI_TEST);
 
@@ -58,18 +59,34 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             DRUMMER END;
             ", dbName);
 
-           Assert.False(reviewPolicyResult.Results.First().IsError);
+            Assert.False(reviewPolicyResult.Results.First().IsError);
 
             byte[] byteCustomerTablePolicy = reviewPolicyResult.Results.First().Rows[0].Values[0].Value.ToByteArray();
             int convertedProductPolicy = DbBinaryConvert.BinaryToInt(new Span<byte>(byteCustomerTablePolicy).Slice(1, 4));
 
             Assert.Equal((int)LogicalStoragePolicy.ParticipantOwned, convertedProductPolicy);
 
-            var generateContractResult = harness.ExecuteSQL(company,
-            $@"DRUMMER BEGIN;
-            GENERATE CONTRACT AS AUTHOR {company.Alias} DESCRIPTION ThisIsTheDescription;
-            DRUMMER END;"
-            , dbName);
+            var generateHostName = harness.ExecuteSQL(company, $@"
+            DRUMMER BEGIN;
+            GENERATE HOST INFO AS HOSTNAME {company.Alias};
+            DRUMMER END;
+            ", sysDbName);
+
+            Assert.False(generateHostName.Results.First().IsError);
+
+            var reviewHostName = harness.ExecuteSQL(company, $@"
+            DRUMMER BEGIN;
+            REVIEW HOST INFO;
+            DRUMMER END;
+            ", sysDbName);
+
+            Assert.False(reviewHostName.Results.First().IsError);
+
+            var generateContractResult = harness.ExecuteSQL(company, $@"
+            DRUMMER BEGIN;
+            GENERATE CONTRACT WITH DESCRIPTION IntroductionMessageGoesHere;
+            DRUMMER END;
+            ", dbName);
 
             Assert.False(generateContractResult.Results.First().IsError);
 
