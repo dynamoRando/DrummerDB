@@ -317,7 +317,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             row.SetValue(login.Hash, hash);
             row.SetValue(login.IsBanned, "false");
             row.SetValue(login.Workfactor, iterations.ToString());
-            _systemLogins.TryAddRow(row);
+            _systemLogins.XactAddRow(row);
 
             if (_log is not null)
             {
@@ -445,7 +445,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     int dbType = (int)db.DatabaseType;
                     record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, dbType.ToString());
 
-                    _databaseTableDatabases.TryAddRow(record);
+                    _databaseTableDatabases.XactAddRow(record);
                 }
             }
         }
@@ -463,7 +463,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, dbName);
                 record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, hostDbType.ToString());
 
-                _databaseTableDatabases.TryAddRow(record, transaction, transactionMode);
+                _databaseTableDatabases.XactAddRow(record, transaction, transactionMode);
             }
         }
 
@@ -477,7 +477,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var records = _databaseTableDatabases.GetRowsWithValue(dbNameSearch);
                 foreach (var record in records)
                 {
-                    _databaseTableDatabases.TryDeleteRow(record, transaction, transactionMode);
+                    _databaseTableDatabases.XactDeleteRow(record, transaction, transactionMode);
                 }
             }
         }
@@ -526,7 +526,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(DatabaseSchemas.Columns.SchemaName, Constants.DBO_SCHEMA);
                 row.SetValue(DatabaseSchemas.Columns.SchemaGUID, Constants.DBO_SCHEMA_GUID);
                 row.SetValueAsNullForColumn(DatabaseSchemas.Columns.ContractGUID);
-                _databaseSchemas.TryAddRow(row);
+                _databaseSchemas.XactAddRow(row);
             }
 
             var sysSchema = RowValueMaker.Create(_databaseSchemas, DatabaseSchemas.Columns.SchemaName, Constants.SYS_SCHEMA);
@@ -536,7 +536,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(DatabaseSchemas.Columns.SchemaName, Constants.SYS_SCHEMA);
                 row.SetValue(DatabaseSchemas.Columns.SchemaGUID, Constants.SYS_SCHEMA_GUID);
                 row.SetValueAsNullForColumn(DatabaseSchemas.Columns.ContractGUID);
-                _databaseSchemas.TryAddRow(row);
+                _databaseSchemas.XactAddRow(row);
             }
 
             // auto grant any role with full access permission to dbo and sys schemas
@@ -570,7 +570,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                             record.SetValue(DatabaseSchemaPermissions.Columns.SchemaGUID, Constants.SYS_SCHEMA_GUID);
                             record.SetValue(DatabaseSchemaPermissions.Columns.DbPermission, Convert.ToString((int)DbPermission.FullAccess));
 
-                            _databaseSchemaPermissions.TryAddRow(record);
+                            _databaseSchemaPermissions.XactAddRow(record);
                         }
                     }
                 }
@@ -602,7 +602,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(LoginRolesTable.Columns.RoleGUID, roleGuid.ToString());
                 row.SetValue(LoginRolesTable.Columns.UserName, userName);
                 row.SetValue(LoginRolesTable.Columns.UserGUID, Guid.Empty.ToString()); // this is lazy
-                _systemLoginRoles.TryAddRow(row);
+                _systemLoginRoles.XactAddRow(row);
 
                 foreach (var permission in role.Permisisons)
                 {
@@ -617,7 +617,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         permissionToAdd.SetValue(SystemRolesPermissions.Columns.RoleName, roleName);
                         permissionToAdd.SetValue(SystemRolesPermissions.Columns.RoleGUID, roleGuid.ToString());
                         permissionToAdd.SetValue(SystemRolesPermissions.Columns.SystemPermission, Convert.ToString((int)permission));
-                        _systemRolePermissions.TryAddRow(permissionToAdd);
+                        _systemRolePermissions.XactAddRow(permissionToAdd);
                     }
                 }
 
@@ -692,7 +692,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 role.SetValue(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleName,
                     SystemDatabaseConstants100.SystemLoginConstants.SystemRoles.Names.SystemAdmin);
                 role.SetValue(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleGUID, guid.ToString());
-                _systemRoles.TryAddRow(role);
+                _systemRoles.XactAddRow(role);
 
                 Row permission = _systemRolePermissions.GetNewLocalRow();
                 permission.SetValue(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleName,
@@ -701,7 +701,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 permission.SetValue(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.SystemPermission,
                     Convert.ToInt32(SystemPermission.FullAccess).ToString());
 
-                _systemRolePermissions.TryAddRow(permission);
+                _systemRolePermissions.XactAddRow(permission);
             }
 
         }

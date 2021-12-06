@@ -67,7 +67,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                             }
 
-                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            if (!table.XactAddRow(row, transaction, transactionMode))
                             {
                                 rowsAdded = false;
                             }
@@ -81,7 +81,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         foreach (var row in _tryRows)
                         {
-                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            if (!table.XactAddRow(row, transaction, transactionMode))
                             {
                                 rowsAdded = false;
                             }
@@ -125,7 +125,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 }
                             }
 
-                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            if (!table.XactAddRow(row, transaction, transactionMode))
                             {
                                 rowsAdded = false;
                             }
@@ -139,7 +139,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         foreach (var row in _tryRows)
                         {
-                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            if (!table.XactAddRow(row, transaction, transactionMode))
                             {
                                 rowsAdded = false;
                             }

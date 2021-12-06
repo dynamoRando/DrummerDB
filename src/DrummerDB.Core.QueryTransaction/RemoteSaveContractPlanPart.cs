@@ -15,6 +15,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public LockObjectRequest LockRequest { get; set; }
         public PlanPartType Type => PlanPartType.RemoteSaveContract;
 
+        public RemoteSaveContractPlanPart()
+        {
+            Operations = new List<IQueryPlanPartOperator>();
+        }
+
         public void AddOperation(IQueryPlanPartOperator operation)
         {
             Operations.Add(operation);

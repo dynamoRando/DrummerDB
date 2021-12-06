@@ -55,7 +55,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             foreach (var rowAddress in targets.Item2)
                             {
                                 var row = table.GetRow(rowAddress);
-                                if (table.TryDeleteRow(row, transaction, transactionMode))
+                                if (table.XactDeleteRow(row, transaction, transactionMode))
                                 {
                                     messages.Add("DELETE completed successfully");
                                 }

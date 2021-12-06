@@ -245,7 +245,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             if (HasTable(tableName))
             {
                 var table = GetTable(tableName);
-                table.SetLogicalStoragePolicy(policy, transaction, transactionMode);
+                table.XactSetLogicalStoragePolicy(policy, transaction, transactionMode);
 
                 var schema = _metaData.GetSchema(tableName, Name) as TableSchema;
                 schema.SetStoragePolicy(policy);

@@ -25,10 +25,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Properties
+        public override DatabaseType DatabaseType => DatabaseType.Host;
+        public override Guid Id => _baseDb.Id;
         public override string Name => _baseDb.Name;
         public override int Version => _baseDb.Version;
-        public override Guid Id => _baseDb.Id;
-        public override DatabaseType DatabaseType => DatabaseType.Host;
         #endregion
 
         #region Constructors
@@ -49,45 +49,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         #region Public Methods
 
-        public bool SendContractToParticipant(string aliasName, Guid contractGUID, out string errorMessage)
+        public override bool AddTable(TableSchema schema, out Guid tableObjectId)
         {
-            var participant = GetParticipant(aliasName);
-            Guid currentId = GetCurrentContractGUID();
-            var contract = GetContract(currentId);
-
-            return _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
+            return _baseDb.AddTable(schema, out tableObjectId);
         }
 
-        public Guid GetCurrentContractGUID()
+        public override bool AuthorizeUser(string userName, string pwInput, DbPermission permission, Guid objectId)
         {
-            // need to find the max contract in the sys.DatabaseContracts table
-            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
-            DateTime maxDate = DateTime.MinValue;
+            return _baseDb.AuthorizeUser(userName, pwInput, permission, objectId);
+        }
 
-            var rows = contracts.GetRows();
-            foreach (var row in rows)
-            {
-                var data = contracts.GetRow(row);
-                var stringDate = data.GetValueInString(Tables.DatabaseContracts.Columns.GeneratedDate);
-
-                var date = DateTime.Parse(stringDate);
-                if (date > maxDate)
-                {
-                    maxDate = date;
-                }
-            }
-
-            var maxDateValue = RowValueMaker.Create(contracts, DatabaseContracts.Columns.GeneratedDate, maxDate.ToString());
-            var maxContractRow = contracts.GetRowsWithValue(maxDateValue);
-
-            if (maxContractRow.Count != 1)
-            {
-                throw new InvalidOperationException("Max contract not found");
-            }
-
-            string stringContractGuid = maxContractRow.First().GetValueInString(DatabaseContracts.Columns.ContractGUID);
-
-            return Guid.Parse(stringContractGuid);
+        public override bool CreateUser(string userName, string pwInput)
+        {
+            return _baseDb.CreateUser(userName, pwInput);
         }
 
         public Contract GetContract(Guid contractGUID)
@@ -123,26 +97,46 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return contract;
         }
 
-        public bool HasParticipantAlias(string aliasName)
+        public Guid GetCurrentContractGUID()
         {
-            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
-            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
-            return participants.HasValue(searchItem);
-        }
+            // need to find the max contract in the sys.DatabaseContracts table
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+            DateTime maxDate = DateTime.MinValue;
 
-        public bool RequestParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, out string errorMessage )
-        {
-            var contractId = GetCurrentContractGUID();
-            var contract = GetContract(contractId);
-            _baseDb.LogParticipantSaveLatestContract(transaction, transactionMode, participant, contract);
-            var isError = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
-
-            if (!isError)
+            var rows = contracts.GetRows();
+            foreach (var row in rows)
             {
-                return true;
+                var data = contracts.GetRow(row);
+                var stringDate = data.GetValueInString(Tables.DatabaseContracts.Columns.GeneratedDate);
+
+                var date = DateTime.Parse(stringDate);
+                if (date > maxDate)
+                {
+                    maxDate = date;
+                }
             }
 
-            return false;
+            var maxDateValue = RowValueMaker.Create(contracts, DatabaseContracts.Columns.GeneratedDate, maxDate.ToString());
+            var maxContractRow = contracts.GetRowsWithValue(maxDateValue);
+
+            if (maxContractRow.Count != 1)
+            {
+                throw new InvalidOperationException("Max contract not found");
+            }
+
+            string stringContractGuid = maxContractRow.First().GetValueInString(DatabaseContracts.Columns.ContractGUID);
+
+            return Guid.Parse(stringContractGuid);
+        }
+
+        public override int GetMaxTableId()
+        {
+            return _baseDb.GetMaxTableId();
+        }
+
+        public override List<TransactionEntry> GetOpenTransactions()
+        {
+            throw new NotImplementedException();
         }
 
         public Participant GetParticipant(string aliasName)
@@ -181,6 +175,73 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
+        public override DatabaseSchemaInfo GetSchemaInformation(string schemaName)
+        {
+            return _baseDb.GetSchemaInformation(schemaName);
+        }
+
+        public override Table GetTable(int tableId)
+        {
+            return _baseDb.GetTable(tableId);
+        }
+
+        public override Table GetTable(string tableName, string schemaName)
+        {
+            return _baseDb.GetTable(tableName, schemaName);
+        }
+
+        public override Table GetTable(string tableName)
+        {
+            return _baseDb.GetTable(tableName);
+        }
+
+        public override Guid GetTableObjectId(string tableName)
+        {
+            return _baseDb.GetTableObjectId(tableName);
+        }
+
+        public override bool GrantUserPermission(string userName, DbPermission permission, Guid objectId)
+        {
+            return _baseDb.GrantUserPermission(userName, permission, objectId);
+        }
+
+        public bool HasParticipantAlias(string aliasName)
+        {
+            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
+            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
+            return participants.HasValue(searchItem);
+        }
+
+        public override bool HasSchema(string schemaName)
+        {
+            return _baseDb.HasSchema(schemaName);
+        }
+
+        public override bool HasTable(int tableId)
+        {
+            return _baseDb.HasTable(tableId);
+        }
+
+        public override bool HasTable(string tableName, string schemaName)
+        {
+            return _baseDb.HasTable(tableName, schemaName);
+        }
+
+        public override bool HasTable(string tableName)
+        {
+            return _baseDb.HasTable(tableName);
+        }
+
+        public override bool HasUser(string userName, Guid userId)
+        {
+            return _baseDb.HasUser(userName, userId);
+        }
+
+        public override bool HasUser(string userName)
+        {
+            return _baseDb.HasUser(userName);
+        }
+
         public bool IsReadyForCooperation()
         {
             foreach (var table in _baseDb.InMemoryTables)
@@ -202,6 +263,34 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return true;
         }
 
+        public override bool LogFileHasOpenTransaction(TransactionEntryKey key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool RequestParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, out string errorMessage)
+        {
+            var contractId = GetCurrentContractGUID();
+            var contract = GetContract(contractId);
+            _baseDb.XactLogParticipantSaveLatestContract(transaction, transactionMode, participant, contract);
+            var isError = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
+
+            if (!isError)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool SendContractToParticipant(string aliasName, Guid contractGUID, out string errorMessage)
+        {
+            var participant = GetParticipant(aliasName);
+            Guid currentId = GetCurrentContractGUID();
+            var contract = GetContract(currentId);
+
+            return _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
+        }
         public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy)
         {
             if (_baseDb.HasTable(tableName))
@@ -225,7 +314,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             if (_baseDb.HasTable(tableName))
             {
                 var table = _baseDb.GetTable(tableName);
-                table.SetLogicalStoragePolicy(policy, transaction, transactionMode);
+                table.XactSetLogicalStoragePolicy(policy, transaction, transactionMode);
 
                 var schema = _baseDb.MetaData.GetSchema(tableName, Name) as TableSchema;
                 schema.SetStoragePolicy(policy);
@@ -237,74 +326,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
-        public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
+        public override bool ValidateUser(string userName, string pwInput)
         {
-            return _baseDb.XactDropTable(tableName, transaction, transactionMode);
-        }
-
-        public override DatabaseSchemaInfo GetSchemaInformation(string schemaName)
-        {
-            return _baseDb.GetSchemaInformation(schemaName);
-        }
-
-        public override bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
-        {
-            return _baseDb.XactCreateSchema(schemaName, request, transactionMode);
-        }
-
-        public override bool HasSchema(string schemaName)
-        {
-            return _baseDb.HasSchema(schemaName);
-        }
-
-        public override Table GetTable(int tableId)
-        {
-            return _baseDb.GetTable(tableId);
-        }
-
-        public override int GetMaxTableId()
-        {
-            return _baseDb.GetMaxTableId();
-        }
-
-        public override bool HasTable(int tableId)
-        {
-            return _baseDb.HasTable(tableId);
-        }
-
-        public override bool HasTable(string tableName, string schemaName)
-        {
-            return _baseDb.HasTable(tableName, schemaName);
-        }
-
-        public override Table GetTable(string tableName, string schemaName)
-        {
-            return _baseDb.GetTable(tableName, schemaName);
-        }
-
-        public override Table GetTable(string tableName)
-        {
-            return _baseDb.GetTable(tableName);
-        }
-
-        public override bool HasUser(string userName, Guid userId)
-        {
-            return _baseDb.HasUser(userName, userId);
-        }
-
-        public override bool CreateUser(string userName, string pwInput)
-        {
-            return _baseDb.CreateUser(userName, pwInput);
-        }
-
-        public override bool HasUser(string userName)
-        {
-            return _baseDb.HasUser(userName);
-        }
-
-        public override bool AddTable(TableSchema schema, out Guid tableObjectId)
-        {
-            return _baseDb.AddTable(schema, out tableObjectId);
+            return _baseDb.ValidateUser(userName, pwInput);
         }
 
         public override bool XactAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
@@ -312,39 +336,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.XactAddTable(schema, transaction, transactionMode, out tableObjectId);
         }
 
-        public override bool HasTable(string tableName)
+        public override bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
         {
-            return _baseDb.HasTable(tableName);
+            return _baseDb.XactCreateSchema(schemaName, request, transactionMode);
         }
 
-        public override bool ValidateUser(string userName, string pwInput)
+        public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
-            return _baseDb.ValidateUser(userName, pwInput);
-        }
-
-        public override bool AuthorizeUser(string userName, string pwInput, DbPermission permission, Guid objectId)
-        {
-            return _baseDb.AuthorizeUser(userName, pwInput, permission, objectId);
-        }
-
-        public override List<TransactionEntry> GetOpenTransactions()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool LogFileHasOpenTransaction(TransactionEntryKey key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool GrantUserPermission(string userName, DbPermission permission, Guid objectId)
-        {
-            return _baseDb.GrantUserPermission(userName, permission, objectId);
-        }
-
-        public override Guid GetTableObjectId(string tableName)
-        {
-            return _baseDb.GetTableObjectId(tableName);
+            return _baseDb.XactDropTable(tableName, transaction, transactionMode);
         }
         #endregion
 

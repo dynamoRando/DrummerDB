@@ -144,7 +144,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row.SetValue("NickName", "Randster");
                 row.SetValue("Rank", "1");
 
-                table.TryAddRow(row);
+                table.XactAddRow(row);
 
                 var row2 = table.GetNewLocalRow();
                 row2.SortBinaryOrder();
@@ -158,7 +158,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row2.SetValue("NickName", "Way");
                 row2.SetValue("Rank", "1");
 
-                table.TryAddRow(row2);
+                table.XactAddRow(row2);
 
                 var row3 = table.GetNewLocalRow();
                 row3.SortBinaryOrder();
@@ -172,7 +172,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row3.SetValue("NickName", "Marky");
                 row3.SetValue("Rank", "6");
 
-                table.TryAddRow(row3);
+                table.XactAddRow(row3);
 
                 var row4 = table.GetNewLocalRow();
                 row4.SortBinaryOrder();
@@ -186,7 +186,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row4.SetValue("NickName", "Jen");
                 row4.SetValue("Rank", "55");
 
-                table.TryAddRow(row4);
+                table.XactAddRow(row4);
 
                 var row5 = table.GetNewLocalRow();
                 row5.SortBinaryOrder();
@@ -200,7 +200,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row5.SetValue("NickName", "Jack");
                 row5.SetValue("Rank", "44");
 
-                table.TryAddRow(row5);
+                table.XactAddRow(row5);
             }
 
             var queryManager = new QueryManager(manager, auth, xManager);

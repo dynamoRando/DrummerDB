@@ -18,16 +18,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
     internal class Table : ITable
     {
         #region Private Fields
-        private TableSchema _schema;
         private ICacheManager _cache;
-
+        private LogService _log;
         // this is never set?
         private IRemoteDataManager _remoteManager;
 
-        private IStorageManager _storage;
+        private TableSchema _schema;
         private ProcessUserDatabaseSettings _settings;
+        private IStorageManager _storage;
         private ITransactionEntryManager _xEntryManager;
-        private LogService _log;
         #endregion
 
         #region Public Properties
@@ -83,132 +82,93 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         #region Public Methods
         /// <summary>
-        /// Returns the total number of rows for the table
+        /// Checks the tree status in cache and attempts to load pages into memory if needed
         /// </summary>
-        /// <returns>The total number of rows in cache</returns>
-        /// <remarks>This is an expensive operation.</remarks>
-        public int RowCount()
+        /// <exception cref="InvalidOperationException"></exception>
+        public void BringTreeOnline()
         {
-            BringTreeOnline();
-            return _cache.GetRows(Address).Count;
-        }
+            var treeStaus = _cache.GetTreeMemoryStatus(Address);
 
-        public void SetLogicalStoragePolicy(LogicalStoragePolicy policy)
-        {
-            if (_schema is TableSchema)
+            if (treeStaus != TreeStatus.Ready)
             {
-                var schema = _schema as TableSchema;
-                schema.SetStoragePolicy(policy);
+                switch (treeStaus)
+                {
+                    case TreeStatus.TreeNotInMemory:
+                        HandleDataTreeNotInMemory();
+                        break;
+                    case TreeStatus.NoPagesOnTree:
+                        HandleNoPagesOnTree();
+                        break;
+                    case TreeStatus.Unknown:
+                    default:
+                        throw new InvalidOperationException("Unknown tree status");
+                }
             }
         }
 
-        public void SetLogicalStoragePolicy(LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
+        public int CountOfRowsWithAllValues(IRowValue[] values)
         {
-            if (_schema is TableSchema)
-            {
-                var schema = _schema as TableSchema;
-                schema.SetStoragePolicy(policy);
-            }
+            return _cache.CountOfRowsWithAllValues(Address, ref values);
         }
 
-        public LogicalStoragePolicy GetLogicalStoragePolicy()
+        public int CountOfRowsWithValue(RowValue value)
         {
-            if (_schema is TableSchema)
+            if (!HasColumn(value.Column.Name))
             {
-                var schema = _schema as TableSchema;
-                return schema.StoragePolicy;
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            return LogicalStoragePolicy.None;
+            return _cache.CountOfRowsWithValue(Address, value);
+        }
+
+        public List<RowAddress> FindRowAddressesWithValue(RowValue value, ValueComparisonOperator comparison, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            var result = new List<RowAddress>();
+
+            if (!HasColumn(value.Column.Name))
+            {
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
+            }
+
+            var rows = _cache.GetValues(Address, value.Column.Name, _schema);
+
+            foreach (var row in rows)
+            {
+                ResultsetValue physicalValue = _cache.GetValueAtAddress(row, value.Column);
+
+                // note: we need to make sure the binary arrays are actually equal
+                byte[] actualValue = physicalValue.Value;
+                byte[] expectedValue = value.GetValueInBinary(false, true);
+                if (ValueComparer.IsMatch(value.Column.DataType, actualValue, expectedValue, comparison))
+                {
+                    var rowAddress = new RowAddress(row.PageId, row.RowId, row.RowOffset);
+                    result.Add(rowAddress);
+                }
+            }
+
+            return result;
+        }
+
+        public List<IRow> FindRowsNotWithAllValues(List<RowValue> values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<IRow> FindRowsNotWithValue(RowValue value)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Returns the value addresses for all the rows specified, for the specified column
+        /// Finds the rows with any values.
         /// </summary>
-        /// <param name="rows">The rows to search for the specified value</param>
-        /// <param name="columnName">The column to get the value for</param>
-        /// <param name="transaction"></param>
-        /// <param name="transactionMode"></param>
+        /// <param name="values">The values.</param>
         /// <returns></returns>
-        public List<ValueAddress> GetValuesForColumnByRows(List<RowAddress> rows, string columnName, TransactionRequest transaction, TransactionMode transactionMode)
+        /// <exception cref="NotImplementedException"></exception>
+        /// <remarks>This performs effectively an OR operation on all the values</remarks>
+        public List<IRow> FindRowsWithAnyValues(List<RowValue> values)
         {
-            // default don't log
-            if (_settings is null)
-            {
-                return GetValuesForColumnByRows(columnName, rows);
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Returns the <see cref="ValueAddress"/>es for the specifed column
-        /// </summary>
-        /// <param name="columnName">The name of the column</param>
-        /// <param name="transaction">The <see cref="TransactionRequest"/> to log</param>
-        /// <param name="transactionMode">The <see cref="TransactionMode"/></param>
-        /// <returns>A list of <see cref="ValueAddress"/>es for the specified column</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the <see cref="TransactionMode"/> is unknown</exception>
-        /// <remarks>This function excludes rows that have been deleted</remarks>
-        public List<ValueAddress> GetAllValuesForColumn(string columnName, TransactionRequest transaction, TransactionMode transactionMode)
-        {
-            // default don't log
-            if (_settings is null)
-            {
-                return GetAllValuesForColumn(columnName);
-            }
-            else
-            {
-                if (_settings.LogSelectStatementsForHost)
-                {
-                    // this assumes the transaction batch id == transaction id
-                    // if not this entire implementation is wrong
-                    TransactionEntry xact = GetTransactionSelectEntry(transaction);
-
-
-                    // we need to log the SELECT action in the TRY phase, and then in the COMMIT phase, mark in the transaction log the read as committed
-                    // we take no action on the data file since we're just reading data, not modifying it
-                    switch (transactionMode)
-                    {
-                        case TransactionMode.Try:
-                            _storage.LogOpenTransaction(_schema.DatabaseId, xact);
-                            return GetAllValuesForColumn(columnName);
-                        case TransactionMode.Commit:
-                            xact.MarkComplete();
-                            _storage.LogCloseTransaction(_schema.DatabaseId, xact);
-                            return GetAllValuesForColumn(columnName);
-                        case TransactionMode.Rollback:
-                            xact.MarkDeleted();
-                            _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
-                            return GetAllValuesForColumn(columnName);
-                        case TransactionMode.Unknown:
-                            throw new InvalidOperationException("Unknown transaction mode");
-                        default:
-                            throw new InvalidOperationException("Unknown transaction mode");
-                    }
-                }
-                else
-                {
-                    return GetAllValuesForColumn(columnName);
-                }
-            }
-        }
-
-        public ResultsetValue GetValueAtAddress(ValueAddress address, TransactionRequest transaction)
-        {
-            if (HasColumn(address.ColumnName))
-            {
-                ColumnSchema column = GetColumn(address.ColumnName);
-
-                // this will be saved to disk
-                // need a corresponding method to mark the transaction as completed
-                TransactionEntry transactionEntry = GetTransactionSelectEntry(transaction);
-
-                return _cache.GetValueAtAddress(address, column);
-            }
-
-            throw new InvalidOperationException($"Column: {address.ColumnName} is not part of table {Name}");
-            
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -270,9 +230,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new ColumnSchemaStruct();
         }
 
-        public TableSchema Schema()
+        public LogicalStoragePolicy GetLogicalStoragePolicy()
         {
-            return _schema;
+            if (_schema is TableSchema)
+            {
+                var schema = _schema as TableSchema;
+                return schema.StoragePolicy;
+            }
+
+            return LogicalStoragePolicy.None;
         }
 
         /// <summary>
@@ -299,6 +265,156 @@ namespace Drummersoft.DrummerDB.Core.Databases
         }
 
         /// <summary>
+        /// Gets the row.
+        /// </summary>
+        /// <param name="address">The address of the row</param>
+        /// <returns>The row with the specified address if found, otherwise <c>NULL.</c></returns>
+        public IRow GetRow(RowAddress address)
+        {
+            IRow row = _cache.GetRow(address.RowId, Address);
+
+            // or alt
+            //IRow row = _cache.GetRow(address, Address);
+
+            if (row.IsLocal)
+            {
+                return row;
+            }
+            else
+            {
+                throw new NotImplementedException("Remote row handling not implemented yet");
+
+                var participantId = row.ParticipantId;
+                var remoteAddress = new SQLAddress { DatabaseId = this.Address.DatabaseId, TableId = this.Address.TableId, RowId = row.Id };
+                var participant = new Participant { Id = participantId.Value };
+                var remoteRow = _remoteManager.GetRowFromParticipant(participant, remoteAddress);
+
+                // not sure if this is correct, or we need to do some sort of conversion for the row that came from cache
+                // for example, does remote row identify itself as local? from the perspective of the caller, is is not.
+                return remoteRow;
+            }
+        }
+
+        public List<RowAddress> GetRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (!HasColumn(value.Column.Name))
+            {
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
+            }
+
+            return _cache.GetRowAddressesWithValue(Address, value);
+        }
+
+        /// <summary>
+        /// Returns a list of row address from the cache for every row location
+        /// </summary>
+        /// <returns>A list of row address from the cache for every row location</returns>
+        /// <remarks>This is an expensive operation and should be done sparingly.</remarks>
+        public List<RowAddress> GetRows()
+        {
+            BringTreeOnline();
+
+            return _cache.GetRows(Address);
+        }
+
+        public IRow[] GetRowsWithAllValues(IRowValue[] values)
+        {
+            foreach (var value in values)
+            {
+                if (!HasColumn(value.Column.Name))
+                {
+                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
+                }
+            }
+
+            var result = _cache.GetRowsWithAllValues(Address, ref values);
+
+            return result;
+        }
+
+        public List<IRow> GetRowsWithValue(RowValue value)
+        {
+            if (!HasColumn(value.Column.Name))
+            {
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
+            }
+
+            return _cache.GetRowsWithValue(Address, value, _schema);
+        }
+
+        public ResultsetValue GetValueAtAddress(ValueAddress address, TransactionRequest transaction)
+        {
+            if (HasColumn(address.ColumnName))
+            {
+                ColumnSchema column = GetColumn(address.ColumnName);
+
+                // this will be saved to disk
+                // need a corresponding method to mark the transaction as completed
+                TransactionEntry transactionEntry = GetTransactionSelectEntry(transaction);
+
+                return _cache.GetValueAtAddress(address, column);
+            }
+
+            throw new InvalidOperationException($"Column: {address.ColumnName} is not part of table {Name}");
+
+        }
+
+        /// <summary>
+        /// Returns the value addresses for all the rows specified, for the specified column
+        /// </summary>
+        /// <param name="rows">The rows to search for the specified value</param>
+        /// <param name="columnName">The column to get the value for</param>
+        /// <param name="transaction"></param>
+        /// <param name="transactionMode"></param>
+        /// <returns></returns>
+        public List<ValueAddress> GetValuesForColumnByRows(List<RowAddress> rows, string columnName, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            // default don't log
+            if (_settings is null)
+            {
+                return GetValuesForColumnByRows(columnName, rows);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Determines if all the passed values are found in the table.
+        /// </summary>
+        /// <param name="values">The values to search for in the table</param>
+        /// <returns>
+        ///   <c>true</c> if the table has all values; otherwise, <c>false</c>.
+        /// </returns>
+        /// <remarks>This effectively is an AND operation on the values supplied.</remarks>
+        public bool HasAllValues(List<RowValue> values)
+        {
+            values.ForEach(value =>
+            {
+                if (!(HasColumn(value.Column.Name)))
+                {
+                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
+                }
+            });
+
+            bool hasAllValues = false;
+
+            foreach (var value in values)
+            {
+                if (!_cache.HasValue(Address, value, _schema))
+                {
+                    hasAllValues = false;
+                    break;
+                }
+                else
+                {
+                    hasAllValues = true;
+                }
+            }
+
+            return hasAllValues;
+        }
+
+        /// <summary>
         /// Determines whether the table has a column with the specified name.
         /// </summary>
         /// <param name="columnName">Name of the column.</param>
@@ -310,134 +426,53 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _schema.HasColumn(columnName);
         }
 
-        public bool TryDeleteRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        /// <summary>
+        /// Checks to see if any row in the table contains the specified value
+        /// </summary>
+        /// <param name="value">The value to search for.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified table has the value; otherwise, <c>false</c>.
+        /// </returns>
+        /// <exception cref="ColumnNotFoundException">Thrown when the <seealso cref="ColumnSchema"/> in the row value is not part
+        /// of the table.</exception>
+        public bool HasValue(RowValue value)
         {
             BringTreeOnline();
 
-            TransactionEntry xact = null;
-            RowAddress rowAddress;
-
-            switch (transactionMode)
+            if (!HasColumn(value.Column.Name))
             {
-                case TransactionMode.None:
-
-                    return _cache.DeleteRow(row.Id, Address);
-
-                case TransactionMode.Try:
-
-                    rowAddress = _cache.GetRowAddress(Address, row.Id);
-                    xact = GetTransactionDeleteEntry(request, row, rowAddress);
-                    _xEntryManager.AddEntry(xact);
-                    _storage.LogOpenTransaction(_schema.DatabaseId, xact);
-                    return _cache.DeleteRow(row.Id, Address);
-
-                case TransactionMode.Rollback:
-
-                    xact = _xEntryManager.FindDeleteTransactionForRowId(row.Id);
-
-                    if (xact is not null)
-                    {
-                        if (TryAddRow(row))
-                        {
-                            xact.MarkDeleted();
-                            _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
-                            _xEntryManager.RemoveEntry(xact);
-                        }
-                    }
-
-                    return false;
-                case TransactionMode.Commit:
-                    xact = _xEntryManager.FindDeleteTransactionForRowId(row.Id);
-
-                    if (xact is not null)
-                    {
-                        var deleteAction = xact.GetActionAsDelete();
-                        xact.MarkComplete();
-                        IBaseDataPage pageToSave = _cache.UserDataGetPage(deleteAction.Address.ToPageAddress());
-                        _storage.SavePageDataToDisk(deleteAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
-                        _storage.LogCloseTransaction(_schema.DatabaseId, xact);
-                        _xEntryManager.RemoveEntry(xact);
-
-                        return true;
-                    }
-
-                    return false;
-                default:
-                    throw new InvalidOperationException("Unknown transaction mode");
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            return false;
+            return _cache.HasValue(Address, value, _schema);
         }
 
-        public bool TryUpdateRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        /// <summary>
+        /// Returns the total number of rows for the table
+        /// </summary>
+        /// <returns>The total number of rows in cache</returns>
+        /// <remarks>This is an expensive operation.</remarks>
+        public int RowCount()
         {
             BringTreeOnline();
-
-            TransactionEntry xact = null;
-            int pageId = 0;
-            IRow beforeRow = null;
-
-            if (TreeHasRoom(row.Size()))
-            {
-                switch (transactionMode)
-                {
-                    case TransactionMode.None:
-                        _cache.UpdateRow(row, Address, _schema, out pageId);
-
-                        return true;
-                        break;
-                    case TransactionMode.Try:
-                        beforeRow = _cache.GetRow(row.Id, Address);
-                        _cache.UpdateRow(row, Address, _schema, out pageId);
-
-                        xact = GetTransactionUpdateEntry(request, beforeRow, row, pageId);
-                        _xEntryManager.AddEntry(xact);
-                        _storage.LogOpenTransaction(_schema.DatabaseId, xact);
-
-                        return true;
-
-                    case TransactionMode.Rollback:
-                        xact = _xEntryManager.FindUpdateTransactionForRowId(row.Id);
-
-                        if (xact is not null)
-                        {
-                            var updateAction = xact.GetActionAsUpdate();
-
-                            _cache.UpdateRow(updateAction.Before, Address, _schema, out pageId);
-                            xact.MarkDeleted();
-                            _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
-                            _xEntryManager.RemoveEntry(xact);
-                            return true;
-                        }
-
-                        return false;
-
-                    case TransactionMode.Commit:
-                        xact = _xEntryManager.FindUpdateTransactionForRowId(row.Id);
-
-                        if (xact is not null)
-                        {
-                            var updateAction = xact.GetActionAsUpdate();
-                            xact.MarkComplete();
-                            IBaseDataPage pageToSave = _cache.UserDataGetPage(updateAction.Address.ToPageAddress());
-                            _storage.SavePageDataToDisk(updateAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, 
-                                pageToSave.DataPageType(), pageToSave.IsDeleted());
-                            _storage.LogCloseTransaction(_schema.DatabaseId, xact);
-                            _xEntryManager.RemoveEntry(xact);
-
-                            return true;
-                        }
-
-                        return false;
-                    default:
-                        throw new InvalidOperationException("Unknown transaction mode");
-                }
-            }
-
-            return false;
+            return _cache.GetRows(Address).Count;
         }
 
-        public bool TryAddRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        public TableSchema Schema()
+        {
+            return _schema;
+        }
+
+        public void SetLogicalStoragePolicy(LogicalStoragePolicy policy)
+        {
+            if (_schema is TableSchema)
+            {
+                var schema = _schema as TableSchema;
+                schema.SetStoragePolicy(policy);
+            }
+        }
+
+        public bool XactAddRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
         {
             int pageId = 0;
             CacheAddRowResult addResult;
@@ -580,262 +615,206 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <param name="row">The row.</param>
         /// <remarks>This should eventually be deprecated, because we are doing this in a transactional manner.</remarks>
-        public bool TryAddRow(IRow row)
+        public bool XactAddRow(IRow row)
         {
-            return TryAddRow(row, new TransactionRequest(), TransactionMode.None);
+            return XactAddRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public bool TryUpdateRow(IRow row)
-        {
-            return TryUpdateRow(row, new TransactionRequest(), TransactionMode.None);
-        }
-
-        public List<IRow> GetRowsWithValue(RowValue value)
-        {
-            if (!HasColumn(value.Column.Name))
-            {
-                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
-            }
-
-            return _cache.GetRowsWithValue(Address, value, _schema);
-        }
-
-        public int CountOfRowsWithValue(RowValue value)
-        {
-            if (!HasColumn(value.Column.Name))
-            {
-                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
-            }
-
-            return _cache.CountOfRowsWithValue(Address, value);
-        }
-
-        public List<RowAddress> GetRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)
-        {
-            if (!HasColumn(value.Column.Name))
-            {
-                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
-            }
-
-            return _cache.GetRowAddressesWithValue(Address, value);
-        }
-
-        public List<RowAddress> FindRowAddressesWithValue(RowValue value, ValueComparisonOperator comparison, TransactionRequest transaction, TransactionMode transactionMode)
-        {
-            var result = new List<RowAddress>();
-
-            if (!HasColumn(value.Column.Name))
-            {
-                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
-            }
-
-            var rows = _cache.GetValues(Address, value.Column.Name, _schema);
-
-            foreach (var row in rows)
-            {
-                ResultsetValue physicalValue = _cache.GetValueAtAddress(row, value.Column);
-
-                // note: we need to make sure the binary arrays are actually equal
-                byte[] actualValue = physicalValue.Value;
-                byte[] expectedValue = value.GetValueInBinary(false, true);
-                if (ValueComparer.IsMatch(value.Column.DataType, actualValue, expectedValue, comparison))
-                {
-                    var rowAddress = new RowAddress(row.PageId, row.RowId, row.RowOffset);
-                    result.Add(rowAddress);
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Checks to see if any row in the table contains the specified value
-        /// </summary>
-        /// <param name="value">The value to search for.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified table has the value; otherwise, <c>false</c>.
-        /// </returns>
-        /// <exception cref="ColumnNotFoundException">Thrown when the <seealso cref="ColumnSchema"/> in the row value is not part
-        /// of the table.</exception>
-        public bool HasValue(RowValue value)
+        public bool XactDeleteRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
         {
             BringTreeOnline();
 
-            if (!HasColumn(value.Column.Name))
+            TransactionEntry xact = null;
+            RowAddress rowAddress;
+
+            switch (transactionMode)
             {
-                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
-            }
+                case TransactionMode.None:
 
-            return _cache.HasValue(Address, value, _schema);
-        }
+                    return _cache.DeleteRow(row.Id, Address);
 
-        /// <summary>
-        /// Determines if all the passed values are found in the table.
-        /// </summary>
-        /// <param name="values">The values to search for in the table</param>
-        /// <returns>
-        ///   <c>true</c> if the table has all values; otherwise, <c>false</c>.
-        /// </returns>
-        /// <remarks>This effectively is an AND operation on the values supplied.</remarks>
-        public bool HasAllValues(List<RowValue> values)
-        {
-            values.ForEach(value =>
-            {
-                if (!(HasColumn(value.Column.Name)))
-                {
-                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
-                }
-            });
+                case TransactionMode.Try:
 
-            bool hasAllValues = false;
+                    rowAddress = _cache.GetRowAddress(Address, row.Id);
+                    xact = GetTransactionDeleteEntry(request, row, rowAddress);
+                    _xEntryManager.AddEntry(xact);
+                    _storage.LogOpenTransaction(_schema.DatabaseId, xact);
+                    return _cache.DeleteRow(row.Id, Address);
 
-            foreach (var value in values)
-            {
-                if (!_cache.HasValue(Address, value, _schema))
-                {
-                    hasAllValues = false;
-                    break;
-                }
-                else
-                {
-                    hasAllValues = true;
-                }
-            }
+                case TransactionMode.Rollback:
 
-            return hasAllValues;
-        }
+                    xact = _xEntryManager.FindDeleteTransactionForRowId(row.Id);
 
-        public int CountOfRowsWithAllValues(IRowValue[] values)
-        {
-            return _cache.CountOfRowsWithAllValues(Address, ref values);
-        }
+                    if (xact is not null)
+                    {
+                        if (XactAddRow(row))
+                        {
+                            xact.MarkDeleted();
+                            _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
+                            _xEntryManager.RemoveEntry(xact);
+                        }
+                    }
 
+                    return false;
+                case TransactionMode.Commit:
+                    xact = _xEntryManager.FindDeleteTransactionForRowId(row.Id);
 
-        public IRow[] GetRowsWithAllValues(IRowValue[] values)
-        {
-            foreach (var value in values)
-            {
-                if (!HasColumn(value.Column.Name))
-                {
-                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
-                }
-            }
+                    if (xact is not null)
+                    {
+                        var deleteAction = xact.GetActionAsDelete();
+                        xact.MarkComplete();
+                        IBaseDataPage pageToSave = _cache.UserDataGetPage(deleteAction.Address.ToPageAddress());
+                        _storage.SavePageDataToDisk(deleteAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
+                        _storage.LogCloseTransaction(_schema.DatabaseId, xact);
+                        _xEntryManager.RemoveEntry(xact);
 
-            var result = _cache.GetRowsWithAllValues(Address, ref values);
+                        return true;
+                    }
 
-            return result;
-        }
-
-
-
-        /// <summary>
-        /// Finds the rows with any values.
-        /// </summary>
-        /// <param name="values">The values.</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        /// <remarks>This performs effectively an OR operation on all the values</remarks>
-        public List<IRow> FindRowsWithAnyValues(List<RowValue> values)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<IRow> FindRowsNotWithAllValues(List<RowValue> values)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<IRow> FindRowsNotWithValue(RowValue value)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Returns a list of row address from the cache for every row location
-        /// </summary>
-        /// <returns>A list of row address from the cache for every row location</returns>
-        /// <remarks>This is an expensive operation and should be done sparingly.</remarks>
-        public List<RowAddress> GetRows()
-        {
-            BringTreeOnline();
-
-            return _cache.GetRows(Address);
-        }
-
-        /// <summary>
-        /// Gets the row.
-        /// </summary>
-        /// <param name="address">The address of the row</param>
-        /// <returns>The row with the specified address if found, otherwise <c>NULL.</c></returns>
-        public IRow GetRow(RowAddress address)
-        {
-            IRow row = _cache.GetRow(address.RowId, Address);
-
-            // or alt
-            //IRow row = _cache.GetRow(address, Address);
-
-            if (row.IsLocal)
-            {
-                return row;
-            }
-            else
-            {
-                throw new NotImplementedException("Remote row handling not implemented yet");
-
-                var participantId = row.ParticipantId;
-                var remoteAddress = new SQLAddress { DatabaseId = this.Address.DatabaseId, TableId = this.Address.TableId, RowId = row.Id };
-                var participant = new Participant { Id = participantId.Value };
-                var remoteRow = _remoteManager.GetRowFromParticipant(participant, remoteAddress);
-
-                // not sure if this is correct, or we need to do some sort of conversion for the row that came from cache
-                // for example, does remote row identify itself as local? from the perspective of the caller, is is not.
-                return remoteRow;
-            }
-        }
-
-        /// <summary>
-        /// Checks the tree status in cache and attempts to load pages into memory if needed
-        /// </summary>
-        /// <exception cref="InvalidOperationException"></exception>
-        public void BringTreeOnline()
-        {
-            var treeStaus = _cache.GetTreeMemoryStatus(Address);
-
-            if (treeStaus != TreeStatus.Ready)
-            {
-                switch (treeStaus)
-                {
-                    case TreeStatus.TreeNotInMemory:
-                        HandleDataTreeNotInMemory();
-                        break;
-                    case TreeStatus.NoPagesOnTree:
-                        HandleNoPagesOnTree();
-                        break;
-                    case TreeStatus.Unknown:
-                    default:
-                        throw new InvalidOperationException("Unknown tree status");
-                }
-            }
-        }
-        #endregion
-
-        #region Private Methods
-        /// <summary>
-        /// Checks the tree for this table in cache to see if it has room to add the row size specified
-        /// </summary>
-        /// <param name="sizeOfDataToAdd">The row size to add to the cache</param>
-        /// <returns><c>TRUE</c> if there is room available, otherwise <c>FALSE</c></returns>
-        private bool TreeHasRoom(int sizeOfDataToAdd)
-        {
-            var sizeStatus = _cache.GetTreeSizeStatus(Address, sizeOfDataToAdd);
-            if (sizeStatus == TreeStatus.Ready)
-            {
-                return true;
+                    return false;
+                default:
+                    throw new InvalidOperationException("Unknown transaction mode");
             }
 
             return false;
         }
 
+        /// <summary>
+        /// Returns the <see cref="ValueAddress"/>es for the specifed column
+        /// </summary>
+        /// <param name="columnName">The name of the column</param>
+        /// <param name="transaction">The <see cref="TransactionRequest"/> to log</param>
+        /// <param name="transactionMode">The <see cref="TransactionMode"/></param>
+        /// <returns>A list of <see cref="ValueAddress"/>es for the specified column</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the <see cref="TransactionMode"/> is unknown</exception>
+        /// <remarks>This function excludes rows that have been deleted</remarks>
+        public List<ValueAddress> XactGetAllValuesForColumn(string columnName, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            // default don't log
+            if (_settings is null)
+            {
+                return GetAllValuesForColumn(columnName);
+            }
+            else
+            {
+                if (_settings.LogSelectStatementsForHost)
+                {
+                    // this assumes the transaction batch id == transaction id
+                    // if not this entire implementation is wrong
+                    TransactionEntry xact = GetTransactionSelectEntry(transaction);
+
+
+                    // we need to log the SELECT action in the TRY phase, and then in the COMMIT phase, mark in the transaction log the read as committed
+                    // we take no action on the data file since we're just reading data, not modifying it
+                    switch (transactionMode)
+                    {
+                        case TransactionMode.Try:
+                            _storage.LogOpenTransaction(_schema.DatabaseId, xact);
+                            return GetAllValuesForColumn(columnName);
+                        case TransactionMode.Commit:
+                            xact.MarkComplete();
+                            _storage.LogCloseTransaction(_schema.DatabaseId, xact);
+                            return GetAllValuesForColumn(columnName);
+                        case TransactionMode.Rollback:
+                            xact.MarkDeleted();
+                            _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
+                            return GetAllValuesForColumn(columnName);
+                        case TransactionMode.Unknown:
+                            throw new InvalidOperationException("Unknown transaction mode");
+                        default:
+                            throw new InvalidOperationException("Unknown transaction mode");
+                    }
+                }
+                else
+                {
+                    return GetAllValuesForColumn(columnName);
+                }
+            }
+        }
+        public void XactSetLogicalStoragePolicy(LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (_schema is TableSchema)
+            {
+                var schema = _schema as TableSchema;
+                schema.SetStoragePolicy(policy);
+            }
+        }
+
+        public bool XactUpdateRow(IRow row)
+        {
+            return XactUpdateRow(row, new TransactionRequest(), TransactionMode.None);
+        }
+
+        public bool XactUpdateRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        {
+            BringTreeOnline();
+
+            TransactionEntry xact = null;
+            int pageId = 0;
+            IRow beforeRow = null;
+
+            if (TreeHasRoom(row.Size()))
+            {
+                switch (transactionMode)
+                {
+                    case TransactionMode.None:
+                        _cache.UpdateRow(row, Address, _schema, out pageId);
+
+                        return true;
+                        break;
+                    case TransactionMode.Try:
+                        beforeRow = _cache.GetRow(row.Id, Address);
+                        _cache.UpdateRow(row, Address, _schema, out pageId);
+
+                        xact = GetTransactionUpdateEntry(request, beforeRow, row, pageId);
+                        _xEntryManager.AddEntry(xact);
+                        _storage.LogOpenTransaction(_schema.DatabaseId, xact);
+
+                        return true;
+
+                    case TransactionMode.Rollback:
+                        xact = _xEntryManager.FindUpdateTransactionForRowId(row.Id);
+
+                        if (xact is not null)
+                        {
+                            var updateAction = xact.GetActionAsUpdate();
+
+                            _cache.UpdateRow(updateAction.Before, Address, _schema, out pageId);
+                            xact.MarkDeleted();
+                            _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
+                            _xEntryManager.RemoveEntry(xact);
+                            return true;
+                        }
+
+                        return false;
+
+                    case TransactionMode.Commit:
+                        xact = _xEntryManager.FindUpdateTransactionForRowId(row.Id);
+
+                        if (xact is not null)
+                        {
+                            var updateAction = xact.GetActionAsUpdate();
+                            xact.MarkComplete();
+                            IBaseDataPage pageToSave = _cache.UserDataGetPage(updateAction.Address.ToPageAddress());
+                            _storage.SavePageDataToDisk(updateAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, 
+                                pageToSave.DataPageType(), pageToSave.IsDeleted());
+                            _storage.LogCloseTransaction(_schema.DatabaseId, xact);
+                            _xEntryManager.RemoveEntry(xact);
+
+                            return true;
+                        }
+
+                        return false;
+                    default:
+                        throw new InvalidOperationException("Unknown transaction mode");
+                }
+            }
+
+            return false;
+        }
+        #endregion
+
+        #region Private Methods
         private List<ValueAddress> GetAllValuesForColumn(string columnName)
         {
 
@@ -856,63 +835,75 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return items;
         }
 
+        private int GetColumnId(string columnName)
+        {
+            foreach (var column in _schema.Columns)
+            {
+                if (string.Equals(column.Name, columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return column.Id;
+                }
+            }
+
+            return 0;
+        }
+
+        private int GetNextRowId()
+        {
+            BringTreeOnline();
+            int maxid = _cache.GetMaxRowIdForTree(Address);
+            maxid++;
+            return maxid;
+        }
+
+        private TransactionEntry GetTransactionDeleteEntry(TransactionRequest transaction, IRow rowToBeDeleted, RowAddress rowAddress)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
+            var tranDataAction = new DeleteTransaction(_schema.DatabaseId, _schema.Id, rowToBeDeleted.Id, rowAddress.PageId, rowAddress.RowOffset, rowToBeDeleted, _schema.Schema.SchemaGUID);
+            var entry = new TransactionEntry(transaction.TransactionBatchId, _schema.ObjectId, TransactionActionType.Data, Constants.DatabaseVersions.V100, tranDataAction, transaction.UserName, false, sequenceId);
+
+            return entry;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="TransactionEntry"/> with an action of INSERT for this database, table, and row
+        /// </summary>
+        /// <param name="transactionBatchId">The transaction batch id.</param>
+        /// <param name="row">The row being added</param>
+        /// <returns>A transaction entry with an action of INSERT for this database, table, and row</returns>
+        /// <remarks>This needs to be expanded to include the user issuing the transaction and the SQL plan.</remarks>
+        private TransactionEntry GetTransactionInsertEntry(TransactionRequest transaction, IRow row, int pageId)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
+            var tranDataAction = new InsertTransaction(_schema.DatabaseId, _schema.Id, row.Id, pageId, _schema.Schema.SchemaGUID, row.GetRowInTransactionBinaryFormat());
+            var entry = new TransactionEntry(transaction.TransactionBatchId, _schema.ObjectId, TransactionActionType.Data, Constants.DatabaseVersions.V100, tranDataAction, transaction.UserName, false, sequenceId);
+
+            return entry;
+        }
+
+        private TransactionEntry GetTransactionSelectEntry(TransactionRequest transaction)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
+
+            var tranDataAction = new SelectTableTransaction(_schema.DatabaseId, _schema.Id);
+            var entry = new TransactionEntry(transaction.TransactionBatchId, _schema.ObjectId, TransactionActionType.Data, Constants.DatabaseVersions.V100, tranDataAction, transaction.UserName, false, sequenceId);
+
+            return entry;
+        }
+
+        private TransactionEntry GetTransactionUpdateEntry(TransactionRequest transaction, IRow before, IRow after, int pageId)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
+            var tranDataAction = new UpdateTransaction(_schema.DatabaseId, _schema.Id, before.Id, pageId, before, after, _schema.Schema.SchemaGUID);
+            var entry = new TransactionEntry(transaction.TransactionBatchId, _schema.ObjectId, TransactionActionType.Data, Constants.DatabaseVersions.V100, tranDataAction, transaction.UserName, false, sequenceId);
+
+            return entry;
+        }
+
         private List<ValueAddress> GetValuesForColumnByRows(string columnName, List<RowAddress> rows)
         {
             return _cache.GetValuesForColumnByRows(Address, columnName, _schema, rows);
         }
-
-        private void HandleNoRoomOnTree()
-        {
-            var pages = _cache.UserDataGetContainerPages(Address);
-            var page = _storage.GetAnyUserDataPage(pages, Address, _schema, _schema.Id);
-
-            if (page is null)
-            {
-                var totalPagesOnDisk = _storage.GetTotalPages(Address);
-                var totalPagesInMemory = _cache.UserDataGetContainerPages(Address).Length;
-
-                // everything on disk is in memory
-                if (totalPagesOnDisk == totalPagesInMemory)
-                {
-                    var nextAddress = new PageAddress
-                    (
-                        Address.DatabaseId,
-                        Address.TableId,
-                        _storage.GetMaxPageId(Address) + 1,
-                        Schema().Schema.SchemaGUID
-                    );
-                    page = new UserDataPage100(nextAddress, _schema);
-                }
-            }
-
-            _cache.UserDataAddPageToContainer(page, Address);
-        }
-
-        private void HandleNoPagesOnTree()
-        {
-            var page = _storage.GetAnyUserDataPage(new int[0], Address, _schema, _schema.Id);
-
-            if (page is null)
-            {
-                var totalPagesOnDisk = _storage.GetTotalPages(Address);
-
-                // is a brand new database or table
-                if (totalPagesOnDisk == 0)
-                {
-                    var nextAddress = new PageAddress
-                   (
-                        Address.DatabaseId,
-                        Address.TableId,
-                        _storage.GetMaxPageId(Address) + 1,
-                        Schema().Schema.SchemaGUID
-                    );
-                    page = new UserDataPage100(nextAddress, _schema);
-                }
-            }
-
-            _cache.UserDataAddPageToContainer(page, Address, new TreeAddressFriendly(_schema.DatabaseName, _schema.Name, _schema.Schema.SchemaName, Address));
-        }
-
 
         /// <summary>
         /// Attempts to load the specified tree into cache from disk
@@ -996,70 +987,72 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        private int GetNextRowId()
+        private void HandleNoPagesOnTree()
         {
-            BringTreeOnline();
-            int maxid = _cache.GetMaxRowIdForTree(Address);
-            maxid++;
-            return maxid;
-        }
+            var page = _storage.GetAnyUserDataPage(new int[0], Address, _schema, _schema.Id);
 
-        private TransactionEntry GetTransactionDeleteEntry(TransactionRequest transaction, IRow rowToBeDeleted, RowAddress rowAddress)
-        {
-            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
-            var tranDataAction = new DeleteTransaction(_schema.DatabaseId, _schema.Id, rowToBeDeleted.Id, rowAddress.PageId, rowAddress.RowOffset, rowToBeDeleted, _schema.Schema.SchemaGUID);
-            var entry = new TransactionEntry(transaction.TransactionBatchId, _schema.ObjectId, TransactionActionType.Data, Constants.DatabaseVersions.V100, tranDataAction, transaction.UserName, false, sequenceId);
-
-            return entry;
-        }
-
-        private TransactionEntry GetTransactionUpdateEntry(TransactionRequest transaction, IRow before, IRow after, int pageId)
-        {
-            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
-            var tranDataAction = new UpdateTransaction(_schema.DatabaseId, _schema.Id, before.Id, pageId, before, after, _schema.Schema.SchemaGUID);
-            var entry = new TransactionEntry(transaction.TransactionBatchId, _schema.ObjectId, TransactionActionType.Data, Constants.DatabaseVersions.V100, tranDataAction, transaction.UserName, false, sequenceId);
-
-            return entry;
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="TransactionEntry"/> with an action of INSERT for this database, table, and row
-        /// </summary>
-        /// <param name="transactionBatchId">The transaction batch id.</param>
-        /// <param name="row">The row being added</param>
-        /// <returns>A transaction entry with an action of INSERT for this database, table, and row</returns>
-        /// <remarks>This needs to be expanded to include the user issuing the transaction and the SQL plan.</remarks>
-        private TransactionEntry GetTransactionInsertEntry(TransactionRequest transaction, IRow row, int pageId)
-        {
-            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
-            var tranDataAction = new InsertTransaction(_schema.DatabaseId, _schema.Id, row.Id, pageId, _schema.Schema.SchemaGUID, row.GetRowInTransactionBinaryFormat());
-            var entry = new TransactionEntry(transaction.TransactionBatchId, _schema.ObjectId, TransactionActionType.Data, Constants.DatabaseVersions.V100, tranDataAction, transaction.UserName, false, sequenceId);
-
-            return entry;
-        }
-
-        private TransactionEntry GetTransactionSelectEntry(TransactionRequest transaction)
-        {
-            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
-
-            var tranDataAction = new SelectTableTransaction(_schema.DatabaseId, _schema.Id);
-            var entry = new TransactionEntry(transaction.TransactionBatchId, _schema.ObjectId, TransactionActionType.Data, Constants.DatabaseVersions.V100, tranDataAction, transaction.UserName, false, sequenceId);
-
-            return entry;
-        }
-
-
-        private int GetColumnId(string columnName)
-        {
-            foreach (var column in _schema.Columns)
+            if (page is null)
             {
-                if (string.Equals(column.Name, columnName, StringComparison.OrdinalIgnoreCase))
+                var totalPagesOnDisk = _storage.GetTotalPages(Address);
+
+                // is a brand new database or table
+                if (totalPagesOnDisk == 0)
                 {
-                    return column.Id;
+                    var nextAddress = new PageAddress
+                   (
+                        Address.DatabaseId,
+                        Address.TableId,
+                        _storage.GetMaxPageId(Address) + 1,
+                        Schema().Schema.SchemaGUID
+                    );
+                    page = new UserDataPage100(nextAddress, _schema);
                 }
             }
 
-            return 0;
+            _cache.UserDataAddPageToContainer(page, Address, new TreeAddressFriendly(_schema.DatabaseName, _schema.Name, _schema.Schema.SchemaName, Address));
+        }
+
+        private void HandleNoRoomOnTree()
+        {
+            var pages = _cache.UserDataGetContainerPages(Address);
+            var page = _storage.GetAnyUserDataPage(pages, Address, _schema, _schema.Id);
+
+            if (page is null)
+            {
+                var totalPagesOnDisk = _storage.GetTotalPages(Address);
+                var totalPagesInMemory = _cache.UserDataGetContainerPages(Address).Length;
+
+                // everything on disk is in memory
+                if (totalPagesOnDisk == totalPagesInMemory)
+                {
+                    var nextAddress = new PageAddress
+                    (
+                        Address.DatabaseId,
+                        Address.TableId,
+                        _storage.GetMaxPageId(Address) + 1,
+                        Schema().Schema.SchemaGUID
+                    );
+                    page = new UserDataPage100(nextAddress, _schema);
+                }
+            }
+
+            _cache.UserDataAddPageToContainer(page, Address);
+        }
+
+        /// <summary>
+        /// Checks the tree for this table in cache to see if it has room to add the row size specified
+        /// </summary>
+        /// <param name="sizeOfDataToAdd">The row size to add to the cache</param>
+        /// <returns><c>TRUE</c> if there is room available, otherwise <c>FALSE</c></returns>
+        private bool TreeHasRoom(int sizeOfDataToAdd)
+        {
+            var sizeStatus = _cache.GetTreeSizeStatus(Address, sizeOfDataToAdd);
+            if (sizeStatus == TreeStatus.Ready)
+            {
+                return true;
+            }
+
+            return false;
         }
         #endregion
 
