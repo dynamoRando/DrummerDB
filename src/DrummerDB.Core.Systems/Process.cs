@@ -19,6 +19,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.Systems
@@ -60,7 +61,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         internal CryptoManager CryptoManager => _crypt as CryptoManager;
         internal StorageManager StorageManager => _storage as StorageManager;
         internal CacheManager CacheManager => _cache as CacheManager;
-        internal AuthenticationManager AuthenticationManager => _auth as AuthenticationManager;
+        internal IdentityAccess.AuthenticationManager AuthenticationManager => _auth as IdentityAccess.AuthenticationManager;
         #endregion
 
         #region Constructors
@@ -304,7 +305,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
         private void SetupAuth()
         {
-            _auth = new AuthenticationManager(_dbManager);
+            _auth = new IdentityAccess.AuthenticationManager(_dbManager);
         }
 
         private void SetupCrypt()
@@ -376,7 +377,19 @@ namespace Drummersoft.DrummerDB.Core.Systems
             _hostInfo.HostName = sysDb.HostName();
             _hostInfo.Token = sysDb.HostToken();
             _hostInfo.DatabasePortNumber = Settings.DatabaseServicePort;
-            _hostInfo.IP4Address = Settings.IP4Adress;
+
+            IPAddress address;
+
+            if (IPAddress.TryParse(Settings.IP4Adress, out address))
+            {
+                _hostInfo.IP4Address = address.MapToIPv4().ToString();
+                _hostInfo.IP6Address = address.MapToIPv6().ToString();
+            }
+            else
+            {
+                _hostInfo.IP4Address = Settings.IP4Adress;
+                _hostInfo.IP6Address = string.Empty;
+            }
         }
 
         #endregion

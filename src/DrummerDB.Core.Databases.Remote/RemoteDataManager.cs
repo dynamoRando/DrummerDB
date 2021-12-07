@@ -55,7 +55,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             try 
             {
-                result = sink.Client.SaveContract(null);
+                result = sink.Client.SaveContract(request);
             }
             catch (Exception ex)
             {

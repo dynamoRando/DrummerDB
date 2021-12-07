@@ -33,7 +33,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             comContract.ContractGUID = contract.ContractGUID.ToString();
             comContract.Description = contract.Description;
             comContract.ContractVersion = contract.Version.ToString();
-            comContract.GeneratedDate = contract.GeneratedDate.ToTimestamp();
+            comContract.GeneratedDate = contract.GeneratedDate.ToUniversalTime().ToTimestamp();
 
             var comSchema = new DatabaseSchema();
             comSchema.DatabaseId = contract.DatabaseId.ToString();
