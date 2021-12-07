@@ -497,6 +497,25 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
 
                     break;
+                case RemoteSaveContractOperator j:
+                    var remote = operation as RemoteSaveContractOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    db = _db.GetUserDatabase(remote.DatabaseName);
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Request_Participant_Save_Contract, db.Id))
+                    {
+                        return true;
+                    }
+                    break;
                 default:
                     throw new InvalidOperationException("Unknown operator type");
             }

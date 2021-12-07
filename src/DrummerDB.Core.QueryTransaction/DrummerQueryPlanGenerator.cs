@@ -419,8 +419,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var part = plan.GetPart(PlanPartType.Insert);
                 if (part is InsertQueryPlanPart)
                 {
-                    var insert = part as InsertQueryPlanPart;
-
                     IPAddress parsedAddress;
                     IPAddress.TryParse(ipAddress, out parsedAddress);
 

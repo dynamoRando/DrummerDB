@@ -14,6 +14,7 @@
         FullAccess,
         Create_Schema,
         Set_Logical_Storage_Policy,
-        Review_Logical_Storage_Policy
+        Review_Logical_Storage_Policy,
+        Request_Participant_Save_Contract
     }
 }

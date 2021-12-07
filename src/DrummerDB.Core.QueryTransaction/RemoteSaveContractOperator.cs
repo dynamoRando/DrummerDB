@@ -15,6 +15,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private HostDb _database;
         private Participant _participant;
 
+        public string DatabaseName => _database.Name;
+
         public RemoteSaveContractOperator(HostDb database, Participant participant)
         {
             _database = database;
