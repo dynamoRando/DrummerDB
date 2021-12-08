@@ -46,6 +46,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private Table _databaseTableDatabases;
         private Table _hostInfo;
         private Table _hosts;
+        private Table _coopContracts;
+        private Table _coopTables;
+        private Table _coopTableSchema;
         private LogService _log;
         #endregion
 
@@ -250,13 +253,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
             if (countOfHosts == 0)
             {
                 // need host, we need to add this
-                SaveNewContract(contract);
+                return SaveNewContract(contract);
             }
 
             if (countOfHosts == 1)
             {
                 // we need to update an existing contract
-                SaveExistingContract(contract);
+                return SaveExistingContract(contract);
             }
 
             if (countOfHosts > 1)
@@ -265,8 +268,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
 
-            // need to write contract information to all tables in the coop schema
-            throw new NotImplementedException();
+            return false;
         }
 
         public bool HasLogin(string userName)
@@ -362,6 +364,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             return result;
+        }
+
+        public bool HasHost(Guid hostId)
+        {
+            var hostTable = GetTable(Hosts.TABLE_NAME);
+            var hostIdValue = RowValueMaker.Create(hostTable, Hosts.Columns.HostGUID, hostId.ToString());
+
+            return hostTable.CountOfRowsWithValue(hostIdValue) > 0;
         }
 
         public void AssignUserToDefaultSystemAdmin(string userName)
@@ -494,11 +504,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             AddDefaultRolesAndPermissionsToTable();
             SetupSchemas();
             SetupDatabaseTable();
-            SetupHostInfo();
+            SetupHostInfoTable();
             SetupHostsTable();
+            SetupCoopContractTable();
+            SetupCoopTablesTable();
+            SetupCoopTableSchemaTable();
         }
 
-        private void SetupHostInfo()
+        private void SetupHostInfoTable()
         {
             _hostInfo = new Table(SystemDatabaseConstants100.Tables.HostInfo.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
@@ -639,11 +652,71 @@ namespace Drummersoft.DrummerDB.Core.Databases
             // add record to hosts table
             var hosts = GetTable(Hosts.TABLE_NAME);
 
-            string hostId = contract.Host.HostGUID.ToString();
+            var host = contract.Host;
+
+            string hostId = host.HostGUID.ToString();
+            string hostName = host.HostName;
+            byte[] token = host.Token;
+            string ip4 = host.IP4Address;
+            string ip6 = host.IP6Address;
+            int portNumber = host.DatabasePortNumber;
+
+            var hostRow = hosts.GetNewLocalRow();
+            hostRow.SetValue(Hosts.Columns.HostGUID, hostId);
+            hostRow.SetValue(Hosts.Columns.HostName, hostName);
+            hostRow.SetValue(Hosts.Columns.Token, token);
+            hostRow.SetValue(Hosts.Columns.IP4Address, ip4);
+            hostRow.SetValue(Hosts.Columns.IP6Address, ip6);
+            hostRow.SetValue(Hosts.Columns.PortNumber, portNumber.ToString());
+            hostRow.SetValue(Hosts.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
+            hosts.XactAddRow(hostRow);
+
+            // save contract data to all contract tables
+            var coopContracts = GetTable(CooperativeContracts.TABLE_NAME);
+
+            var coopContractRow = coopContracts.GetNewLocalRow();
+            coopContractRow.SetValue(CooperativeContracts.Columns.HostGuid, hostId);
+            coopContractRow.SetValue(CooperativeContracts.Columns.ContractGUID, contract.ContractGUID.ToString());
+            coopContractRow.SetValue(CooperativeContracts.Columns.DatabaseName, contract.DatabaseName);
+            coopContractRow.SetValue(CooperativeContracts.Columns.DatabaseId, contract.DatabaseId.ToString());
+            coopContractRow.SetValue(CooperativeContracts.Columns.Description, contract.Description);
+            coopContractRow.SetValue(CooperativeContracts.Columns.Version, contract.Version.ToString());
+            coopContractRow.SetValue(CooperativeContracts.Columns.GeneratedDate, contract.GeneratedDate.ToString());
+            coopContractRow.SetValue(CooperativeContracts.Columns.Status, Convert.ToInt32(contract.Status).ToString());
+            coopContracts.XactAddRow(coopContractRow);
+
+            var coopTable = GetTable(CooperativeTables.TABLE_NAME);
+            var coopTableColumn = GetTable(CooperativeTableSchemas.TABLE_NAME);
+            int tableId = 0;
+
+            foreach (var table in contract.Tables)
+            {
+                var coopTableRow = coopTable.GetNewLocalRow();
+                coopTableRow.SetValue(CooperativeTables.Columns.TableId, tableId.ToString());
+                coopTableRow.SetValue(CooperativeTables.Columns.TableName, table.Name);
+                coopTableRow.SetValue(CooperativeTables.Columns.DatabaseName, contract.DatabaseName);
+                coopTableRow.SetValue(CooperativeTables.Columns.LogicalStoragePolicy, Convert.ToInt32(table.StoragePolicy).ToString());
+                coopTable.XactAddRow(coopTableRow);
+
+                foreach (var column in table.Columns)
+                {
+                    var colRow = coopTableColumn.GetNewLocalRow();
+                    colRow.SetValue(CooperativeTableSchemas.Columns.TableId, tableId.ToString());
+                    colRow.SetValue(CooperativeTableSchemas.Columns.DatabaseId, contract.DatabaseId.ToString());
+                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnName, column.Name);
+                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnType, Convert.ToInt32(column.DataType).ToString());
+                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnLength, column.Length.ToString());
+                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnOrdinal, column.Ordinal.ToString());
+                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnIsNullable, column.IsNullable.ToString());
+                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnBinaryOrder, column.Ordinal.ToString());
+                    coopTableColumn.XactAddRow(colRow);
+                }
+
+                tableId++;
+            }
 
 
-
-            throw new NotImplementedException();
+            return true;
         }
 
         private bool SaveExistingContract(Contract contract)
@@ -685,6 +758,27 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _hosts = new Table(Hosts.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_hosts);
+        }
+
+        private void SetupCoopContractTable()
+        {
+            _coopContracts = new Table(CooperativeContracts.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_coopContracts);
+        }
+
+        private void SetupCoopTablesTable()
+        {
+            _coopTables = new Table(CooperativeTables.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_coopTables);
+        }
+
+        private void SetupCoopTableSchemaTable()
+        {
+            _coopTableSchema = new Table(CooperativeTableSchemas.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_coopTableSchema);
         }
 
         private void AddDefaultRolesAndPermissionsToTable()
