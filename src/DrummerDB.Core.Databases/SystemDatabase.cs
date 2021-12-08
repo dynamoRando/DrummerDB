@@ -695,6 +695,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 coopTableRow.SetValue(CooperativeTables.Columns.TableId, tableId.ToString());
                 coopTableRow.SetValue(CooperativeTables.Columns.TableName, table.Name);
                 coopTableRow.SetValue(CooperativeTables.Columns.DatabaseName, contract.DatabaseName);
+                coopTableRow.SetValue(CooperativeTables.Columns.DatabaseId, contract.DatabaseId.ToString());
                 coopTableRow.SetValue(CooperativeTables.Columns.LogicalStoragePolicy, Convert.ToInt32(table.StoragePolicy).ToString());
                 coopTable.XactAddRow(coopTableRow);
 
@@ -704,7 +705,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     colRow.SetValue(CooperativeTableSchemas.Columns.TableId, tableId.ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.DatabaseId, contract.DatabaseId.ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnName, column.Name);
-                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnType, Convert.ToInt32(column.DataType).ToString());
+                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnId, column.Id.ToString());
+
+                    var enumColDataType = SQLColumnTypeConverter.Convert(column.DataType, Constants.DatabaseVersions.V100);
+
+                    colRow.SetValue(CooperativeTableSchemas.Columns.ColumnType, Convert.ToInt32(enumColDataType).ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnLength, column.Length.ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnOrdinal, column.Ordinal.ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnIsNullable, column.IsNullable.ToString());

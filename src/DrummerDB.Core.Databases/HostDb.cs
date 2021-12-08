@@ -278,14 +278,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var contractId = GetCurrentContractGUID();
             var contract = GetContract(contractId);
             _baseDb.XactLogParticipantSaveLatestContract(transaction, transactionMode, participant, contract);
-            var isError = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
+            var isSaved = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
 
-            if (!isError)
+            if (!isSaved)
             {
-                return true;
+                return false;
             }
 
-            return false;
+            return true;
         }
 
         public bool SendContractToParticipant(string aliasName, Guid contractGUID, out string errorMessage)
