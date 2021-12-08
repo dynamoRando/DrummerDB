@@ -2,6 +2,8 @@
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -254,6 +256,69 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var systemDb = _dbManager.GetSystemDatabase();
                     // we need a table in the system database of pending contracts
                     // not just contracts that we have saved to disk as pending
+
+                    var hostsTable = systemDb.GetTable(Tables.Hosts.TABLE_NAME);
+                    var hostValue = RowValueMaker.Create(hostsTable, Tables.Hosts.Columns.HostName, author);
+                    var totalValues = hostsTable.CountOfRowsWithValue(hostValue);
+
+                    Guid hostGuid = Guid.Empty;
+
+                    if (totalValues == 0)
+                    {
+                        errorMessage = $"A contract with host with name {author} was not found";
+                        return false;
+                    }
+
+                    var rows = hostsTable.GetRowsWithValue(hostValue);
+
+                    if (rows.Count != 1)
+                    {
+                        errorMessage = $"More than 1 or no rows found for author {author}";
+                        return false;
+                    }
+
+                    foreach (var row in rows)
+                    {
+                        hostGuid = Guid.Parse(row.GetValueInString(Tables.Hosts.Columns.HostGUID));
+                    }
+
+                    if (hostGuid != Guid.Empty)
+                    {
+                        // need to lookup contracts with the host guid
+                        var coopContracts = systemDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+
+                        // make the search items
+                        var hostGuidValue = RowValueMaker.Create(coopContracts, Tables.CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
+                        var pendingContract = RowValueMaker.Create(coopContracts, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Pending).ToString());
+
+                        var searchValues = new List<RowValue>(2);
+                        searchValues.Add(hostGuidValue);
+                        searchValues.Add(pendingContract);
+
+                        var searchResults = coopContracts.GetRowsWithAllValues(searchValues.ToArray());
+
+                        if (searchResults.Count() == 0)
+                        {
+                            errorMessage = $"No pending contracts found for author {author}";
+                            return false;
+                        }
+
+                        if (searchResults.Count() > 1)
+                        {
+                            errorMessage = $"Multiple contracts found for author {author}";
+                            return false;
+                        }
+
+                        foreach (var result in searchResults)
+                        {
+                            // need to generate an UPDATE statement in the query plan generator to update the Cooperative Contracts table
+                            // to accept the contract
+
+                            // then we actually need to create the partial database and tables in it
+                            throw new NotImplementedException();
+
+                        }
+                    }
 
                     throw new NotImplementedException();
                 }
