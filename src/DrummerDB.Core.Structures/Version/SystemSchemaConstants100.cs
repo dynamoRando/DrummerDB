@@ -666,6 +666,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string GeneratedDate = "GeneratedDate";
                     public const string Description = "Description";
                     public const string RetiredDate = "RetiredDate";
+                    public const string Version = "Version";
                 }
 
                 public static ColumnSchema GetColumn(string columName)
@@ -692,7 +693,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(4);
+                        _columns = new ColumnSchemaCollection(5);
 
                         var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
                         _columns.Add(contractGuid);
@@ -705,6 +706,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                         var retireDate = new ColumnSchema(Columns.RetiredDate, new SQLDateTime(), 4);
                         _columns.Add(retireDate);
+
+                        var version = new ColumnSchema(Columns.Version, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 5);
+                        _columns.Add(version);
                     }
                 }
             }

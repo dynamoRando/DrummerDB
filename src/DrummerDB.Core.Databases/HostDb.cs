@@ -48,6 +48,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public void UpdateHostInfo(Guid hostGuid, string hostName, byte[] token)
+        {
+            _remote.UpdateHostInfo(hostGuid, hostName, token);
+        }
 
         public override bool AddTable(TableSchema schema, out Guid tableObjectId)
         {
@@ -86,6 +90,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             contract.ContractGUID = Guid.Parse(contractData.GetValueInString(DatabaseContracts.Columns.ContractGUID));
             contract.Description = contractData.GetValueInString(DatabaseContracts.Columns.Description);
             contract.GeneratedDate = DateTime.Parse(contractData.GetValueInString(DatabaseContracts.Columns.GeneratedDate));
+            contract.Version = Guid.Parse(contractData.GetValueInString(DatabaseContracts.Columns.Version));
 
             // now we need to send the entire database schema over as part of the contract
             // note: we exclude the sys schema since it is reserved and should not participate in logical storage policies

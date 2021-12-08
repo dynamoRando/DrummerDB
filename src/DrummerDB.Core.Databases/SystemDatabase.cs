@@ -45,6 +45,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private Table _databaseSchemaPermissions;
         private Table _databaseTableDatabases;
         private Table _hostInfo;
+        private Table _hosts;
         private LogService _log;
         #endregion
 
@@ -494,6 +495,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             SetupSchemas();
             SetupDatabaseTable();
             SetupHostInfo();
+            SetupHostsTable();
         }
 
         private void SetupHostInfo()
@@ -676,6 +678,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _systemRolePermissions = new Table(SystemRolesPermissions.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_systemRolePermissions);
+        }
+
+        private void SetupHostsTable()
+        {
+            _hosts = new Table(Hosts.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+
+            _systemTables.Add(_hosts);
         }
 
         private void AddDefaultRolesAndPermissionsToTable()

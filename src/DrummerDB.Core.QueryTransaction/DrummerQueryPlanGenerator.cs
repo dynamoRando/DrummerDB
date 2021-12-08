@@ -157,7 +157,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var insertValueHostGuid = new InsertValue(1, hostGuidColumn.Name, hostGuid.ToString());
                     var insertValueHostName = new InsertValue(2, hostNameColumn.Name, hostName);
                     var insertValueToken = new InsertValue(3, hostToken.Name, token.ToString());
-                    
+
                     insertRow.Values.Add(insertValueHostGuid);
                     insertRow.Values.Add(insertValueHostName);
                     insertRow.Values.Add(insertValueToken);
@@ -165,6 +165,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     insertHostOp.Rows.Add(insertRow);
 
                     part.AddOperation(insertHostOp);
+                }
+
+                if (!plan.HasPart(PlanPartType.GenerateHostInfo))
+                {
+                    plan.AddPart(new GenerateHostInfoPlanPart());
+                }
+
+                part = plan.GetPart(PlanPartType.GenerateHostInfo);
+                if (part is GenerateHostInfoPlanPart)
+                {
+                    var op = new GenerateHostInfoOperator(dbManager as IDbManager);
+                    part.Operations.Add(op);
                 }
             }
         }
@@ -553,11 +565,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         insertDatabaseContractsOp.TableSchemaName = Constants.SYS_SCHEMA;
 
                         contractGuid = Guid.NewGuid();
+                        var contractVersion = Guid.NewGuid();
 
                         var contractGuidColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.ContractGUID);
                         var generatedDateColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.GeneratedDate);
                         var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
                         var retiredColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RetiredDate);
+                        var versionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Version);
 
                         // need to create a row to insert
                         var insertRow = new InsertRow(1);
@@ -566,11 +580,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var insertValueGeneratedDate = new InsertValue(2, generatedDateColumn.Name, DateTime.Now.ToString());
                         var insertValueDescription = new InsertValue(3, descriptionColumn.Name, description);
                         var insertValueRetiredDate = new InsertValue(4, retiredColumn.Name, DateTime.MinValue.ToString());
+                        var insertValueVersion = new InsertValue(5, versionColumn.Name, contractVersion.ToString());
 
                         insertRow.Values.Add(insertValueContractGuid);
                         insertRow.Values.Add(insertValueGeneratedDate);
                         insertRow.Values.Add(insertValueDescription);
                         insertRow.Values.Add(insertValueRetiredDate);
+                        insertRow.Values.Add(insertValueVersion);
 
                         insertDatabaseContractsOp.Rows.Add(insertRow);
 

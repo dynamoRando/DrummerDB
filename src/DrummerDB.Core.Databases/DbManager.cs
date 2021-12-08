@@ -80,6 +80,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods        
+        public void UpdateHostInfoInDatabases(Guid hostGuid, string hostName, byte[] token)
+        {
+            foreach (var db in _userDatabases)
+            {
+                if (db is HostDb)
+                {
+                    var host = db as HostDb;
+                    host.UpdateHostInfo(hostGuid, hostName, token);
+                }
+            }
+        }
+
         public int UserDatabaseCount() => _userDatabases.Count();
         public string[] UserDatabaseNames() => _userDatabases.Names();
         public int SystemDatabaseCount() => _systemDatabases.Count();

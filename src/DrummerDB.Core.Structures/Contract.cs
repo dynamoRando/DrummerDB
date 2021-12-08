@@ -34,6 +34,19 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public Guid Version { get; set; }
         // the current state of the contract
         public ContractStatus Status { get; set; }
+
+        public Contract()
+        {
+            Tables = new List<ITableSchema>();
+            Host = new HostInfo();
+            ContractGUID = Guid.Empty;
+            GeneratedDate = DateTime.MinValue;
+            Description = string.Empty;
+            DatabaseName = string.Empty;
+            DatabaseId = Guid.Empty;
+            Version = Guid.Empty;
+            Status = ContractStatus.Unknown;
+        }
     }
 
     // the actual object sent to the Participant 

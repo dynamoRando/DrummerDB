@@ -37,6 +37,13 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #endregion
 
         #region Public Methods
+        public void UpdateHostInfo(Guid hostId, string hostName, byte[] token)
+        {
+            _hostInfo.HostGUID = hostId;
+            _hostInfo.HostName = hostName;
+            _hostInfo.Token = token;
+        }
+
         public bool SaveContractAtParticipant(structParticipant participant, structContract contract, out string errorMessage)
         {
             errorMessage = string.Empty;

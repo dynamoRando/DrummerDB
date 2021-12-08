@@ -516,8 +516,17 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
                     break;
+                case GenerateHostInfoOperator k:
+                    var op = operation as GenerateHostInfoOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    break;
                 default:
-                    throw new InvalidOperationException("Unknown operator type");
+                    throw new InvalidOperationException($"Unknown operator type {operation.GetType()}");
             }
 
             return false;

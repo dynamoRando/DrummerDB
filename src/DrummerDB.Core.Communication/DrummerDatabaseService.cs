@@ -12,6 +12,7 @@ using drumColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using System.Collections.Generic;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -117,6 +118,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
             dContract.Description = request.Contract.Description;
             dContract.Version = Guid.Parse(request.Contract.ContractVersion);
             dContract.GeneratedDate = request.Contract.GeneratedDate.ToDateTime();
+            dContract.ContractGUID = Guid.Parse(request.Contract.ContractGUID);
+            dContract.Status = ContractStatus.Pending;
 
             foreach (var table in request.Contract.Schema.Tables)
             {
@@ -138,6 +141,16 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 var tableSchema = new drumTableSchema(tableId, tableName, dContract.DatabaseId, dColumns);
                 dContract.Tables.Add(tableSchema);
             }
+
+            var host = new HostInfo();
+            host.DatabasePortNumber = Convert.ToInt32(request.Contract.HostInfo.DatabasePortNumber);
+            host.HostName = request.Contract.HostInfo.HostName;
+            host.HostGUID = Guid.Parse(request.Contract.HostInfo.HostGUID);
+            host.IP4Address = request.Contract.HostInfo.Ip4Address;
+            host.IP6Address = request.Contract.HostInfo.Ip6Address;
+            host.Token = request.Contract.HostInfo.Token.ToByteArray();
+
+            dContract.Host = host;
 
             return dContract;
         }
