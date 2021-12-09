@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases.Abstract;
+using Drummersoft.DrummerDB.Core.Databases.Remote;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures;
@@ -14,6 +15,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
     {
         #region Private Fields
         private BaseUserDatabase _baseDb;
+        private RemoteDataManager _remote;
         #endregion
 
         #region Public Properties
@@ -24,8 +26,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Constructors
-        public PartialDb(DatabaseMetadata metadata) : base(metadata)
+        public PartialDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager) : base(metadata)
         {
+            _baseDb = new BaseUserDatabase(metadata, xEntryManager);
+            _remote = metadata.RemoteDataManager;
+        }
+        internal PartialDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
+        {
+            _baseDb = new BaseUserDatabase(metadata, xEntryManager, log);
+            _remote = metadata.RemoteDataManager;
         }
         #endregion
 
