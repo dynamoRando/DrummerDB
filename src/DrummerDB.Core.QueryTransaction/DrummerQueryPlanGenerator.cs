@@ -293,10 +293,71 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         private void EvaluteForAcceptContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            string errorMessage = string.Empty;
+
             //ACCEPT CONTRACT BY AuthorName;
             if (line.StartsWith(DrummerKeywords.ACCEPT_CONTRACT_BY))
             {
-                throw new NotImplementedException();
+                // AuthorName;
+                string author = line.Replace(DrummerKeywords.ACCEPT_CONTRACT_BY + " ", string.Empty);
+
+                var systemDb = dbManager.GetSystemDatabase();
+                // we need a table in the system database of pending contracts
+                // not just contracts that we have saved to disk as pending
+
+                var hostsTable = systemDb.GetTable(Tables.Hosts.TABLE_NAME);
+                var hostValue = RowValueMaker.Create(hostsTable, Tables.Hosts.Columns.HostName, author);
+                var totalValues = hostsTable.CountOfRowsWithValue(hostValue);
+
+                Guid hostGuid = Guid.Empty;
+
+                if (totalValues == 0)
+                {
+                    errorMessage = $"A contract with host with name {author} was not found";
+                    throw new InvalidOperationException(errorMessage);
+                }
+
+                var rows = hostsTable.GetRowsWithValue(hostValue);
+
+                if (rows.Count != 1)
+                {
+                    errorMessage = $"More than 1 or no rows found for author {author}";
+                    throw new InvalidOperationException(errorMessage);
+                }
+
+                foreach (var row in rows)
+                {
+                    hostGuid = Guid.Parse(row.GetValueInString(Tables.Hosts.Columns.HostGUID));
+                }
+
+                if (hostGuid != Guid.Empty)
+                {
+                    // need to lookup contracts with the host guid
+                    var coopContracts = systemDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+
+                    // make the search items, WHERE HostGuid == <hostGuid> AND ContractStatus == Pending
+                    var hostGuidValue = RowValueMaker.Create(coopContracts, Tables.CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
+                    var pendingContract = RowValueMaker.Create(coopContracts, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Pending).ToString());
+
+                    var searchValues = new RowValue[2];
+                    searchValues[0] = hostGuidValue;
+                    searchValues[1] = pendingContract;
+
+                    var searchResults = coopContracts.GetRowsWithAllValues(searchValues.ToArray());
+
+                    if (searchResults.Count() == 0)
+                    {
+                        errorMessage = $"No pending contracts found for author {author}";
+                        return false;
+                    }
+
+                    if (searchResults.Count() > 1)
+                    {
+                        errorMessage = $"Multiple contracts found for author {author}";
+                        return false;
+                    }
+
+                    throw new NotImplementedException();
             }
         }
 

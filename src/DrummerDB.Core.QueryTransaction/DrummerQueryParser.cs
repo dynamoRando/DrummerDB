@@ -287,13 +287,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         // need to lookup contracts with the host guid
                         var coopContracts = systemDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
 
-                        // make the search items
+                        // make the search items, WHERE HostGuid == <hostGuid> AND ContractStatus == Pending
                         var hostGuidValue = RowValueMaker.Create(coopContracts, Tables.CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
                         var pendingContract = RowValueMaker.Create(coopContracts, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Pending).ToString());
 
-                        var searchValues = new List<RowValue>(2);
-                        searchValues.Add(hostGuidValue);
-                        searchValues.Add(pendingContract);
+                        var searchValues = new RowValue[2];
+                        searchValues[0] = hostGuidValue;
+                        searchValues[1] = pendingContract;
 
                         var searchResults = coopContracts.GetRowsWithAllValues(searchValues.ToArray());
 
@@ -308,19 +308,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             errorMessage = $"Multiple contracts found for author {author}";
                             return false;
                         }
-
-                        foreach (var result in searchResults)
-                        {
-                            // need to generate an UPDATE statement in the query plan generator to update the Cooperative Contracts table
-                            // to accept the contract
-
-                            // then we actually need to create the partial database and tables in it
-                            throw new NotImplementedException();
-
-                        }
                     }
-
-                    throw new NotImplementedException();
                 }
             }
 
