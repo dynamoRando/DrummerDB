@@ -95,7 +95,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             Guid dbId;
-            manager.TryCreateNewHostDatabase(userDbName, out dbId);
+            manager.XactCreateNewHostDatabase(userDbName, out dbId);
 
             var db = manager.GetUserDatabase(userDbName);
             manager.CreateAdminLogin(userName, password, Guid.NewGuid());
@@ -1077,10 +1077,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             dbManager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
 
-            dbManager.TryCreateNewHostDatabase(userDbName, out _);
-            dbManager.TryCreateNewHostDatabase("TestDb2", out _);
-            dbManager.TryCreateNewHostDatabase("TestDb3", out _);
-            dbManager.TryCreateNewHostDatabase("TestDb4", out _);
+            dbManager.XactCreateNewHostDatabase(userDbName, out _);
+            dbManager.XactCreateNewHostDatabase("TestDb2", out _);
+            dbManager.XactCreateNewHostDatabase("TestDb3", out _);
+            dbManager.XactCreateNewHostDatabase("TestDb4", out _);
 
             var db = dbManager.GetUserDatabase(userDbName);
             dbManager.CreateAdminLogin(userName, password, Guid.NewGuid());
@@ -1098,7 +1098,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             foreach (var row in selectDatabasesResult.Rows)
             {
-                string result = DbBinaryConvert.BinaryToString(row[0].Value);
+                string result = DbBinaryConvert.BinaryToString(row[1].Value);
                 Debug.WriteLine(result);
             }
 

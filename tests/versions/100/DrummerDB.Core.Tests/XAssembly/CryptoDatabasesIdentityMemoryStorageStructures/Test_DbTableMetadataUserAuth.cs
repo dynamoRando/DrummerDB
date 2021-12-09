@@ -89,7 +89,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
 
-            manager.TryCreateNewHostDatabase(userDbName, out _);
+            manager.XactCreateNewHostDatabase(userDbName, out _);
 
             var db = manager.GetUserDatabase(userDbName);
 
@@ -179,7 +179,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
-            manager.TryCreateNewHostDatabase(userDbName, out _);
+            manager.XactCreateNewHostDatabase(userDbName, out _);
             var db = manager.GetUserDatabase(userDbName);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             var addTableResult = db.AddTable(tableSchema, out tableObjectId);

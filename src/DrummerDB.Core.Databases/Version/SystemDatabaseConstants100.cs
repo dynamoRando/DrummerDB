@@ -200,7 +200,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
             }
 
             // A table that holds all the current in memory databases that are loaded
-            internal static class DatabaseTableDatabses
+            internal static class DatabaseTableDatabases
             {
                 public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.DATABASES_TABLE;
                 public const string TABLE_NAME = "Databases";

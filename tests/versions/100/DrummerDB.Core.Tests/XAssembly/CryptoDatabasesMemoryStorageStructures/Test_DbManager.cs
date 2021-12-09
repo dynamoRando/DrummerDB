@@ -212,7 +212,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             dbManager.LoadSystemDatabases(cache, storage, crypt, new HostInfo());
 
             // --- ACT
-            dbManager.TryCreateNewHostDatabase(dbName, out _);
+            dbManager.XactCreateNewHostDatabase(dbName, out _);
 
             // --- ASSERT
             Assert.True(dbManager.DeleteHostDatabase(dbName));

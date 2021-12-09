@@ -78,7 +78,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             // --- ACT
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
 
             var db = manager.GetUserDatabase(dbName);
 
@@ -160,7 +160,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             // --- ACT
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
 
             var db = manager.GetUserDatabase(dbName);
 

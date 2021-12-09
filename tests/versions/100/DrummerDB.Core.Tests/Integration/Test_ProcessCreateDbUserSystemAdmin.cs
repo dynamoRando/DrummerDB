@@ -65,7 +65,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Integration
             // --- ACT
             authManager.SetInitalSystemAdmin(sysLogin, sysLoginPw);
             Guid dbId;
-            dbManager.TryCreateNewHostDatabase(userDbName, out dbId);
+            dbManager.XactCreateNewHostDatabase(userDbName, out dbId);
 
             var tbName = "TableTestUsers";
             var tbId = 1;

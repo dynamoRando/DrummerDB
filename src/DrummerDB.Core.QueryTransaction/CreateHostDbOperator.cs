@@ -30,7 +30,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 {
                     var db = _db as DbManager;
                     Guid dbId;
-                    if (db.TryCreateNewHostDatabase(DatabaseName, transaction, transactionMode, out dbId))
+                    if (db.XactCreateNewHostDatabase(DatabaseName, transaction, transactionMode, out dbId))
                     {
                         messages.Add($"Database {DatabaseName} created with Id {dbId.ToString()}");
                     }

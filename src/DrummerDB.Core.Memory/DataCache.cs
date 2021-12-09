@@ -629,6 +629,14 @@ namespace Drummersoft.DrummerDB.Core.Memory
                         {
                             addresses.AddRange(page.GetRowsWithValue(value));
                         }
+                        else
+                        {
+                            // we want all values in the array to be found
+                            // as soon as one of them are not found, we should bail
+                            // in other words, this should behave as an AND operation for all values.
+                            // all values must be TRUE
+                            return 0;
+                        }
                     }
                 }
             }

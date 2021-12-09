@@ -445,42 +445,52 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             foreach (var db in databases)
             {
-                var dbName = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, db.Name);
+                var dbName = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseName, db.Name);
                 int count = _databaseTableDatabases.CountOfRowsWithValue(dbName);
 
                 if (count == 0)
                 {
                     var record = _databaseTableDatabases.GetNewLocalRow();
-                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, db.Name);
+                    record.SetValue(DatabaseTableDatabases.Columns.DatabaseName, db.Name);
 
                     int dbType = (int)db.DatabaseType;
-                    record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, dbType.ToString());
+                    record.SetValue(DatabaseTableDatabases.Columns.DatabaseType, dbType.ToString());
 
                     _databaseTableDatabases.XactAddRow(record);
                 }
             }
         }
 
-        public void AddNewHostDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
+        public void XactAddNewPartDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
         {
-            var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, dbName);
-            int count = _databaseTableDatabases.CountOfRowsWithValue(dbNameSearch);
+            throw new NotImplementedException();
+        }
+
+        public void XactAddNewHostDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            // this needs to specify the database type of host
+            var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseName, dbName);
+            var dbTypeSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseType, Convert.ToInt32(DatabaseType.Host).ToString());
+
+            var searchItems = new IRowValue[2] { dbNameSearch, dbTypeSearch }; 
+
+            int count = _databaseTableDatabases.CountOfRowsWithAllValues(searchItems);
 
             if (count == 0)
             {
                 int hostDbType = (int)DatabaseType.Host;
 
                 var record = _databaseTableDatabases.GetNewLocalRow();
-                record.SetValue(DatabaseTableDatabses.Columns.DatabaseName, dbName);
-                record.SetValue(DatabaseTableDatabses.Columns.DatabaseType, hostDbType.ToString());
+                record.SetValue(DatabaseTableDatabases.Columns.DatabaseName, dbName);
+                record.SetValue(DatabaseTableDatabases.Columns.DatabaseType, hostDbType.ToString());
 
                 _databaseTableDatabases.XactAddRow(record, transaction, transactionMode);
             }
         }
 
-        public void RemoveDbNameFromDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
+        public void XactRemoveDbNameFromDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
         {
-            var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabses.Columns.DatabaseName, dbName);
+            var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseName, dbName);
             int count = _databaseTableDatabases.CountOfRowsWithValue(dbNameSearch);
 
             if (count > 0)
@@ -520,7 +530,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void SetupDatabaseTable()
         {
-            _databaseTableDatabases = new Table(DatabaseTableDatabses.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
+            _databaseTableDatabases = new Table(DatabaseTableDatabases.Schema(_dbId, Name), _cache, _storage, _xEntryManager);
 
             _systemTables.Add(_databaseTableDatabases);
         }

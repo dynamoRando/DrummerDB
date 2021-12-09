@@ -325,14 +325,41 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
+        internal bool XactCreateNewPartialDatabase(Contract contract, TransactionRequest transaction, TransactionMode transactionMode, out Guid databaseId, int version = Constants.MAX_DATABASE_VERSION)
+        {
+            PartialDb partDb = null;
+            SystemDatabase system = null;
+
+            switch (transactionMode)
+            {
+                case TransactionMode.None:
+                    partDb = CreatePartialUserDatabaseOnDisk(contract, _storage, _crypt, _cache);
+                    databaseId = partDb.Id;
+
+                    if (_log is not null)
+                    {
+                        _log.Info($"New Partial User Database {contract.DatabaseName} created");
+                    }
+
+                    system = GetSystemDatabase();
+                    system.XactAddNewHostDbNameToDatabasesTable(contract.DatabaseName, transaction, transactionMode);
+
+                    break;
+                default:
+                    throw new NotImplementedException("Unknown transaction mode");
+            }
+
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Tries to create a new host database in a non-transactional manner. Defaults to no-transaction mode and no transaction request data
         /// </summary>
         /// <param name="dbName">The name of db to reate</param>
         /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
-        internal bool TryCreateNewHostDatabase(string dbName, out Guid databaseId)
+        internal bool XactCreateNewHostDatabase(string dbName, out Guid databaseId)
         {
-            return TryCreateNewHostDatabase(dbName, TransactionRequest.GetEmpty(), TransactionMode.None, out databaseId);
+            return XactCreateNewHostDatabase(dbName, TransactionRequest.GetEmpty(), TransactionMode.None, out databaseId);
         }
 
         /// <summary>
@@ -344,7 +371,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <param name="databaseId"></param>
         /// <param name="version"></param>
         /// <returns></returns>
-        internal bool TryCreateNewHostDatabase(string dbName, TransactionRequest transaction, TransactionMode transactionMode, out Guid databaseId, int version = Constants.MAX_DATABASE_VERSION)
+        internal bool XactCreateNewHostDatabase(string dbName, TransactionRequest transaction, TransactionMode transactionMode, out Guid databaseId, int version = Constants.MAX_DATABASE_VERSION)
         {
             HostDb host = null;
             TransactionEntry xact = null;
@@ -356,16 +383,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 case TransactionMode.None:
 
-                    host = CreateUserDatabaseOnDisk(dbName, _storage, _crypt, _cache) as HostDb;
+                    host = CreateHostUserDatabaseOnDisk(dbName, _storage, _crypt, _cache) as HostDb;
                     databaseId = host.Id;
 
                     if (_log is not null)
                     {
-                        _log.Info($"New User Database {dbName} created");
+                        _log.Info($"New Host User Database {dbName} created");
                     }
 
                     system = GetSystemDatabase();
-                    system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                    system.XactAddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                     return true;
 
@@ -375,7 +402,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     {
                         xact = GetTransactionEntryForNewHostDatabase(transaction, dbName, systemDbId);
                         _xEntryManager.AddEntry(xact);
-                        host = CreateUserDatabaseOnDisk(dbName, _storage, _crypt, _cache) as HostDb;
+                        host = CreateHostUserDatabaseOnDisk(dbName, _storage, _crypt, _cache) as HostDb;
                         _storage.LogOpenTransaction(systemDbId, xact);
                         databaseId = host.Id;
 
@@ -385,7 +412,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         }
 
                         system = GetSystemDatabase();
-                        system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                        system.XactAddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                         return true;
                     }
@@ -410,7 +437,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         }
 
                         system = GetSystemDatabase();
-                        system.RemoveDbNameFromDatabasesTable(dbName, transaction, transactionMode);
+                        system.XactRemoveDbNameFromDatabasesTable(dbName, transaction, transactionMode);
 
                         return true;
                     }
@@ -433,7 +460,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         }
 
                         system = GetSystemDatabase();
-                        system.AddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
+                        system.XactAddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                         return true;
                     }
@@ -573,6 +600,29 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _userDatabases.Add(database);
         }
 
+        private PartialDb CreatePartialUserDatabaseOnDisk(Contract contract, IStorageManager storage, ICryptoManager crypt, ICacheManager cache)
+        {
+            if (_storage is null)
+            {
+                _storage = storage;
+            }
+
+            if (_crypt is null)
+            {
+                _crypt = crypt;
+            }
+
+            if (_cache is null)
+            {
+                _cache = cache;
+            }
+
+            int version = Constants.DatabaseVersions.V100;
+            Guid dbId = Guid.NewGuid();
+
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Creates the needed system pages from <see cref="DatabasePageFactory"/>, asks <see cref="IStorageManager"/> to save those pages to disk, and adds the <see cref="ISystemPage"/> to <see cref="ICacheManager"/> and returns the 
         /// newly created <see cref="UserDatabase"/>
@@ -582,7 +632,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <param name="crypt">A reference to the crypt manager</param>
         /// <param name="cache">A reference to the cache manager</param>
         /// <returns>A newly constructored <see cref="UserDatabase"/> after needed structures and persisted to disk and loaded into memory</returns>
-        private UserDatabase CreateUserDatabaseOnDisk(string dbName, IStorageManager storage, ICryptoManager crypt, ICacheManager cache)
+        private UserDatabase CreateHostUserDatabaseOnDisk(string dbName, IStorageManager storage, ICryptoManager crypt, ICacheManager cache)
         {
             if (_storage is null)
             {

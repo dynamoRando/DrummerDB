@@ -81,7 +81,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
 
             string errorMessage;
 
@@ -157,7 +157,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
 
             string errorMessage;
 
@@ -233,7 +233,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
             var db = manager.GetUserDatabase(dbName);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             var createTableResult = db.AddTable(tableSchema, out _);
@@ -312,7 +312,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
             var db = manager.GetUserDatabase(dbName);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             var createTableResult = db.AddTable(tableSchema, out _);
@@ -373,7 +373,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
             var db = manager.GetUserDatabase(dbName);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             var createTableResult = db.AddTable(tableSchema, out _);

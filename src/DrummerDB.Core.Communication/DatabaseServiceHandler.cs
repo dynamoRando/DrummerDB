@@ -84,7 +84,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public bool CreateUserDatabase(string databaseName, out Guid databaseId)
         {
             var manager = _dbManager as DbManager;
-            return manager.TryCreateNewHostDatabase(databaseName, out databaseId);
+            return manager.XactCreateNewHostDatabase(databaseName, out databaseId);
         }
 
         public bool SaveContract(Contract contract)
