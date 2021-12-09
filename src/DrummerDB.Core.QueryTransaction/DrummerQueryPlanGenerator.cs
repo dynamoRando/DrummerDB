@@ -348,14 +348,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     if (searchResults.Count() == 0)
                     {
                         errorMessage = $"No pending contracts found for author {author}";
-                        return false;
+                        throw new InvalidOperationException(errorMessage);
                     }
 
                     if (searchResults.Count() > 1)
                     {
                         errorMessage = $"Multiple contracts found for author {author}";
-                        return false;
+                        throw new InvalidOperationException(errorMessage);
                     }
+                }
+                else
+                {
+                    errorMessage = $"Could not find host!";
+                    throw new InvalidOperationException(errorMessage);
+                }
 
                     throw new NotImplementedException();
             }
