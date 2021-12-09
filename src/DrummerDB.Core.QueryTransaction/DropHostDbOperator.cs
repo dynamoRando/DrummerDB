@@ -14,10 +14,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public int Order { get; set; }
         public IQueryPlanPartOperator PreviousOperation { get; set; }
         public IQueryPlanPartOperator NextOperation { get; set; }
+        public DatabaseType DatabaseType { get; set; }
 
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
-            if (_db.HasUserDatabase(DatabaseName))
+            if (_db.HasUserDatabase(DatabaseName, DatabaseType))
             {
                 if (_db is DbManager)
                 {

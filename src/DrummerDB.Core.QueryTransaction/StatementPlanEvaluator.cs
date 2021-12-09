@@ -83,7 +83,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (plan is not null)
             {
                 var createSchemaPlan = new CreateSchemaPlanPart();
-                var createSchema = new CreateSchemaOperator(statement.Name, databaseName, dbManager);
+
+                // default create in host database; may need to change later
+                var createSchema = new CreateSchemaOperator(statement.Name, databaseName, dbManager, DatabaseType.Host);
                 createSchemaPlan.Operations.Add(createSchema);
                 plan.Parts.Add(createSchemaPlan);
             }

@@ -2,6 +2,7 @@
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
 
@@ -76,7 +77,7 @@ namespace Drummersoft.DrummerDB.Core.IdentityAccess
                 }
                 else
                 {
-                    var db = _dbs.GetUserDatabase(dbName);
+                    var db = _dbs.GetUserDatabase(dbName, DatabaseType.Host);
                     if (db.HasUser(userName))
                     {
                         return db.AuthorizeUser(userName, pw, permission, objectId);

@@ -55,14 +55,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, out string errorMessage)
         {
-            if (!dbManager.HasDatabase(dbName))
+            if (!dbManager.HasDatabase(dbName, DatabaseType.Host))
             {
                 errorMessage = $"Database {dbName} was not found";
                 return false;
             }
             else
             {
-                IDatabase database = dbManager.GetDatabase(dbName);
+                // default host type
+                IDatabase database = dbManager.GetDatabase(dbName, DatabaseType.Host);
                 if (database is not null)
                 {
                     _db = database;

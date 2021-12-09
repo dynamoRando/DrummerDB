@@ -2,6 +2,7 @@
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Tests.Mocks;
 using System;
@@ -80,7 +81,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             manager.XactCreateNewHostDatabase(dbName, out _);
 
-            var db = manager.GetUserDatabase(dbName);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
 
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
 
@@ -162,7 +163,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             manager.XactCreateNewHostDatabase(dbName, out _);
 
-            var db = manager.GetUserDatabase(dbName);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
 
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
 

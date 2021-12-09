@@ -13,6 +13,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     {
         private IDbManager _db;
         public string DatabaseName { get; set; }
+        public DatabaseType DatabaseType { get; set; }
         public int Order { get; set; }
         public string TableName { get; set; }
         public List<ColumnSchema> Columns { get; set; }
@@ -23,12 +24,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             Guid tableId;
 
-            if (_db.HasUserDatabase(DatabaseName))
+            if (_db.HasUserDatabase(DatabaseName, DatabaseType))
             {
                 if (_db is DbManager)
                 {
                     var db = _db as DbManager;
-                    UserDatabase targetDb = db.GetUserDatabase(DatabaseName);
+                    UserDatabase targetDb = db.GetUserDatabase(DatabaseName, DatabaseType);
 
                     int id = targetDb.GetMaxTableId() + 1;
 

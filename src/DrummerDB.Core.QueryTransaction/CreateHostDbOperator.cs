@@ -24,7 +24,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
-            if (!_db.HasUserDatabase(DatabaseName))
+            if (!_db.HasUserDatabase(DatabaseName, DatabaseType.Host))
             {
                 if (_db is DbManager)
                 {

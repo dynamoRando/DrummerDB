@@ -4,6 +4,7 @@ using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Diagnostics;
@@ -150,7 +151,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <returns>The results of the sql statement</returns>
         public Resultset ExecuteValidatedStatement(string sqlStatement, string dbName, string un, string pw, Guid userSessionId)
         {
-            QueryPlan plan = GetQueryPlan(sqlStatement, dbName);
+            // default to host type databases; may need to make this a thing that is passed by the SQL client
+            QueryPlan plan = GetQueryPlan(sqlStatement, dbName, DatabaseType.Host);
 
             if (plan is null)
             {
@@ -174,14 +176,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return _queryExecutor.ExecutePlanAsync(queryPlan, userName, pw, userSessionId).Result;
         }
 
-        private QueryPlan GetQueryPlan(string sqlStatement, string dbName)
+        private QueryPlan GetQueryPlan(string sqlStatement, string dbName, DatabaseType type)
         {
             IDatabase db = null;
             if (!string.IsNullOrWhiteSpace(dbName))
             {
-                if (_dbManager.HasDatabase(dbName))
+                if (_dbManager.HasDatabase(dbName, type))
                 {
-                    db = _dbManager.GetDatabase(dbName);
+                    db = _dbManager.GetDatabase(dbName, type);
 
                     // need to see if this has drummer keywords
                     if (ContainsDrummerKeywords(sqlStatement))
@@ -199,9 +201,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 // check to see if the db name was specified in the statement, if not, then default system db
                 string parsedDbName = GetDatabaseName(sqlStatement);
-                if (_dbManager.HasDatabase(parsedDbName))
+                if (_dbManager.HasDatabase(parsedDbName, type))
                 {
-                    db = _dbManager.GetDatabase(parsedDbName);
+                    db = _dbManager.GetDatabase(parsedDbName, type);
 
                     // for the parser to work correctly, we need to remove the USE {dbName} statement
                     sqlStatement = RemoveUsingStatement(sqlStatement, parsedDbName);

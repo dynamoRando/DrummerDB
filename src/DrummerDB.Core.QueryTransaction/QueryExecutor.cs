@@ -345,7 +345,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(ctOp.DatabaseName);
+                    db = _db.GetUserDatabase(ctOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -365,7 +365,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(itOp.DatabaseName);
+                    db = _db.GetUserDatabase(itOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -384,7 +384,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(upOp.DatabaseName);
+                    db = _db.GetUserDatabase(upOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -403,7 +403,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(delOp.DatabaseName);
+                    db = _db.GetUserDatabase(delOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -423,7 +423,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(csOp.DatabaseName);
+                    db = _db.GetUserDatabase(csOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -444,7 +444,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(lspOp.DatabaseName);
+                    db = _db.GetUserDatabase(lspOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -465,7 +465,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(rlspOp.DatabaseName);
+                    db = _db.GetUserDatabase(rlspOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -485,7 +485,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(dtOp.Database.Name);
+                    db = _db.GetUserDatabase(dtOp.Database.Name, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -505,7 +505,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(remote.DatabaseName);
+                    db = _db.GetUserDatabase(remote.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;

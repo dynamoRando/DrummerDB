@@ -3,7 +3,7 @@
     /// <summary>
     /// The type of database. See also <seealso cref="DataFileType"/>.
     /// </summary>
-    enum DatabaseType
+    internal enum DatabaseType
     {
         Unknown,
         Host,

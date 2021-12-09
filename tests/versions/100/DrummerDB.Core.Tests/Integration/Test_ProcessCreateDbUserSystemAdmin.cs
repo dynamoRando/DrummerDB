@@ -1,6 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Systems;
 using Drummersoft.DrummerDB.Core.Tests.XAssembly;
@@ -76,7 +77,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Integration
 
             cols.Add(col1);
 
-            var db = dbManager.GetUserDatabase(userDbName);
+            var db = dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             db.AddTable(tableSchema, out tableObjectId);
 

@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Tests.Mocks;
 using System;
@@ -234,7 +235,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var parser = new QueryParser(statementHandler);
 
             manager.XactCreateNewHostDatabase(dbName, out _);
-            var db = manager.GetUserDatabase(dbName);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             var createTableResult = db.AddTable(tableSchema, out _);
 
@@ -313,7 +314,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var parser = new QueryParser(statementHandler);
 
             manager.XactCreateNewHostDatabase(dbName, out _);
-            var db = manager.GetUserDatabase(dbName);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             var createTableResult = db.AddTable(tableSchema, out _);
 
@@ -374,7 +375,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var parser = new QueryParser(statementHandler);
 
             manager.XactCreateNewHostDatabase(dbName, out _);
-            var db = manager.GetUserDatabase(dbName);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             var createTableResult = db.AddTable(tableSchema, out _);
 

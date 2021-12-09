@@ -162,7 +162,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <param name="name">The user db name to check</param>
         /// <returns><c>true</c> if it exists in the collection, otherwise <c>false</c></returns>
-        public bool HasUserDatabase(string name)
+        public bool HasUserDatabase(string name, DatabaseType type)
         {
             // occurs if we have not called LoadUserDatabases(), normally happens during testing
             if (_userDatabases is null)
@@ -171,7 +171,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 return false;
             }
 
-            return _userDatabases.Contains(name);
+            return _userDatabases.Contains(name, type);
         }
 
         public bool HasSystemDatabase(string name)
@@ -342,9 +342,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     }
 
                     system = GetSystemDatabase();
-                    system.XactAddNewHostDbNameToDatabasesTable(contract.DatabaseName, transaction, transactionMode);
+                    system.XactAddNewPartDbNameToDatabasesTable(contract.DatabaseName, transaction, transactionMode);
 
-                    break;
+                    return true;
+
                 default:
                     throw new NotImplementedException("Unknown transaction mode");
             }
@@ -398,7 +399,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 case TransactionMode.Try:
 
-                    if (!HasUserDatabase(dbName))
+                    if (!HasUserDatabase(dbName, DatabaseType.Host))
                     {
                         xact = GetTransactionEntryForNewHostDatabase(transaction, dbName, systemDbId);
                         _xEntryManager.AddEntry(xact);
@@ -422,7 +423,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 case TransactionMode.Rollback:
 
-                    if (HasUserDatabase(dbName))
+                    if (HasUserDatabase(dbName, DatabaseType.Host))
                     {
                         DeleteHostDatabase(dbName);
                         xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
@@ -447,7 +448,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 case TransactionMode.Commit:
 
-                    if (HasUserDatabase(dbName))
+                    if (HasUserDatabase(dbName, DatabaseType.Host))
                     {
                         xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
                         xact.MarkComplete();
@@ -483,7 +484,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public bool HasDatabase(string dbName)
+        public bool HasDatabase(string dbName, DatabaseType type)
         {
             // occurs if we have not called LoadUserDatabases(), normally happens during testing
             if (_userDatabases is null)
@@ -496,7 +497,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 _systemDatabases = new SystemDatabaseCollection();
             }
 
-            if (_userDatabases.Contains(dbName))
+            if (_userDatabases.Contains(dbName, type))
             {
                 return true;
             }
@@ -509,10 +510,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
-        public IDatabase GetDatabase(string dbName)
+        public IDatabase GetDatabase(string dbName, DatabaseType type)
         {
             IDatabase database;
-            database = _userDatabases.GetUserDatabase(dbName);
+            database = _userDatabases.GetUserDatabase(dbName, type);
 
             if (database is null)
             {
@@ -532,7 +533,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public HostDb GetHostDatabase(string dbName)
         {
-            return _userDatabases.GetUserDatabase(dbName) as HostDb;
+            return _userDatabases.GetUserDatabase(dbName, DatabaseType.Host) as HostDb;
         }
 
         /// <summary>
@@ -540,9 +541,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <param name="dbName">The db to return</param>
         /// <returns>The specified db</returns>
-        public UserDatabase GetUserDatabase(string dbName)
+        public UserDatabase GetUserDatabase(string dbName, DatabaseType type)
         {
-            return _userDatabases.GetUserDatabase(dbName);
+            return _userDatabases.GetUserDatabase(dbName, type);
         }
 
         public SystemDatabase GetSystemDatabase()
@@ -620,6 +621,28 @@ namespace Drummersoft.DrummerDB.Core.Databases
             int version = Constants.DatabaseVersions.V100;
             Guid dbId = Guid.NewGuid();
 
+            List<IPage> pages = DatabasePageFactory.GetNewDatabasePages(contract.DatabaseName, DataFileType.Partial, dbId, version);
+            _storage.CreateUserDatabase(contract.DatabaseName, pages, DataFileType.Partial, version);
+
+            SystemPage systemPage = null;
+
+            foreach (var page in pages)
+            {
+                if (page is SystemPage)
+                {
+                    systemPage = page as SystemPage;
+                    _cache.AddUserDbSystemPage(systemPage);
+                }
+            }
+
+            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(_hostInfo));
+            var partDb = new PartialDb(metadata, _xEntryManager);
+
+            if (!HasUserDatabase(partDb.Name, DatabaseType.Partial))
+            {
+                AddUserDatabaseToCollection(partDb);
+            }
+
             throw new NotImplementedException();
         }
 
@@ -669,7 +692,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(_hostInfo));
             var hostDb = new HostDb(metadata, _xEntryManager);
 
-            if (!HasUserDatabase(hostDb.Name))
+            if (!HasUserDatabase(hostDb.Name, DatabaseType.Host))
             {
                 AddUserDatabaseToCollection(hostDb);
             }
@@ -735,6 +758,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             return xEntry;
         }
+
         #endregion
     }
 }

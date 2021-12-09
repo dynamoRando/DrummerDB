@@ -6,6 +6,7 @@ using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Tests.Integration;
 using System;
@@ -91,7 +92,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             manager.XactCreateNewHostDatabase(userDbName, out _);
 
-            var db = manager.GetUserDatabase(userDbName);
+            var db = manager.GetUserDatabase(userDbName, DatabaseType.Host);
 
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
 
@@ -180,7 +181,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
             manager.XactCreateNewHostDatabase(userDbName, out _);
-            var db = manager.GetUserDatabase(userDbName);
+            var db = manager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
             var addTableResult = db.AddTable(tableSchema, out tableObjectId);
 

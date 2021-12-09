@@ -39,8 +39,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             bool rowsAdded = true;
-
-            var db = _db.GetDatabase(DatabaseName);
+            
+            // default host type
+            var db = _db.GetDatabase(DatabaseName, DatabaseType.Host);
 
 
             if (string.IsNullOrEmpty(TableSchemaName))
