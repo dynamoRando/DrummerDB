@@ -1018,6 +1018,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
+            Assert.True(createTableResult.ExecutionErrors.Count == 0);
+
             UserDatabase db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             Assert.True(db.HasSchema(createdSchemaName));
             Assert.True(db.HasTable(createdTableName, createdSchemaName));
