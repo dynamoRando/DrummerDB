@@ -294,6 +294,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private void EvaluteForAcceptContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
             string errorMessage = string.Empty;
+            SystemDatabase systemDb = null;
 
             //ACCEPT CONTRACT BY AuthorName;
             if (line.StartsWith(DrummerKeywords.ACCEPT_CONTRACT_BY))
@@ -301,7 +302,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 // AuthorName;
                 string author = line.Replace(DrummerKeywords.ACCEPT_CONTRACT_BY + " ", string.Empty);
 
-                var systemDb = dbManager.GetSystemDatabase();
+                systemDb = dbManager.GetSystemDatabase();
                 // we need a table in the system database of pending contracts
                 // not just contracts that we have saved to disk as pending
 
@@ -356,14 +357,112 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         errorMessage = $"Multiple contracts found for author {author}";
                         throw new InvalidOperationException(errorMessage);
                     }
+
+                    if (searchResults.Count() == 1)
+                    {
+                        // get the host guid we're going to update to accepted
+                        // this is the host that we will be filtering on
+                        var rowValueHostGuid = searchResults.First().Values.Where(v => string.Equals(v.Column.Name, Tables.CooperativeContracts.Columns.HostGuid)).FirstOrDefault();
+                        var rowValueContractGuid = searchResults.First().Values.Where(v => string.Equals(v.Column.Name, Tables.CooperativeContracts.Columns.ContractGUID)).FirstOrDefault();
+
+                        // need to generate an update statement to mark the contract as accepted
+
+                        if (!plan.HasPart(PlanPartType.Update))
+                        {
+                            plan.AddPart(new UpdateQueryPlanPart());
+                        }
+
+                        var part = plan.GetPart(PlanPartType.Update);
+                        if (part is UpdateQueryPlanPart)
+                        {
+                            TreeAddress address;
+
+                            if (database is null)
+                            {
+                                address = new TreeAddress { DatabaseId = systemDb.Id, TableId = Tables.CooperativeContracts.TABLE_ID, SchemaId = Guid.Parse(Constants.COOP_SCHEMA_GUID) };
+                            }
+                            else
+                            {
+                                address = new TreeAddress { DatabaseId = database.Id, TableId = Tables.CooperativeContracts.TABLE_ID, SchemaId = Guid.Parse(Constants.COOP_SCHEMA_GUID) };
+                            }
+
+                            
+                            // need to create update column sources
+
+                            var columns = new List<IUpdateColumnSource>();
+
+                            // create value object that we're going to update the contract guid to
+                            var column = new UpdateTableValue();
+                            var tableColumn = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Status);
+
+                            column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
+                            column.Value = Convert.ToInt32(ContractStatus.Accepted).ToString();
+
+                            columns.Add(column);
+                            var updateOp = new UpdateOperator(dbManager, address, columns);
+
+                            // we need to create a read table operator to specify to update only the column with the specific host guid that is pending
+                            // and set it as the previous operation
+
+                            // columns that we need to read to identify what to update
+                            string[] colNames = new string[3]
+                            {
+                                Tables.CooperativeContracts.Columns.HostGuid,
+                                Tables.CooperativeContracts.Columns.ContractGUID,
+                                Tables.CooperativeContracts.Columns.Status
+                            };
+
+                            var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
+                            updateOp.PreviousOperation = readTableOp;
+
+                            TableRowValue tableRowValueHostGuid = null;
+                            if (database is null)
+                            {
+                                tableRowValueHostGuid = new TableRowValue(rowValueHostGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, systemDb.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
+                            }
+                            else
+                            {
+                                tableRowValueHostGuid = new TableRowValue(rowValueHostGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, database.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
+                            }
+
+                            
+                            var filterHostGuid = new TableReadFilter(tableRowValueHostGuid, ValueComparisonOperator.Equals, 1);
+
+                            var filters = new List<ITableReadFilter>(2);
+                            filters.Add(filterHostGuid);
+
+                            // get the contract guid we will be updating to accepted from pending
+                            // this will be the second item we're filtering on
+
+                            TableRowValue tableRowValueContractGuid;
+
+                            if (database is null)
+                            {
+                                tableRowValueContractGuid = new TableRowValue(rowValueContractGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, systemDb.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
+                            }
+                            else
+                            {
+                                tableRowValueContractGuid = new TableRowValue(rowValueContractGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, database.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
+                            }
+
+                            
+                            var filterContractGuid = new TableReadFilter(tableRowValueContractGuid, ValueComparisonOperator.Equals, 2);
+
+                            filters.Add(filterContractGuid);
+
+                            readTableOp.SetFilters(filters);
+
+                            part.AddOperation(readTableOp);
+                            part.AddOperation(updateOp);
+                        }
+
+                    }
                 }
                 else
                 {
                     errorMessage = $"Could not find host!";
                     throw new InvalidOperationException(errorMessage);
                 }
-
-                    throw new NotImplementedException();
             }
         }
 
