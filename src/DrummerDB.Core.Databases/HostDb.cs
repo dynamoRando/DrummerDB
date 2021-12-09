@@ -273,7 +273,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             throw new NotImplementedException();
         }
 
-        public bool RequestParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, out string errorMessage)
+        public bool XactRequestParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, out string errorMessage)
         {
             var contractId = GetCurrentContractGUID();
             var contract = GetContract(contractId);

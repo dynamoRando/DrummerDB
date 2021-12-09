@@ -16,6 +16,7 @@ using Drummersoft.DrummerDB.Core.Databases.Version;
 using System.Net;
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100;
 using Drummersoft.DrummerDB.Core.Cryptography.Interface;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -62,7 +63,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             EvaluateForReviewLogicalStoragePolicy(line, database, dbManager, ref plan);
             EvaluateForGenerateContract(line, database, dbManager, ref plan);
             EvaluateForRequestParticipant(line, database, dbManager, ref plan);
-            EvaluateForRequestHost(line, database, dbManager, ref plan);
+            EvaluateForRequestHostNotifyAcceptedContract(line, database, dbManager, ref plan);
             EvaluateForAddParticipant(line, database, dbManager, ref plan);
             EvaluteForReviewPendingContract(line, database, dbManager, ref plan);
             EvaluteForAcceptContract(line, database, dbManager, ref plan);
@@ -210,43 +211,43 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     ResultsetSourceTable sourceTableColumnContractGuid = new ResultsetSourceTable();
                     sourceTableColumnContractGuid.Table = table.Address;
-                    sourceTableColumnContractGuid.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.ContractGUID).Id;
+                    sourceTableColumnContractGuid.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.ContractGUID).Id;
                     sourceTableColumnContractGuid.Order = 2;
                     layout.AddSource(sourceTableColumnContractGuid);
 
                     ResultsetSourceTable sourceTableColumnDatabaseName = new ResultsetSourceTable();
                     sourceTableColumnDatabaseName.Table = table.Address;
-                    sourceTableColumnDatabaseName.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.DatabaseName).Id;
+                    sourceTableColumnDatabaseName.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.DatabaseName).Id;
                     sourceTableColumnDatabaseName.Order = 3;
                     layout.AddSource(sourceTableColumnDatabaseName);
 
                     ResultsetSourceTable sourceTableColumnDatabaseId = new ResultsetSourceTable();
                     sourceTableColumnDatabaseId.Table = table.Address;
-                    sourceTableColumnDatabaseId.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.DatabaseId).Id;
+                    sourceTableColumnDatabaseId.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.DatabaseId).Id;
                     sourceTableColumnDatabaseId.Order = 4;
                     layout.AddSource(sourceTableColumnDatabaseId);
 
                     ResultsetSourceTable sourceTableColumnDescription = new ResultsetSourceTable();
                     sourceTableColumnDescription.Table = table.Address;
-                    sourceTableColumnDescription.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Description).Id;
+                    sourceTableColumnDescription.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Description).Id;
                     sourceTableColumnDescription.Order = 5;
                     layout.AddSource(sourceTableColumnDescription);
 
                     ResultsetSourceTable sourceTableColumnVersion = new ResultsetSourceTable();
                     sourceTableColumnVersion.Table = table.Address;
-                    sourceTableColumnVersion.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Version).Id;
+                    sourceTableColumnVersion.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Version).Id;
                     sourceTableColumnVersion.Order = 6;
                     layout.AddSource(sourceTableColumnVersion);
 
                     ResultsetSourceTable sourceTableColumnGeneratedDate = new ResultsetSourceTable();
                     sourceTableColumnGeneratedDate.Table = table.Address;
-                    sourceTableColumnGeneratedDate.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.GeneratedDate).Id;
+                    sourceTableColumnGeneratedDate.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.GeneratedDate).Id;
                     sourceTableColumnGeneratedDate.Order = 7;
                     layout.AddSource(sourceTableColumnGeneratedDate);
 
                     ResultsetSourceTable sourceTableColumnStatus = new ResultsetSourceTable();
                     sourceTableColumnStatus.Table = table.Address;
-                    sourceTableColumnStatus.ColumnId = Tables.HostInfo.GetColumn(Tables.CooperativeContracts.Columns.Status).Id;
+                    sourceTableColumnStatus.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Status).Id;
                     sourceTableColumnStatus.Order = 8;
                     layout.AddSource(sourceTableColumnStatus);
 
@@ -265,7 +266,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     // filter by accepted contracts
                     var acceptedStatus = ContractStatus.Accepted;
-                    var value = RowValueMaker.Create(table, UserTable.Columns.TableName, Convert.ToInt32(acceptedStatus).ToString(), false);
+                    var value = RowValueMaker.Create(table, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(acceptedStatus).ToString(), false);
                     var trv = new TableRowValue(value, table.Address.TableId, table.Address.DatabaseId, table.Address.SchemaId);
                     TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
 
@@ -654,12 +655,74 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
         }
 
-        private void EvaluateForRequestHost(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        private void EvaluateForRequestHostNotifyAcceptedContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
+            Guid hostGuid = Guid.Empty;
+            string errorMessage = string.Empty;
+
             //REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {company.Alias};
-            if (line.StartsWith(DrummerKeywords.REQUEST_HOST))
+            if (line.StartsWith(DrummerKeywords.REQUEST_HOST_NOTIFY_ACCEPTED_CONTRACT_BY))
             {
-                throw new NotImplementedException();
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_HOST_NOTIFY_ACCEPTED_CONTRACT_BY))
+                {
+                    // need to ensure that we actually have a host and contract with the 
+                    // provided name
+
+                    var hostName = trimmedLine.Replace(DrummerKeywords.REQUEST_HOST_NOTIFY_ACCEPTED_CONTRACT_BY + " ", string.Empty).Trim();
+
+                    var sysDb = dbManager.GetSystemDatabase();
+                    var hostTable = sysDb.GetTable(Tables.Hosts.TABLE_NAME);
+
+                    var hostNameValue = RowValueMaker.Create(hostTable, Tables.Hosts.Columns.HostName, hostName);
+                    int resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
+
+                    if (resultCount != 1)
+                    {
+                        errorMessage = $"No host or multiple hosts found for Host Name {hostName}";
+                        throw new InvalidOperationException(errorMessage);
+                    }
+                    else
+                    {
+                        var hostsResults = hostTable.GetRowsWithValue(hostNameValue);
+
+                        if (hostsResults.Count != 1)
+                        {
+                            errorMessage = $"No host or multiple hosts found for Host Name {hostName}";
+                            throw new InvalidOperationException(errorMessage);
+                        }
+
+                        foreach (var result in hostsResults)
+                        {
+                            hostGuid = Guid.Parse(result.GetValueInString(Tables.Hosts.Columns.HostGUID));
+                            break;
+                        }
+
+                        var contractsTable = sysDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+
+                        var searchHostGuid = RowValueMaker.Create(contractsTable, Tables.CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
+                        var acceptedContract = RowValueMaker.Create(contractsTable, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Accepted).ToString());
+
+                        var searchItems = new IRowValue[2];
+                        searchItems[0] = searchHostGuid;
+                        searchItems[1] = acceptedContract;
+
+                        var searchResults = contractsTable.GetRowsWithAllValues(searchItems);
+
+                        if (searchResults.Count() != 1)
+                        {
+                            errorMessage = $"No host or multiple hosts found for Host Name {hostName}";
+                            throw new InvalidOperationException(errorMessage);
+                        }
+                        else
+                        {
+                            // we need to generate a network communication object back to the host that we're accepting the above contract
+                            // we also need to generate a partial database with the save contract schema
+                            // we are basically agreeing to cooperate with the host for our data
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
             }
         }
 

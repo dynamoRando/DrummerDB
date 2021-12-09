@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
-    class CreateDbQueryPlanPart : IQueryPlanPart
+    class CreateHostDbQueryPlanPart : IQueryPlanPart
     {
         public int Order { get; set; }
         public List<IQueryPlanPartOperator> Operations { get; set; }
@@ -12,7 +12,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public StatementType StatementType => StatementType.DDL;
         public PlanPartType Type => PlanPartType.CreateDb;
 
-        public CreateDbQueryPlanPart()
+        public CreateHostDbQueryPlanPart()
         {
             Order = 0;
             Operations = new List<IQueryPlanPartOperator>();

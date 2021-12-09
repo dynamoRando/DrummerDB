@@ -56,11 +56,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
         }
 
-        static public void EvaluateQueryPlanForCreateDatabase(CreateDbStatement statement, QueryPlan plan, IDbManager dbManager)
+        static public void EvaluateQueryPlanForCreateDatabase(CreateHostDbStatement statement, QueryPlan plan, IDbManager dbManager)
         {
             if (plan is not null)
             {
-                var cdb = new CreateDbQueryPlanPart();
+                var cdb = new CreateHostDbQueryPlanPart();
                 var chdb = new CreateHostDbOperator(statement.DatabaseName, dbManager);
                 cdb.Operations.Add(chdb);
                 plan.Parts.Add(cdb);

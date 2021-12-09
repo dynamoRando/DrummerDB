@@ -4,7 +4,7 @@ using Drummersoft.DrummerDB.Core.Structures.Enum;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
-    class CreateDbStatement : IStatement, IDDLStatement
+    class CreateHostDbStatement : IStatement, IDDLStatement
     {
         public StatementType Type => StatementType.DDL;
         public bool IsValidated { get; set; }
@@ -12,7 +12,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public DatabaseType DatabaseType { get; set; }
         public string FullText { get; set; }
 
-        public CreateDbStatement(string fullText)
+        public CreateHostDbStatement(string fullText)
         {
             FullText = fullText;
             ParseText();

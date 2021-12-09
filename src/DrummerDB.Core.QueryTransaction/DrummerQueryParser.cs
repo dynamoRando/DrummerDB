@@ -4,6 +4,7 @@ using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -92,7 +93,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     // will generate network communication
                     if (HasRequestHostKeyword(statement))
                     {
-                        return ParseForRequestHost(statement, out errorMessage);
+                        return ParseForRequestHostNotifyAcceptedContract(statement, out errorMessage);
                     }
 
                     if (HasAddParticipantKeyword(statement))
@@ -181,7 +182,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
                 {
-                    throw new NotImplementedException();
+                    // ?
+                    errorMessage = string.Empty;
+                    return true;
                 }
             }
 
@@ -198,7 +201,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
                 {
-                    throw new NotImplementedException();
+                    // this becomes a SELECT * FROM coop.Contracts WHERE Status = 'Accepted'
+                    return true;
                 }
             }
 
@@ -214,24 +218,78 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_HOST))
                 {
-                    throw new NotImplementedException();
+                    return true;
                 }
             }
 
             return false;
         }
 
-        private bool ParseForRequestHost(string statement, out string errorMessage)
+        private bool ParseForRequestHostNotifyAcceptedContract(string statement, out string errorMessage)
         {
             //REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {company.Alias};
+            Guid hostGuid = Guid.Empty;
 
             var lines = statement.Split(";");
             foreach (var line in lines)
             {
                 var trimmedLine = line.Trim();
-                if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_HOST))
+                if (trimmedLine.StartsWith(DrummerKeywords.REQUEST_HOST_NOTIFY_ACCEPTED_CONTRACT_BY))
                 {
-                    throw new NotImplementedException();
+                    // need to ensure that we actually have a host and contract with the 
+                    // provided name
+
+                    var hostName = trimmedLine.Replace(DrummerKeywords.REQUEST_HOST_NOTIFY_ACCEPTED_CONTRACT_BY + " ", string.Empty).Trim();
+
+                    var sysDb = _dbManager.GetSystemDatabase();
+                    var hostTable = sysDb.GetTable(Tables.Hosts.TABLE_NAME);
+
+                    var hostNameValue = RowValueMaker.Create(hostTable, Tables.Hosts.Columns.HostName, hostName);
+                    int resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
+
+                    if (resultCount != 1)
+                    {
+                        errorMessage = $"No host or multiple hosts found for Host Name {hostName}";
+                        return false;
+                    }
+                    else
+                    {
+                        var hostsResults = hostTable.GetRowsWithValue(hostNameValue);
+
+                        if (hostsResults.Count != 1)
+                        {
+                            errorMessage = $"No host or multiple hosts found for Host Name {hostName}";
+                            return false;
+                        }
+
+                        foreach (var result in hostsResults)
+                        {
+                            hostGuid = Guid.Parse(result.GetValueInString(Tables.Hosts.Columns.HostGUID));
+                            break;
+                        }
+
+                        var contractsTable = sysDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+
+                        var searchHostGuid = RowValueMaker.Create(contractsTable, Tables.CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
+                        var acceptedContract = RowValueMaker.Create(contractsTable, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Accepted).ToString());
+
+                        var searchItems = new IRowValue[2];
+                        searchItems[0] = searchHostGuid;
+                        searchItems[1] = acceptedContract;
+
+                        var searchResults = contractsTable.GetRowsWithAllValues(searchItems);
+
+                        if (searchResults.Count() != 1)
+                        {
+                            errorMessage = $"No host or multiple hosts found for Host Name {hostName}";
+                            return false;
+                        }
+                        else
+                        {
+                            errorMessage = string.Empty;
+                            return true;
+                        }
+                    }
                 }
             }
 

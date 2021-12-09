@@ -9,6 +9,7 @@ using Xunit;
 using Drummersoft.DrummerDB.Core.Databases.Version;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100;
 
 namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
@@ -136,6 +137,31 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             ", systemDbName);
 
             Assert.False(acceptPendingContract.Results.First().IsError);
+
+            // list the pending contracts we've accepted
+            var reviewAcceptedContracts =
+            harness.ExecuteSQL(customer,
+            $@"DRUMMER BEGIN;
+            REVIEW ACCEPTED CONTRACTS;
+            DRUMMER END;"
+            , systemDbName);
+
+            Assert.False(reviewAcceptedContracts.Results.First().IsError);
+
+            var results = reviewAcceptedContracts.Results.First();
+            var acceptedStatusInt = Convert.ToInt32(ContractStatus.Accepted);
+            int resultStatusInt = 0;
+
+            foreach (var item in results.Rows.First().Values)
+            {
+                if (string.Equals(item.Column.ColumnName, Tables.CooperativeContracts.Columns.Status, StringComparison.OrdinalIgnoreCase))
+                {
+                    resultStatusInt = DbBinaryConvert.BinaryToInt(item.Value.ToByteArray());
+                }
+            }
+
+            // ensure that the returned contract status is infact accepted
+            Assert.Equal(acceptedStatusInt, resultStatusInt);
 
             // send message back to host that we accepted the contract
             var acceptMessageResult = harness.ExecuteSQL(customer,

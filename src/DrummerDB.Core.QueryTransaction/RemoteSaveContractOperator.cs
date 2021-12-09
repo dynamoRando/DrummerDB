@@ -40,7 +40,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             string errorMessage = string.Empty;
-            var isSaved = _database.RequestParticipantSaveLatestContract(transaction, transactionMode, _participant, out errorMessage);
+            var isSaved = _database.XactRequestParticipantSaveLatestContract(transaction, transactionMode, _participant, out errorMessage);
 
             // check to see if we've already done this before
             // we will skip saving if we've already asked the participant to save the existing contract

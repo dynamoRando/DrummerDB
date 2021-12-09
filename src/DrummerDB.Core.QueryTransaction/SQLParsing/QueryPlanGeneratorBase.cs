@@ -112,7 +112,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             DebugContext(context);
 
             string fullText = GetWhiteSpaceFromCurrentContext(context);
-            _statement = new CreateDbStatement(fullText);
+            _statement = new CreateHostDbStatement(fullText);
         }
 
         public override void EnterCreate_schema([NotNull] TSqlParser.Create_schemaContext context)
@@ -477,7 +477,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
         {
             base.ExitCreate_database(context);
 
-            var cdb = _statement as CreateDbStatement;
+            var cdb = _statement as CreateHostDbStatement;
             StatementPlanEvaluator.EvaluateQueryPlanForCreateDatabase(cdb, _plan, _dbManager);
 
         }

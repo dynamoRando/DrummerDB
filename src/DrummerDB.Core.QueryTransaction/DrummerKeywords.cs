@@ -25,6 +25,7 @@
         public const string REQUEST_PARTICIPANT = "REQUEST PARTICIPANT";
         // prefix denotes anything that will perform network communication with a host
         public const string REQUEST_HOST = "REQUEST HOST";
+        public const string REQUEST_HOST_NOTIFY_ACCEPTED_CONTRACT_BY = "REQUEST HOST NOTIFY ACCEPTED CONTRACT BY";
 
         internal static class LogicalStoragePolicyKeywords
         {
