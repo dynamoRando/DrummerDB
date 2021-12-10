@@ -747,7 +747,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             }
 
                             // need to generate an update statement to update the value for the last communication time with the host
-                            throw new NotImplementedException();
+                            if (!plan.HasPart(PlanPartType.Update))
+                            {
+                                plan.AddPart(new UpdateQueryPlanPart());
+                                var part = plan.GetPart(PlanPartType.Update);
+
+                                var columns = new List<IUpdateColumnSource>();
+
+                                // create value object that we're going to update the last com value to
+                                var column = new UpdateTableValue();
+                                var tableColumn = Tables.Hosts.GetColumn(Tables.Hosts.Columns.LastCommunicationUTC);
+
+                                column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
+                                column.Value = DateTime.UtcNow.ToString();
+
+                                columns.Add(column);
+                                var updateOp = new UpdateOperator(dbManager, hostTable.Address, columns);
+
+                                // we need to create a read table operator to specify to update the specific host name
+
+                                // specify the column that we're interested in reading + updating
+                                string[] colNames = new string[1] { Tables.Hosts.Columns.LastCommunicationUTC };
+
+                                // filter by the host name
+                                var value = RowValueMaker.Create(hostTable, Tables.Hosts.Columns.HostName, hostName, true);
+                                var trv = new TableRowValue(value, hostTable.Address.TableId, hostTable.Address.DatabaseId, hostTable.Address.SchemaId);
+                                TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
+
+                                var readTableOp = new TableReadOperator(dbManager, hostTable.Address, colNames, filter, _log);
+                                updateOp.PreviousOperation = readTableOp;
+
+                                part.AddOperation(readTableOp);
+                                part.AddOperation(updateOp);
+                            }
                         }
                     }
                 }
