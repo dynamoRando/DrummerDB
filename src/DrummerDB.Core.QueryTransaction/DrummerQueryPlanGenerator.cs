@@ -659,6 +659,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             Guid hostGuid = Guid.Empty;
             string errorMessage = string.Empty;
+            Contract acceptedContractItem;
 
             //REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {company.Alias};
             if (line.StartsWith(DrummerKeywords.REQUEST_HOST_NOTIFY_ACCEPTED_CONTRACT_BY))
@@ -720,6 +721,31 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             // we also need to generate a partial database with the save contract schema
                             // we are basically agreeing to cooperate with the host for our data
                             throw new NotImplementedException();
+
+                            if (!plan.HasPart(PlanPartType.RemoteHostNotifyAcceptContract))
+                            {
+                                plan.AddPart(new RemoteHostAcceptContractPlanPart());
+
+                                var part = plan.GetPart(PlanPartType.RemoteHostNotifyAcceptContract);
+                                var op = new RemoteHostNotifyAcceptContractOperator();
+
+                                part.Operations.Add(op);
+                            }
+
+                            if (!plan.HasPart(PlanPartType.CreatePartDb))
+                            {
+                                plan.AddPart(new CreatePartialDbQueryPlanPart());
+
+                                // TO DO: need to populate acceptedContractItem with data from the coop tables
+
+                                var part = plan.GetPart(PlanPartType.CreatePartDb);
+                                var op = new CreatePartDbOperator(dbManager, acceptedContractItem);
+
+                                part.Operations.Add(op);
+                            }
+
+                            // need to generate an update statement to update the value for the last communication time with the host
+
                         }
                     }
                 }

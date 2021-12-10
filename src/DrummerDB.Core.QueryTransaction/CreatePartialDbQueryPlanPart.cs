@@ -4,15 +4,15 @@ using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
-    class CreateHostDbQueryPlanPart : IQueryPlanPart
+    internal class CreatePartialDbQueryPlanPart : IQueryPlanPart
     {
         public int Order { get; set; }
         public List<IQueryPlanPartOperator> Operations { get; set; }
         public LockObjectRequest LockRequest { get; set; }
         public StatementType StatementType => StatementType.DDL;
-        public PlanPartType Type => PlanPartType.CreateHostDb;
+        public PlanPartType Type => PlanPartType.CreatePartDb;
 
-        public CreateHostDbQueryPlanPart()
+        public CreatePartialDbQueryPlanPart()
         {
             Order = 0;
             Operations = new List<IQueryPlanPartOperator>();

@@ -14,7 +14,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.Enum
         Update,
         Delete,
         Select,
-        CreateDb,
+        CreateHostDb,
+        CreatePartDb,
         CreateSchema,
         CreateTable,
         DropDb,
@@ -22,6 +23,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.Enum
         ReviewLogicalStoragePolicy,
         RemoteSaveContract,
         GenerateHostInfo,
-        ReviewHostInfo
+        ReviewHostInfo,
+        RemoteHostNotifyAcceptContract
     }
 }
