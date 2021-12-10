@@ -12,11 +12,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
     internal class RemoteHostNotifyAcceptContractOperator : IQueryPlanPartOperator, ISQLNonQueryable
     {
+        private PartialDb _partDb;
+        private Contract _contract;
         public IQueryPlanPartOperator PreviousOperation { get; set; }
         public IQueryPlanPartOperator NextOperation { get; set; }
 
+        public RemoteHostNotifyAcceptContractOperator(PartialDb db, Contract contract)
+        {
+            _partDb = db;
+            _contract = contract;
+        }
+
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
+            _partDb.XactNotifyHostAcceptedContract(_contract, transaction, transactionMode);
             throw new NotImplementedException();
         }
     }

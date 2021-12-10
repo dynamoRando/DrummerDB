@@ -783,7 +783,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(_hostInfo));
-            var partDb = new PartialDb(metadata, _xEntryManager);
+            var partDb = new PartialDb(metadata, _xEntryManager, contract);
 
             if (!HasUserDatabase(partDb.Name, DatabaseType.Partial))
             {

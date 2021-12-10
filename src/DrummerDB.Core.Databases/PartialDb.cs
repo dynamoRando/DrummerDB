@@ -16,6 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Private Fields
         private BaseUserDatabase _baseDb;
         private RemoteDataManager _remote;
+        private Contract _contract;
         #endregion
 
         #region Public Properties
@@ -26,10 +27,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Constructors
-        public PartialDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager) : base(metadata)
+        public PartialDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, Contract contract) : base(metadata)
         {
             _baseDb = new BaseUserDatabase(metadata, xEntryManager);
             _remote = metadata.RemoteDataManager;
+            _contract = contract;
         }
         internal PartialDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
         {
@@ -39,6 +41,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public bool XactNotifyHostAcceptedContract(Contract contract, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             return _baseDb.XactDropTable(tableName, transaction, transactionMode);

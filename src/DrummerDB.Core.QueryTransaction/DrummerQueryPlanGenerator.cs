@@ -722,16 +722,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             // we are basically agreeing to cooperate with the host for our data
                             throw new NotImplementedException();
 
-                            if (!plan.HasPart(PlanPartType.RemoteHostNotifyAcceptContract))
-                            {
-                                plan.AddPart(new RemoteHostAcceptContractPlanPart());
-
-                                var part = plan.GetPart(PlanPartType.RemoteHostNotifyAcceptContract);
-                                var op = new RemoteHostNotifyAcceptContractOperator();
-
-                                part.Operations.Add(op);
-                            }
-
                             if (!plan.HasPart(PlanPartType.CreatePartDb))
                             {
                                 plan.AddPart(new CreatePartialDbQueryPlanPart());
@@ -744,6 +734,19 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 part.Operations.Add(op);
                             }
 
+                            var newPartDb = dbManager.GetPartialDb(acceptedContractItem.DatabaseName);
+
+                            if (!plan.HasPart(PlanPartType.RemoteHostNotifyAcceptContract))
+                            {
+                                plan.AddPart(new RemoteHostAcceptContractPlanPart());
+
+                                var part = plan.GetPart(PlanPartType.RemoteHostNotifyAcceptContract);
+                                var op = new RemoteHostNotifyAcceptContractOperator(newPartDb, acceptedContractItem);
+
+                                part.Operations.Add(op);
+                            }
+
+                        
                             // need to generate an update statement to update the value for the last communication time with the host
 
                         }
