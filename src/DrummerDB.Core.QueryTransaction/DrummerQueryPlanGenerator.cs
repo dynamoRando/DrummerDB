@@ -387,7 +387,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 address = new TreeAddress { DatabaseId = database.Id, TableId = Tables.CooperativeContracts.TABLE_ID, SchemaId = Guid.Parse(Constants.COOP_SCHEMA_GUID) };
                             }
 
-                            
+
                             // need to create update column sources
 
                             var columns = new List<IUpdateColumnSource>();
@@ -426,7 +426,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 tableRowValueHostGuid = new TableRowValue(rowValueHostGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, database.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
                             }
 
-                            
+
                             var filterHostGuid = new TableReadFilter(tableRowValueHostGuid, ValueComparisonOperator.Equals, 1);
 
                             var filters = new List<ITableReadFilter>(2);
@@ -446,7 +446,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 tableRowValueContractGuid = new TableRowValue(rowValueContractGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, database.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
                             }
 
-                            
+
                             var filterContractGuid = new TableReadFilter(tableRowValueContractGuid, ValueComparisonOperator.Equals, 2);
 
                             filters.Add(filterContractGuid);
@@ -720,13 +720,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             // we need to generate a network communication object back to the host that we're accepting the above contract
                             // we also need to generate a partial database with the save contract schema
                             // we are basically agreeing to cooperate with the host for our data
-                            throw new NotImplementedException();
+
+                            // TO DO: need to populate acceptedContractItem with data from the coop tables
+                            acceptedContractItem = sysDb.GetLatestAcceptedContractFromHostsTable(hostGuid);
 
                             if (!plan.HasPart(PlanPartType.CreatePartDb))
                             {
                                 plan.AddPart(new CreatePartialDbQueryPlanPart());
-
-                                // TO DO: need to populate acceptedContractItem with data from the coop tables
 
                                 var part = plan.GetPart(PlanPartType.CreatePartDb);
                                 var op = new CreatePartDbOperator(dbManager, acceptedContractItem);
@@ -746,9 +746,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 part.Operations.Add(op);
                             }
 
-                        
                             // need to generate an update statement to update the value for the last communication time with the host
-
+                            throw new NotImplementedException();
                         }
                     }
                 }

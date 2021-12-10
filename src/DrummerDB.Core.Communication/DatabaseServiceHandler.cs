@@ -91,9 +91,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
         {
             var sysDb = _dbManager.GetSystemDatabase();
             
-            if (!sysDb.HasContract(contract))
+            if (!sysDb.HasContractInHostsTable(contract))
             {
-                if (!sysDb.SaveContract(contract))
+                if (!sysDb.SaveContractToHostsTable(contract))
                 {
                     return false;
                 }

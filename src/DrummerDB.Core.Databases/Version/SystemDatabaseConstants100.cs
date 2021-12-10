@@ -235,9 +235,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
 
             // begin Cooperative schema objects
 
-            // Holds our unique identifers to participants. These values are also in 
-            // Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.Hosts
-            // for participants
+            /// <summary>
+            /// Holds our unique identifers to participants. These values are also in Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.Hosts
+            /// for participants
+            /// </summary>
             public static class HostInfo
             {
                 private static ColumnSchemaCollection _columns;

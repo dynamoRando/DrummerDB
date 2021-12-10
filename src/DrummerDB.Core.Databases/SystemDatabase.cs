@@ -17,6 +17,8 @@ using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstant
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
 using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.LoginTable.Columns;
+using Drummersoft.DrummerDB.Core.Structures.SQLType.Interface;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -221,7 +223,145 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        public bool HasContract(Contract contract)
+        public Contract GetContractFromHostsTable(Guid contractGuid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Contract GetLatestAcceptedContractFromHostsTable(Guid hostId)
+        {
+            Contract returnValue = new Contract();
+
+            var hosts = GetTable(Hosts.TABLE_NAME);
+            var searchHosts = RowValueMaker.Create(hosts, Tables.Hosts.Columns.HostGUID, hostId.ToString());
+
+            // sanity check - make sure that we actually have this host in our cooperative tables
+            if (hosts.CountOfRowsWithValue(searchHosts) > 0)
+            {
+                var contractTable = GetTable(CooperativeContracts.TABLE_NAME);
+
+                // need to find the latest accepted contract
+                ContractStatus acceptedStatus = ContractStatus.Accepted;
+                var searchAcceptedValue = RowValueMaker.Create(contractTable, CooperativeContracts.Columns.Status, Convert.ToInt32(acceptedStatus).ToString());
+
+                var rowSearchValues = new IRowValue[2] { searchHosts, searchAcceptedValue };
+                var searchResults = contractTable.GetRowsWithAllValues(rowSearchValues);
+
+                if (searchResults.Count() > 0)
+                {
+                    // need to find the latest accepted contract
+                    DateTime contractGeneratedDate = DateTime.MinValue;
+                    Guid contractGuid = Guid.Empty;
+                    string contractDescription = string.Empty;
+                    string contractDbName = string.Empty;
+                    Guid contractDbId = Guid.Empty;
+                    Guid contractVersion = Guid.Empty;
+
+                    foreach (var result in searchResults)
+                    {
+                        var dt = DateTime.Parse(result.GetValueInString(CooperativeContracts.Columns.GeneratedDate));
+                        if (dt > contractGeneratedDate)
+                        {
+                            contractGeneratedDate = dt;
+                            contractGuid = Guid.Parse(result.GetValueInString(CooperativeContracts.Columns.ContractGUID));
+                            contractDescription = result.GetValueInString(CooperativeContracts.Columns.Description);
+                            contractDbName = result.GetValueInString(CooperativeContracts.Columns.DatabaseName);
+                            contractDbId = Guid.Parse(result.GetValueInString(CooperativeContracts.Columns.DatabaseId));
+                            contractVersion = Guid.Parse(result.GetValueInString(CooperativeContracts.Columns.Version));
+                        }
+                    }
+
+                    if (contractGuid != Guid.Empty)
+                    {
+                        // we've found the max accepted contract guid for the specified host, now fill out the returnValue
+
+                        // fill out host info
+                        var hostInfo = hosts.GetRowsWithValue(searchHosts);
+
+                        if (hostInfo.Count() != 1)
+                        {
+                            throw new InvalidOperationException($"There are multiple hosts found with id {hostId}");
+                        }
+
+                        foreach (var host in hostInfo)
+                        {
+                            var hInfo = new Structures.HostInfo();
+                            hInfo.HostGUID = hostId;
+                            hInfo.HostName = host.GetValueInString(Hosts.Columns.HostName);
+                            hInfo.DatabasePortNumber = Convert.ToInt32(host.GetValueInString(Hosts.Columns.PortNumber));
+                            hInfo.IP4Address = host.GetValueInString(Hosts.Columns.IP4Address);
+                            hInfo.IP6Address = host.GetValueInString(Hosts.Columns.IP6Address);
+                            hInfo.Token = host.GetValueInByte(Hosts.Columns.Token);
+                            returnValue.Host = hInfo;
+                        }
+
+                        // fill out contract information
+                        returnValue.ContractGUID = contractGuid;
+                        returnValue.GeneratedDate = contractGeneratedDate;
+                        returnValue.Description = contractDescription;
+                        returnValue.DatabaseId = contractDbId;
+                        returnValue.DatabaseName = contractDbName;
+                        returnValue.Version = contractVersion;
+                        returnValue.Status = ContractStatus.Accepted;
+
+                        // need to get the table schemas
+                        var contractTables = GetTable(CooperativeTables.TABLE_NAME);
+                        var searchDbId = RowValueMaker.Create(contractTables, CooperativeTables.Columns.DatabaseId, returnValue.DatabaseId.ToString());
+
+                        var searchTableResults = contractTables.GetRowsWithValue(searchDbId);
+                        if (searchTableResults.Count > 0)
+                        {
+                            foreach (var resultTable in searchTableResults)
+                            {
+                                int tableId = Convert.ToInt32(resultTable.GetValueInString(CooperativeTables.Columns.TableId));
+                                string tableName = resultTable.GetValueInString(CooperativeTables.Columns.TableName);
+                                LogicalStoragePolicy policy = (LogicalStoragePolicy)Convert.ToInt32(resultTable.GetValueInString(CooperativeTables.Columns.LogicalStoragePolicy));
+
+                                var tableSchemaTable = GetTable(CooperativeTableSchemas.TABLE_NAME);
+                                var tableSchemaSearchTableId = RowValueMaker.Create(tableSchemaTable, CooperativeTableSchemas.Columns.TableId, tableId.ToString());
+                                var tableSchemaSearchDatabaseId = RowValueMaker.Create(tableSchemaTable, CooperativeTableSchemas.Columns.DatabaseId, returnValue.DatabaseId.ToString());
+
+                                var searchColumnValues = new IRowValue[2] { tableSchemaSearchTableId, tableSchemaSearchDatabaseId };
+                                var schemaResults = contractTables.GetRowsWithAllValues(searchColumnValues);
+
+                                List<ColumnSchema> columns = new List<ColumnSchema>();
+
+                                if (schemaResults.Count() > 0)
+                                {
+                                    foreach (var schemaResult in schemaResults)
+                                    {
+                                        string columnName = schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnName);
+                                        var enumType = (SQLColumnType)Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnType));
+                                        ISQLType type = SQLColumnTypeConverter.Convert(enumType, Constants.DatabaseVersions.V100);
+                                        int colLength = Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnLength));
+                                        int colOrdinal = Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnOrdinal));
+                                        bool colIsNullable = DbBinaryConvert.BinaryToBoolean(schemaResult.GetValueInByteSpan(CooperativeTableSchemas.Columns.ColumnIsNullable));
+                                        int colBinaryOrder = Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnBinaryOrder));
+
+                                        var columnSchema = new ColumnSchema(columnName, type, colOrdinal, colIsNullable);
+                                        columnSchema.Length = colLength;
+                                        columns.Add(columnSchema);
+                                    }
+                                }
+
+                                var tableSchema = new TableSchema(tableId, tableName, returnValue.DatabaseId, columns);
+
+                                if (returnValue.Tables is null)
+                                {
+                                    returnValue.Tables = new List<ITableSchema>();
+                                }
+
+                                returnValue.Tables.Add(tableSchema);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return returnValue;
+        }
+
+        public bool HasContractInHostsTable(Contract contract)
         {
             var hosts = GetTable(Hosts.TABLE_NAME);
             string hostId = contract.Host.HostGUID.ToString();
@@ -242,7 +382,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
-        public bool SaveContract(Contract contract)
+        public bool SaveContractToHostsTable(Contract contract)
         {
             var hosts = GetTable(Hosts.TABLE_NAME);
             string hostId = contract.Host.HostGUID.ToString();
@@ -472,7 +612,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseName, dbName);
             var dbTypeSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseType, Convert.ToInt32(DatabaseType.Host).ToString());
 
-            var searchItems = new IRowValue[2] { dbNameSearch, dbTypeSearch }; 
+            var searchItems = new IRowValue[2] { dbNameSearch, dbTypeSearch };
 
             int count = _databaseTableDatabases.CountOfRowsWithAllValues(searchItems);
 
