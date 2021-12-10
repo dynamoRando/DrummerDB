@@ -99,6 +99,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _userDatabases.Clear();
         }
 
+        public bool Contains(string dbName)
+        {
+            foreach (var db in _userDatabases)
+            {
+                if (string.Equals(db.Name, dbName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public bool Contains(UserDatabase item)
         {
             foreach (var db in _userDatabases)

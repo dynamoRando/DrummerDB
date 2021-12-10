@@ -4,11 +4,13 @@ using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
+using System;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
     class DropHostDbOperator : IQueryPlanPartOperator, ISQLNonQueryable
     {
+        private bool _wasDroppedInTry = false;
         private IDbManager _db;
         public string DatabaseName { get; set; }
         public int Order { get; set; }
@@ -18,7 +20,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
-            if (_db.HasUserDatabase(DatabaseName, DatabaseType))
+            if (transactionMode != TransactionMode.Try && _wasDroppedInTry)
+            {
+                messages.Add($"Database {DatabaseName} was removed successfully");
+                return;
+            }
+
+            if (_db.HasDatabase(DatabaseName))
             {
                 if (_db is DbManager)
                 {
@@ -26,8 +34,17 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     if (db.DeleteHostDatabase(DatabaseName))
                     {
                         messages.Add($"Database {DatabaseName} was removed successfully");
+
+                        if (transactionMode == TransactionMode.Try)
+                        {
+                            _wasDroppedInTry = true;
+                        }
                     }
                 }
+            }
+            else
+            {
+                throw new InvalidOperationException($"Database {DatabaseName} was not found!");
             }
         }
 

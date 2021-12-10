@@ -7,17 +7,33 @@ namespace Drummersoft.DrummerDB.Core.Databases.Interface
 {
     internal interface IDbManager
     {
+        public IDatabase GetDatabase(string dbName, DatabaseType type);
+
+        public HostDb GetHostDatabase(string dbName);
+
+        HostDb GetHostDb(string dbName);
+
+        PartialDb GetPartialDb(string dbName);
+
         public SystemDatabase GetSystemDatabase();
+        public Table GetTable(TreeAddress address);
+
         public UserDatabase GetUserDatabase(string dbName, DatabaseType type);
         public UserDatabase GetUserDatabase(Guid dbId);
-        public bool HasUserDatabase(string name, DatabaseType type);
-        public bool HasUserDatabase(Guid dbId);
-        public bool HasSystemDatabase(string name);
-        public bool HasTable(TreeAddress address);
-        public Table GetTable(TreeAddress address);
-        public IDatabase GetDatabase(string dbName, DatabaseType type);
         public bool HasDatabase(string dbName, DatabaseType type);
-        public HostDb GetHostDatabase(string dbName);
+        public bool HasDatabase(string dbName);
+
         public bool HasHostInfo();
+
+        public bool HasSystemDatabase(string name);
+
+        public bool HasTable(TreeAddress address);
+
+        public bool HasUserDatabase(string name, DatabaseType type);
+        public bool HasUserDatabase(string name);
+        public bool HasUserDatabase(Guid dbId);
+        bool IsHostDatabase(string dbName);
+
+        bool IsPartialDatabase(string dbName);
     }
 }
