@@ -109,6 +109,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return db.AddLogin(userName, pwInput, userGUID, false);
         }
 
+        internal bool DeletePartDatabase(string dbName)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Removes the specified database from the <see cref="UserDatabaseCollection"/> and removes the file from disk
         /// </summary>
@@ -383,6 +388,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             PartialDb partDb = null;
             SystemDatabase system = null;
+            string dbName = contract.DatabaseName;
+            TransactionEntry xact = null;
+            Guid systemDbId = GetGuSystemDatabase().Id;
+            databaseId = Guid.Empty;
 
             switch (transactionMode)
             {
@@ -392,14 +401,99 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     if (_log is not null)
                     {
-                        _log.Info($"New Partial User Database {contract.DatabaseName} created");
+                        _log.Info($"New Partial User Database {dbName} created");
                     }
 
                     system = GetSystemDatabase();
-                    system.XactAddNewPartDbNameToDatabasesTable(contract.DatabaseName, transaction, transactionMode);
+                    system.XactAddNewPartDbNameToDatabasesTable(dbName, transaction, transactionMode);
 
                     return true;
 
+                case TransactionMode.Try:
+
+                    if (!HasUserDatabase(dbName, DatabaseType.Host))
+                    {
+                        xact = GenerateTransactionEntryForNewPartDatabase(transaction, contract);
+                        _xEntryManager.AddEntry(xact);
+                        partDb = CreatePartialUserDatabaseOnDisk(contract, _storage, _crypt, _cache);
+                        _storage.LogOpenTransaction(systemDbId, xact);
+                        databaseId = partDb.Id;
+
+                        if (_log is not null)
+                        {
+                            _log.Info($"Try: New Partial User Database {dbName} created");
+                        }
+
+                        system = GetSystemDatabase();
+                        system.XactAddNewPartDbNameToDatabasesTable(dbName, transaction, transactionMode);
+
+                        return true;
+                    }
+
+                    databaseId = Guid.Empty;
+                    return false;
+
+                case TransactionMode.Rollback:
+
+                    /*
+                    if (HasUserDatabase(dbName, DatabaseType.Host))
+                    {
+                        DeleteHostDatabase(dbName);
+                        xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                        xact.MarkDeleted();
+                        _storage.RemoveOpenTransaction(systemDbId, xact);
+                        _xEntryManager.RemoveEntry(xact);
+
+
+                        if (_log is not null)
+                        {
+                            _log.Info($"Rollback: New User Database {dbName} created");
+                        }
+
+                        system = GetSystemDatabase();
+                        system.XactRemoveDbNameFromDatabasesTable(dbName, transaction, transactionMode);
+
+                        return true;
+                    }
+
+                    databaseId = Guid.Empty;
+                    return false;
+                    */
+
+                    if (HasUserDatabase(dbName, DatabaseType.Partial))
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    databaseId = Guid.Empty;
+                    return false;
+
+                case TransactionMode.Commit:
+                    /*
+                    if (HasUserDatabase(dbName, DatabaseType.Host))
+                    {
+                        xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                        xact.MarkComplete();
+                        _storage.LogCloseTransaction(systemDbId, xact);
+                        _xEntryManager.RemoveEntry(xact);
+
+                        if (_log is not null)
+                        {
+                            _log.Info($"Commit: User Database {dbName} created");
+                        }
+
+                        system = GetSystemDatabase();
+                        system.XactAddNewHostDbNameToDatabasesTable(dbName, transaction, transactionMode);
+
+                        return true;
+                    }
+
+                    return false;
+                    */
+
+                    throw new NotImplementedException();
+
+                    break;
                 default:
                     throw new NotImplementedException("Unknown transaction mode");
             }
@@ -849,6 +943,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 );
 
             return xEntry;
+        }
+
+        public TransactionEntry GenerateTransactionEntryForNewPartDatabase(TransactionRequest request, Contract contract)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

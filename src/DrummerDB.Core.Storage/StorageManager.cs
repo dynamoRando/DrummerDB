@@ -160,6 +160,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
                             _userDbFiles.Add(databaseFileHandler);
                             break;
                         case DataFileType.Partial:
+                            throw new ArgumentException("Partial database type not implemented");
                             break;
                         default:
                             throw new ArgumentException("Unknown data file type");
@@ -177,6 +178,8 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
         public bool DeleteUserDatabase(string dbName)
         {
+            throw new NotImplementedException("We need to modify this to account for host and partial databases");
+
             if (_userDbFiles.Contains(dbName))
             {
                 var db = _userDbFiles.Get(dbName);

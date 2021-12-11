@@ -325,7 +325,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     break;
                 case CreateHostDbOperator b:
-                    if (_auth.UserHasSystemPermission(un, SystemPermission.CreateDatabase))
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.CreateHostDatabase))
                     {
                         return true;
                     }
@@ -517,13 +517,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     break;
                 case GenerateHostInfoOperator k:
-                    var op = operation as GenerateHostInfoOperator;
+                    var genHostInfoOp = operation as GenerateHostInfoOperator;
 
                     if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
                     {
                         return true;
                     }
 
+                    break;
+                case CreatePartDbOperator l:
+                    var createPartDbOp = operation as CreatePartDbOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.CreatePartDatabase))
+                    {
+                        return true;
+                    }
+                    break;
+                case RemoteHostNotifyAcceptContractOperator m:
+                    var remoteHostNotifyAcceptContractOp = operation as RemoteHostNotifyAcceptContractOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.RemoteHostNotifyAcceptContract))
+                    {
+                        return true;
+                    }
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown operator type {operation.GetType()}");

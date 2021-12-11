@@ -67,7 +67,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             {
                 result.AuthenticationResult = hasLogin.Result;
 
-                if (_handler.UserHasSystemPermission(request.Authentication.UserName, SystemPermission.CreateDatabase))
+                if (_handler.UserHasSystemPermission(request.Authentication.UserName, SystemPermission.CreateHostDatabase))
                 {
                     Guid databaseId;
                     result.IsSuccessful = _handler.CreateUserDatabase(request.DatabaseName, out databaseId);
@@ -125,6 +125,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             {
                 int tableId = Convert.ToInt32(table.TableId);
                 string tableName = table.TableName;
+                int logicalStoragePolicy = Convert.ToInt32(table.LogicalStoragePolicy);
 
                 var dColumns = new List<drumColumn>();
 
@@ -139,6 +140,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 }
 
                 var tableSchema = new drumTableSchema(tableId, tableName, dContract.DatabaseId, dColumns);
+                tableSchema.SetStoragePolicy((LogicalStoragePolicy)logicalStoragePolicy);
+
                 dContract.Tables.Add(tableSchema);
             }
 

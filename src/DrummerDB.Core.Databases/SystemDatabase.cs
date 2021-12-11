@@ -322,30 +322,37 @@ namespace Drummersoft.DrummerDB.Core.Databases
                                 var tableSchemaSearchDatabaseId = RowValueMaker.Create(tableSchemaTable, CooperativeTableSchemas.Columns.DatabaseId, returnValue.DatabaseId.ToString());
 
                                 var searchColumnValues = new IRowValue[2] { tableSchemaSearchTableId, tableSchemaSearchDatabaseId };
-                                var schemaResults = contractTables.GetRowsWithAllValues(searchColumnValues);
+                                var schemaTablesResults = contractTables.GetRowsWithAllValues(searchColumnValues);
 
                                 List<ColumnSchema> columns = new List<ColumnSchema>();
 
-                                if (schemaResults.Count() > 0)
+                                if (schemaTablesResults.Count() > 0)
                                 {
-                                    foreach (var schemaResult in schemaResults)
+                                    // for each table in CooperativeTables
+                                    foreach (var schemaTableResult in schemaTablesResults)
                                     {
-                                        // this is the wrong table
-                                        string columnName = schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnName);
-                                        var enumType = (SQLColumnType)Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnType));
-                                        ISQLType type = SQLColumnTypeConverter.Convert(enumType, Constants.DatabaseVersions.V100);
-                                        int colLength = Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnLength));
-                                        int colOrdinal = Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnOrdinal));
-                                        bool colIsNullable = DbBinaryConvert.BinaryToBoolean(schemaResult.GetValueInByteSpan(CooperativeTableSchemas.Columns.ColumnIsNullable));
-                                        int colBinaryOrder = Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnBinaryOrder));
+                                        // look up each column for that table
+                                        var tableColumnSchema = GetTable(CooperativeTableSchemas.TABLE_NAME);
+                                        var columnResults = tableColumnSchema.GetRowsWithAllValues(searchColumnValues);
 
-                                        var columnSchema = new ColumnSchema(columnName, type, colOrdinal, colIsNullable);
-                                        columnSchema.Length = colLength;
-                                        columns.Add(columnSchema);
+                                        foreach (var columnResult in columnResults)
+                                        {
+                                            string columnName = columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnName).Trim();
+                                            var enumType = (SQLColumnType)Convert.ToInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnType));
+                                            ISQLType type = SQLColumnTypeConverter.Convert(enumType, Constants.DatabaseVersions.V100);
+                                            int colLength = Convert.ToInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnLength));
+                                            int colOrdinal = Convert.ToInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnOrdinal));
+                                            bool colIsNullable = DbBinaryConvert.BinaryToBoolean(columnResult.GetValueInByteSpan(CooperativeTableSchemas.Columns.ColumnIsNullable));
+                                            int colBinaryOrder = Convert.ToInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnBinaryOrder));
+
+                                            var columnSchema = new ColumnSchema(columnName, type, colOrdinal, colIsNullable);
+                                            columnSchema.Length = colLength;
+                                            columns.Add(columnSchema);
+                                        }
                                     }
                                 }
 
-                                var tableSchema = new TableSchema(tableId, tableName, returnValue.DatabaseId, columns);
+                                var tableSchema = new TableSchema(tableId, tableName.Trim(), returnValue.DatabaseId, columns);
 
                                 if (returnValue.Tables is null)
                                 {
@@ -522,7 +529,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 string name = SystemDatabaseConstants100.SystemLoginConstants.SystemRoles.Names.SystemAdmin;
                 var permissions = new List<SystemPermission>();
                 permissions.Add(SystemPermission.FullAccess);
-                permissions.Add(SystemPermission.CreateDatabase);
+                permissions.Add(SystemPermission.CreateHostDatabase);
                 SystemRole admin = new SystemRole(name, permissions);
                 AddUserToSystemRole(admin, userName);
             }
@@ -838,7 +845,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var coopTable = GetTable(CooperativeTables.TABLE_NAME);
             var coopTableColumn = GetTable(CooperativeTableSchemas.TABLE_NAME);
-            
+
             foreach (var table in contract.Tables)
             {
                 var coopTableRow = coopTable.GetNewLocalRow();

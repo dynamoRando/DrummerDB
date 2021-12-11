@@ -6,7 +6,9 @@
         FullAccess,
         ManageLogins,
         ShutdownProcess,
-        CreateDatabase,
-        DropDatabase
+        CreateHostDatabase,
+        DropDatabase,
+        CreatePartDatabase,
+        RemoteHostNotifyAcceptContract
     }
 }
