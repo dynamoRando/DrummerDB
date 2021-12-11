@@ -44,6 +44,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract bool IsDeleted();
         public abstract void Delete();
         public abstract void UnDelete();
+        public abstract RowAddress[] GetRowAddressesWithAllValues(IRowValue[] values);
+        public abstract bool HasAllValues(IRowValue[] values);
         public abstract PageAddress Address { get; }
     }
 }

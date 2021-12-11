@@ -150,6 +150,72 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Public Methods
+        public override bool HasAllValues(IRowValue[] values)
+        {
+            List<RowAddress> rows = GetRowIdsOnPage();
+            foreach (var row in rows)
+            {
+                bool rowHasAllValues = true;
+                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+
+                foreach (var value in values)
+                {
+                    byte[] a;
+                    byte[] b;
+
+                    a = rowData.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                    if (!DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        rowHasAllValues = false;
+                        break;
+                    }
+                }
+
+                if (rowHasAllValues)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public override RowAddress[] GetRowAddressesWithAllValues(IRowValue[] values)
+         {
+            List<RowAddress> result = new List<RowAddress>();
+
+            List<RowAddress> rows = GetRowIdsOnPage();
+            foreach (var row in rows)
+            {
+                bool rowHasAllValues = true;
+                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+
+                foreach (var value in values)
+                {
+                    byte[] a;
+                    byte[] b;
+
+                    a = rowData.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                    if (!DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        rowHasAllValues = false;
+                        break;
+                    }
+                }
+
+                if (rowHasAllValues)
+                {
+                    result.Add(row);
+                }
+            }
+
+            return result.Distinct().ToArray();
+        }
+
         public override bool IsDeleted()
         {
             var dataSpan = new ReadOnlySpan<byte>(_data);
@@ -935,6 +1001,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 throw new InvalidOperationException("Unknown Page Type");
             }
         }
+
+
 
         #endregion
     }

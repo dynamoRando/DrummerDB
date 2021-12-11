@@ -83,6 +83,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// <returns>A list of row ids that contain the specified value</returns>
         List<RowAddress> GetRowsWithValue(IRowValue value);
         RowAddress[] GetRowAddressesWithValue(IRowValue value);
+        RowAddress[] GetRowAddressesWithAllValues(IRowValue[] values);
 
         /// <summary>
         /// Gets all the Row Ids on this page
@@ -92,6 +93,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         int GetCountOfRowIdsOnPage(bool includeDeletedRows = false);
 
         bool HasValue(IRowValue value);
+        bool HasAllValues(IRowValue[] values);
         RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
         RowDebug GetDebugRow(int rowId);
 

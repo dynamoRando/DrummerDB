@@ -646,37 +646,28 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
         public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
-            int count = CountOfRowsWithAllValues(address, ref values);
-            var result = new IRow[count];
-            int index = 0;
+            var result = new List<IRow>();
 
             TreeContainer container;
             _dataCache.TryGetValue(address, out container);
 
             if (container is not null)
             {
-                foreach (var value in values)
+                foreach (var id in container.Pages())
                 {
-                    foreach (var id in container.Pages())
+                    var page = container.GetPage(id);
+                    if (page.HasAllValues(values))
                     {
-                        var page = container.GetPage(id);
-                        if (page.HasValue(value))
+                        var addresses = page.GetRowAddressesWithAllValues(values);
+                        foreach (var addy in addresses)
                         {
-                            var rowsWithValue = page.GetRowAddressesWithValue(value);
-                            if (rowsWithValue.Length > 0)
-                            {
-                                foreach (var row in rowsWithValue)
-                                {
-                                    result[index] = page.GetRow(row);
-                                }
-                            }
-
+                            result.Add(page.GetRow(addy));
                         }
                     }
                 }
             }
 
-            return result;
+            return result.Distinct().ToArray();
         }
 
         public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)

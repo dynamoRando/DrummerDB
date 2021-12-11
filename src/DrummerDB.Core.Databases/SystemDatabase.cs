@@ -330,6 +330,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                                 {
                                     foreach (var schemaResult in schemaResults)
                                     {
+                                        // this is the wrong table
                                         string columnName = schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnName);
                                         var enumType = (SQLColumnType)Convert.ToInt32(schemaResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnType));
                                         ISQLType type = SQLColumnTypeConverter.Convert(enumType, Constants.DatabaseVersions.V100);
@@ -837,12 +838,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var coopTable = GetTable(CooperativeTables.TABLE_NAME);
             var coopTableColumn = GetTable(CooperativeTableSchemas.TABLE_NAME);
-            int tableId = 0;
-
+            
             foreach (var table in contract.Tables)
             {
                 var coopTableRow = coopTable.GetNewLocalRow();
-                coopTableRow.SetValue(CooperativeTables.Columns.TableId, tableId.ToString());
+                coopTableRow.SetValue(CooperativeTables.Columns.TableId, table.Id.ToString());
                 coopTableRow.SetValue(CooperativeTables.Columns.TableName, table.Name);
                 coopTableRow.SetValue(CooperativeTables.Columns.DatabaseName, contract.DatabaseName);
                 coopTableRow.SetValue(CooperativeTables.Columns.DatabaseId, contract.DatabaseId.ToString());
@@ -852,7 +852,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 foreach (var column in table.Columns)
                 {
                     var colRow = coopTableColumn.GetNewLocalRow();
-                    colRow.SetValue(CooperativeTableSchemas.Columns.TableId, tableId.ToString());
+                    colRow.SetValue(CooperativeTableSchemas.Columns.TableId, table.Id.ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.DatabaseId, contract.DatabaseId.ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnName, column.Name);
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnId, column.Id.ToString());
@@ -866,10 +866,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnBinaryOrder, column.Ordinal.ToString());
                     coopTableColumn.XactAddRow(colRow);
                 }
-
-                tableId++;
             }
-
 
             return true;
         }
