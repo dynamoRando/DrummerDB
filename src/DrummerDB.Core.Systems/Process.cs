@@ -121,7 +121,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public void Start()
         {
             LoadConfiguration();
-           
+
 
             if (Settings.EnableLogging)
             {
@@ -230,13 +230,29 @@ namespace Drummersoft.DrummerDB.Core.Systems
         {
             if (string.IsNullOrEmpty(_storageFolder))
             {
-                _storage = new StorageManager(Settings.DatabaseFolder, Settings.HostDbExtension, Settings.PartialDbExtension, Settings.DatabaseLogExtension,
-                Settings.SystemDbExtension, Settings.ContractFolderName, Settings.ContractFileExtension);
+                _storage = new StorageManager(
+                    Settings.DatabaseFolder,
+                    Settings.HostDbExtension,
+                    Settings.PartialDbExtension,
+                    Settings.HostDatabaseLogExtension,
+                    Settings.PartDatabaseLogExtension,
+                    Settings.SystemDbExtension,
+                    Settings.ContractFolderName,
+                    Settings.ContractFileExtension
+                );
             }
             else
             {
-                _storage = new StorageManager(_storageFolder, Settings.HostDbExtension, Settings.PartialDbExtension, Settings.DatabaseLogExtension,
-                Settings.SystemDbExtension, Settings.ContractFolderName, Settings.ContractFileExtension);
+                _storage = new StorageManager(
+                    _storageFolder,
+                    Settings.HostDbExtension,
+                    Settings.PartialDbExtension,
+                    Settings.HostDatabaseLogExtension,
+                    Settings.PartDatabaseLogExtension,
+                    Settings.SystemDbExtension,
+                    Settings.ContractFolderName,
+                    Settings.ContractFileExtension
+                );
             }
         }
 

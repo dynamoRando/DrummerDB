@@ -22,8 +22,9 @@ namespace Drummersoft.DrummerDB.Core.Storage
     {
         #region Private Fields
         private string _hostDbExtension = string.Empty;
-        private string _logFileExtension = string.Empty;
+        private string _hostLogFileExtension = string.Empty;
         private string _partialDbExtension = string.Empty;
+        private string _partialLogFileExtension = string.Empty;
         private string _storageFolder = string.Empty;
         private string _systemDbExtension = string.Empty;
         private string _contractFolder = string.Empty;
@@ -45,12 +46,22 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// <param name="hostDbExtension">The file extension for host dbs</param>
         /// <param name="partialDbExtension">The file extension for partial dbs</param>
         /// <param name="logFileExtension">The file extension for a db log file</param>
-        internal StorageManager(string storageFolder, string hostDbExtension, string partialDbExtension, string logFileExtension, string systemDbExtension, string contractFolder, string contractFileExtension)
+        internal StorageManager(
+            string storageFolder, 
+            string hostDbExtension, 
+            string partialDbExtension, 
+            string hostLogFileExtension, 
+            string partLogFileExtension,
+            string systemDbExtension, 
+            string contractFolder, 
+            string contractFileExtension
+            )
         {
             _storageFolder = storageFolder;
             _hostDbExtension = hostDbExtension;
             _partialDbExtension = partialDbExtension;
-            _logFileExtension = logFileExtension;
+            _hostLogFileExtension = hostLogFileExtension;
+            _partialLogFileExtension = partLogFileExtension;
             _systemDbExtension = systemDbExtension;
             _contractFolder = contractFolder;
             _contractFileExtension = contractFileExtension;
@@ -92,7 +103,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
                     {
                         case DataFileType.System:
                             string dataFileName = Path.Combine(_storageFolder, dbName + _systemDbExtension);
-                            string logFileName = Path.Combine(_storageFolder, dbName + _logFileExtension);
+                            string logFileName = Path.Combine(_storageFolder, dbName + _hostLogFileExtension);
 
                             DbSystemDataFile dataFile =
                                 DbDataFileFactory.GetSystemDbDataFileVersion(version, dataFileName, pages, dbName);
@@ -106,7 +117,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
                                 dbId = (page as SystemPage).DatabaseId;
                             }
 
-                            SystemDbFileHandler databaseFileHandler = DbFileHandlerFactory.GetSystemDbFileHandlerForVersion(dbName, _storageFolder, _hostDbExtension, _logFileExtension, dataFile, logfile, dbId, version);
+                            SystemDbFileHandler databaseFileHandler = DbFileHandlerFactory.GetSystemDbFileHandlerForVersion(dbName, _storageFolder, _hostDbExtension, _hostLogFileExtension, dataFile, logfile, dbId, version);
 
                             if (_systemDbFiles is null)
                             {
@@ -134,33 +145,57 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// <param name="version">The database version</param>
         public void CreateUserDatabase(string dbName, List<IPage> pages, DataFileType type, int version = Constants.MAX_DATABASE_VERSION)
         {
+            string dataFileName = string.Empty;
+            string logFileName = string.Empty;
+            IDbDataFile dataFile;
+            IDbLogFile logfile;
+            Guid dbId = Guid.Empty;
+            IPage page;
+            UserDbFileHandler databaseFileHandler;
+
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
                     switch (type)
                     {
                         case DataFileType.Host:
-                            string dataFileName = Path.Combine(_storageFolder, dbName + _hostDbExtension);
-                            string logFileName = Path.Combine(_storageFolder, dbName + _logFileExtension);
+                            dataFileName = Path.Combine(_storageFolder, dbName + _hostDbExtension);
+                            logFileName = Path.Combine(_storageFolder, dbName + _hostLogFileExtension);
 
-                            IDbDataFile dataFile =
+                            dataFile =
                                 DbDataFileFactory.GetHostDbDataFileVersion(version, dataFileName, pages, dbName);
 
-                            IDbLogFile logfile = DbLogFileFactory.GetDbLogFileVersion(version, logFileName);
+                            logfile = DbLogFileFactory.GetDbLogFileVersion(version, logFileName);
 
-                            Guid dbId = Guid.Empty;
-                            IPage page = pages.Where(p => p is ISystemPage).FirstOrDefault();
+                            page = pages.Where(p => p is ISystemPage).FirstOrDefault();
 
                             if (page is ISystemPage)
                             {
                                 dbId = (page as SystemPage).DatabaseId;
                             }
 
-                            var databaseFileHandler = DbFileHandlerFactory.GetUserDbFileHandlerForVersion(dbName, _storageFolder, _hostDbExtension, _logFileExtension, dataFile, logfile, dbId, type, version);
+                            databaseFileHandler = DbFileHandlerFactory.GetUserDbFileHandlerForVersion(dbName, _storageFolder, _hostDbExtension, _hostLogFileExtension, dataFile, logfile, dbId, type, version);
                             _userDbFiles.Add(databaseFileHandler);
                             break;
                         case DataFileType.Partial:
-                            throw new ArgumentException("Partial database type not implemented");
+
+                            dataFileName = Path.Combine(_storageFolder, dbName + _partialDbExtension);
+                            logFileName = Path.Combine(_storageFolder, dbName + _hostLogFileExtension);
+
+                            dataFile =
+                                DbDataFileFactory.GetHostDbDataFileVersion(version, dataFileName, pages, dbName);
+                            logfile = DbLogFileFactory.GetDbLogFileVersion(version, logFileName);
+
+                            page = pages.Where(p => p is ISystemPage).FirstOrDefault();
+
+                            if (page is ISystemPage)
+                            {
+                                dbId = (page as SystemPage).DatabaseId;
+                            }
+
+                            databaseFileHandler = DbFileHandlerFactory.GetUserDbFileHandlerForVersion(dbName, _storageFolder, _partialDbExtension, _hostLogFileExtension, dataFile, logfile, dbId, type, version);
+                            _userDbFiles.Add(databaseFileHandler);
+
                             break;
                         default:
                             throw new ArgumentException("Unknown data file type");
@@ -604,7 +639,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
             string dataFile = dbName + _systemDbExtension;
             string dataFileName = Path.Combine(_storageFolder, dataFile);
 
-            string logFile = dbName + _logFileExtension;
+            string logFile = dbName + _hostLogFileExtension;
             string logFileName = Path.Combine(_storageFolder, logFile);
 
             SystemDbFileHandler db;
@@ -622,7 +657,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
                 case Constants.DatabaseVersions.V100:
                     DbSystemDataFile systemDb = DbDataFileFactory.GetSystemDbDataFileVersion(version, dataFileName, dbId);
                     IDbLogFile logDbFile = DbLogFileFactory.GetDbLogFileVersion(version, logFileName);
-                    var file = new SystemDbFileHandler100(dataFileName, _storageFolder, _hostDbExtension, _logFileExtension, systemDb, logDbFile, dbId);
+                    var file = new SystemDbFileHandler100(dataFileName, _storageFolder, _hostDbExtension, _hostLogFileExtension, systemDb, logDbFile, dbId);
 
                     if (!_systemDbFiles.Contains(file.DatabaseName))
                     {
@@ -640,7 +675,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
 
         private UserDbFileHandler LoadUserFileIntoMemory(string fileName)
         {
-            UserDbFileHandler db;
+            UserDbFileHandler db = null;
 
             if (!File.Exists(fileName))
             {
@@ -669,18 +704,35 @@ namespace Drummersoft.DrummerDB.Core.Storage
             {
                 case Constants.DatabaseVersions.V100:
 
-                    IDbDataFile hostDb = DbDataFileFactory.GetHostDbDataFileVersion(version, fileName, dbId);
-                    string dbFileName = Path.GetFileNameWithoutExtension(fileName);
-                    IDbLogFile logDbFile = DbLogFileFactory.GetDbLogFileVersion(version, Path.Combine(_storageFolder, dbFileName + _logFileExtension));
-                    var file = new UserDbFileHandler100(fileName, _storageFolder, _hostDbExtension, _logFileExtension, hostDb, logDbFile, dbId, type);
-
-                    if (!_userDbFiles.Contains(file.DatabaseName))
+                    if (type == DataFileType.Host)
                     {
-                        _userDbFiles.Add(file);
+                        IDbDataFile hostDb = DbDataFileFactory.GetHostDbDataFileVersion(version, fileName, dbId);
+                        string dbFileName = Path.GetFileNameWithoutExtension(fileName);
+                        IDbLogFile logDbFile = DbLogFileFactory.GetDbLogFileVersion(version, Path.Combine(_storageFolder, dbFileName + _hostLogFileExtension));
+                        var file = new UserDbFileHandler100(fileName, _storageFolder, _hostDbExtension, _hostLogFileExtension, hostDb, logDbFile, dbId, type);
+
+                        if (!_userDbFiles.Contains(file.DatabaseName))
+                        {
+                            _userDbFiles.Add(file);
+                        }
+
+                        db = file;
                     }
 
-                    db = file;
+                    if (type == DataFileType.Partial)
+                    {
+                        IDbDataFile hostDb = DbDataFileFactory.GetHostDbDataFileVersion(version, fileName, dbId);
+                        string dbFileName = Path.GetFileNameWithoutExtension(fileName);
+                        IDbLogFile logDbFile = DbLogFileFactory.GetDbLogFileVersion(version, Path.Combine(_storageFolder, dbFileName + _hostLogFileExtension));
+                        var file = new UserDbFileHandler100(fileName, _storageFolder, _partialDbExtension, _hostLogFileExtension, hostDb, logDbFile, dbId, type);
 
+                        if (!_userDbFiles.Contains(file.DatabaseName))
+                        {
+                            _userDbFiles.Add(file);
+                        }
+
+                        db = file;
+                    }
                     break;
                 default:
                     throw new UnknownDbVersionException(version);

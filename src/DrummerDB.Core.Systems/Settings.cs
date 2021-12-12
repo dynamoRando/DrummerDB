@@ -62,7 +62,8 @@ namespace Drummersoft.DrummerDB.Core.Systems
         /// <summary>
         /// The file extension for a database's log file
         /// </summary>
-        public string DatabaseLogExtension { get; set; }
+        public string HostDatabaseLogExtension { get; set; }
+        public string PartDatabaseLogExtension { get; set; }
 
         public bool UseHttpsForConnections { get; set; }
         #endregion
