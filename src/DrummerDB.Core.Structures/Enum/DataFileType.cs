@@ -8,6 +8,8 @@
         Unknown,
         Host,
         Partial,
-        System
+        System, 
+        Embedded,
+        Tenant
     }
 }

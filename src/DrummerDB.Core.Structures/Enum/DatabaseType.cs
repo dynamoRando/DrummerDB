@@ -9,6 +9,7 @@
         Host,
         Partial,
         System,
-        Embedded // to be made
+        Embedded, // to be made
+        Tenant // to be made
     }
 }

@@ -20,6 +20,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
         private string _dataFileExtension = string.Empty;
         private string _storageFolderPath = string.Empty;
         private Guid _dbId;
+        private DataFileType _type;
 
         private IDbDataFile _dataFile;
         private IDbLogFile _logFile;
@@ -27,13 +28,13 @@ namespace Drummersoft.DrummerDB.Core.Storage
 
         #region Public Properties
         public override Guid DbId => _dbId;
-
         public override int Version => Constants.DatabaseVersions.V100;
         public override string DatabaseName => _dataFile.DatabaseName;
+        public override DataFileType DataFileType => _type;
         #endregion
 
         #region Constructors
-        public UserDbFileHandler100(string diskFileName, string storageFolderPath, string dataFileExtension, string logFileExtension, IDbDataFile dataFile, IDbLogFile logFile, Guid dbId)
+        public UserDbFileHandler100(string diskFileName, string storageFolderPath, string dataFileExtension, string logFileExtension, IDbDataFile dataFile, IDbLogFile logFile, Guid dbId, DataFileType type)
         {
             _diskFileName = diskFileName;
             _logFileExtension = logFileExtension;
@@ -43,6 +44,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
             _dataFile = dataFile;
             _logFile = logFile;
             _dbId = dbId;
+            _type = type;
         }
         #endregion
 

@@ -27,5 +27,6 @@ namespace Drummersoft.DrummerDB.Core.Storage.Abstract
         public abstract void DeleteFromDisk();
         public abstract int GetTotalPages(TreeAddress address);
         public abstract List<UserDataPage> GetAllUserDataPages(TreeAddress address, ITableSchema schema);
+        public abstract DataFileType DataFileType { get; }
     }
 }

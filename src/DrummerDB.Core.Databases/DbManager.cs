@@ -121,7 +121,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
         internal bool DeleteHostDatabase(string dbName)
         {
-            var result = _storage.DeleteUserDatabase(dbName);
+            var result = _storage.DeleteHostDatabase(dbName);
             _userDatabases.Remove(dbName);
             return result;
         }

@@ -182,7 +182,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public bool DeleteUserDatabase(string dbName)
+        public bool DeleteHostDatabase(string dbName)
         {
             throw new NotImplementedException();
         }
