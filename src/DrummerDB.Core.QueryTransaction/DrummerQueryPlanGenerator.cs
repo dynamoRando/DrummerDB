@@ -734,14 +734,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 part.Operations.Add(op);
                             }
 
-                            var newPartDb = dbManager.GetPartialDb(acceptedContractItem.DatabaseName);
-
                             if (!plan.HasPart(PlanPartType.RemoteHostNotifyAcceptContract))
                             {
                                 plan.AddPart(new RemoteHostAcceptContractPlanPart());
 
                                 var part = plan.GetPart(PlanPartType.RemoteHostNotifyAcceptContract);
-                                var op = new RemoteHostNotifyAcceptContractOperator(newPartDb, acceptedContractItem);
+                                var op = new RemoteHostNotifyAcceptContractOperator(acceptedContractItem, dbManager as DbManager);
 
                                 part.Operations.Add(op);
                             }

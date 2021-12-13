@@ -611,7 +611,24 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public void XactAddNewPartDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
         {
-            throw new NotImplementedException();
+            // this needs to specify the database type of partial
+            var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseName, dbName);
+            var dbTypeSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseType, Convert.ToInt32(DatabaseType.Partial).ToString());
+
+            var searchItems = new IRowValue[2] { dbNameSearch, dbTypeSearch };
+
+            int count = _databaseTableDatabases.CountOfRowsWithAllValues(searchItems);
+
+            if (count == 0)
+            {
+                int hostDbType = (int)DatabaseType.Partial;
+
+                var record = _databaseTableDatabases.GetNewLocalRow();
+                record.SetValue(DatabaseTableDatabases.Columns.DatabaseName, dbName);
+                record.SetValue(DatabaseTableDatabases.Columns.DatabaseType, hostDbType.ToString());
+
+                _databaseTableDatabases.XactAddRow(record, transaction, transactionMode);
+            }
         }
 
         public void XactAddNewHostDbNameToDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
