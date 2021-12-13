@@ -37,7 +37,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestAddUser");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
             string contracts = "contracts";
             string contractFileExtension = ".drumContract";
@@ -70,7 +71,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts, contractFileExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
@@ -154,7 +155,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension , systemDbExtension, contracts, contractFileExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var mockXEntry = new TransactionEntryManager();

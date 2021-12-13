@@ -135,7 +135,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestInvalidLogin");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
             string contracts = "contracts";
             string contractFileExtension = ".drumContract";
@@ -152,7 +153,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 File.Delete(fileName);
             }
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts, contractFileExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypt = new CryptoManager();
 
