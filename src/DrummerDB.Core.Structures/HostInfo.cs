@@ -15,6 +15,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public string IP6Address { get; set; }
         public int DatabasePortNumber { get; set; }
         public byte[] Token { get; set; }
+        public bool UseHttps { get; set; }
 
         public byte[] ToBinaryFormat()
         {

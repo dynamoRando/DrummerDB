@@ -6,6 +6,7 @@ using Drummersoft.DrummerDB.Core.Structures.Interface;
 using Grpc.Net.Client;
 using System;
 using structParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
+using structHost = Drummersoft.DrummerDB.Core.Structures.HostInfo;
 using structContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
@@ -18,7 +19,8 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
          * in getting remote data. It will need to identify itself (so we need to pass the identity to the call)
          */
         #region Private Fields
-        private ParticipantSinkCollection _sinkCollection;
+        private ParticipantSinkCollection _participantSinkCollection;
+        private HostSinkCollection _hostSinkCollection;
 
         // used to identify/authorize ourselves to our participants
         private HostInfo _hostInfo;
@@ -31,12 +33,49 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #region Constructors
         public RemoteDataManager(HostInfo hostInfo)
         {
-            _sinkCollection = new ParticipantSinkCollection();
+            _participantSinkCollection = new ParticipantSinkCollection();
+            _hostSinkCollection = new HostSinkCollection();
             _hostInfo = hostInfo;
         }
         #endregion
 
         #region Public Methods
+        public bool NotifyAcceptContract(structContract contract, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            ParticipantAcceptsContractResult? result = null;
+            HostSink sink;
+            sink = GetOrAddHostSink(contract.Host);
+
+            if (!sink.IsOnline())
+            {
+                errorMessage = $"Host {contract.Host.HostName} is not online";
+                return false;
+            }
+
+            var request = new ParticipantAcceptsContractRequest();
+            request.ContractGUID = contract.ContractGUID.ToString();
+
+            try
+            {
+                result = sink.Client.AcceptContract(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+
+            if (result is null)
+            {
+                return false;
+            }
+            else
+            {
+                errorMessage = string.Empty;
+                return result.ContractAcceptanceIsAcknowledged;
+            }
+        }
+
         public void UpdateHostInfo(Guid hostId, string hostName, byte[] token)
         {
             _hostInfo.HostGUID = hostId;
@@ -50,17 +89,18 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             SaveContractResult? result = null;
             ParticipantSink sink;
-            sink = GetOrAddSink(participant);
+            sink = GetOrAddParticipantSink(participant);
 
             if (!sink.IsOnline())
             {
+                errorMessage = $"Participant {participant.Alias} is not online";
                 return false;
             }
 
             var request = new SaveContractRequest();
             request.Contract = ContractConverter.ConvertContractForCommunication(contract, _hostInfo);
 
-            try 
+            try
             {
                 result = sink.Client.SaveContract(request);
             }
@@ -68,7 +108,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             {
                 errorMessage = ex.Message;
             }
-            
+
             if (result is null)
             {
                 return false;
@@ -139,13 +179,13 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         /// </summary>
         /// <param name="participant">The participant to find the sink for</param>
         /// <returns>A sink from the sink collection</returns>
-        private ParticipantSink GetOrAddSink(structParticipant participant)
+        private ParticipantSink GetOrAddParticipantSink(structParticipant participant)
         {
             ParticipantSink sink;
 
-            if (_sinkCollection.Contains(participant))
+            if (_participantSinkCollection.Contains(participant))
             {
-                sink = _sinkCollection.GetSink(participant);
+                sink = _participantSinkCollection.GetSink(participant);
             }
             else
             {
@@ -166,7 +206,40 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
                 sink.Channel = GrpcChannel.ForAddress(url);
                 sink.Client = new DatabaseService.DatabaseServiceClient(sink.Channel);
 
-                _sinkCollection.Add(sink);
+                _participantSinkCollection.Add(sink);
+            }
+
+            return sink;
+        }
+
+        private HostSink GetOrAddHostSink(structHost host)
+        {
+            HostSink sink;
+
+            if (_hostSinkCollection.Contains(host))
+            {
+                sink = _hostSinkCollection.GetSink(host);
+            }
+            else
+            {
+                sink = new HostSink();
+                sink.Host = host;
+
+                string url = string.Empty;
+
+                if (host.UseHttps)
+                {
+                    url = $"https://{host.IP4Address}:{host.DatabasePortNumber.ToString()}";
+                }
+                else
+                {
+                    url = $"http://{host.IP4Address}:{host.DatabasePortNumber.ToString()}";
+                }
+
+                sink.Channel = GrpcChannel.ForAddress(url);
+                sink.Client = new DatabaseService.DatabaseServiceClient(sink.Channel);
+
+                _hostSinkCollection.Add(sink);
             }
 
             return sink;

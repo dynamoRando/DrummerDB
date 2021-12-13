@@ -43,6 +43,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Public Methods
         public bool XactNotifyHostAcceptedContract(Contract contract, TransactionRequest transaction, TransactionMode transactionMode)
         {
+            string errorMessage = string.Empty;
+            var isLogged = _baseDb.XactLogNotifyHostAcceptedContract(transaction, transactionMode, contract);
+            _remote.NotifyAcceptContract(contract, out errorMessage);
+
             throw new NotImplementedException();
         }
 

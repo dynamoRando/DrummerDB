@@ -15,6 +15,7 @@
         DropEmbeddedDatabase,
         DropTenantDatabase,
         Unknown,
-        ParticipantSaveContract
+        ParticipantSaveContract,
+        NotifyAcceptContract
     }
 }

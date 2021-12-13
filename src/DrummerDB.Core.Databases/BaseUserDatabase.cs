@@ -55,6 +55,55 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public bool XactLogNotifyHostAcceptedContract(TransactionRequest transaction, TransactionMode transactionMode, Contract contract)
+        {
+
+            var storage = _metaData.StorageManager;
+            TransactionEntry xact = null;
+
+            switch (transactionMode)
+            {
+                case TransactionMode.None:
+
+                    xact = GetTransactionEntryForNotifyAcceptContract(GetAcceptContractTransaction(contract), transaction);
+                    _xEntryManager.AddEntry(xact);
+                    storage.LogOpenTransaction(_metaData.Id, xact);
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkComplete();
+                    storage.LogCloseTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                case TransactionMode.Try:
+
+                    xact = GetTransactionEntryForNotifyAcceptContract(GetAcceptContractTransaction(contract), transaction);
+                    _xEntryManager.AddEntry(xact);
+                    storage.LogOpenTransaction(_metaData.Id, xact);
+
+                    return true;
+                case TransactionMode.Rollback:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkDeleted();
+                    storage.RemoveOpenTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                case TransactionMode.Commit:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkComplete();
+                    storage.LogCloseTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                default:
+                    throw new InvalidOperationException("Unknown transaction mode");
+            }
+
+            throw new NotImplementedException();
+        }
+
         public bool XactLogParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, Contract contract)
         {
             var storage = _metaData.StorageManager;
@@ -584,6 +633,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new ParticipantSaveContractTransaction(participant, contract);
         }
 
+        private AcceptContractTransaction GetAcceptContractTransaction(Contract contract)
+        {
+            return new AcceptContractTransaction(contract);
+        }
+
         private TransactionEntry GetTransactionEntryForCreateTable(CreateTableTransaction transaction, TransactionRequest request)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
@@ -606,6 +660,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
         }
 
         private TransactionEntry GetTransactionEntryForParticipantSaveContract(ParticipantSaveContractTransaction transaction, TransactionRequest request)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
+            var entry = new TransactionEntry(request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
+                transaction, request.UserName, false, sequenceId);
+
+            return entry;
+        }
+
+        private TransactionEntry GetTransactionEntryForNotifyAcceptContract(AcceptContractTransaction transaction, TransactionRequest request)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
             var entry = new TransactionEntry(request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
