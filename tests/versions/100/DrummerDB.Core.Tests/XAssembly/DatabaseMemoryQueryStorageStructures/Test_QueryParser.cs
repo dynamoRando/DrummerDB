@@ -41,7 +41,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestInvalidSyntax");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string hostLogDbExtension = ".drumlog";
+            string partLogDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
             string contracts = "contracts";
             string contractFileExtension = ".drumContract";
@@ -72,7 +73,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("col1", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts, contractFileExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension , systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();

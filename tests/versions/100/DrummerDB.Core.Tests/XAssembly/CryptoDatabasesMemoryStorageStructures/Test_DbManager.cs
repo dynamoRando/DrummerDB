@@ -33,7 +33,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestHasSystemDb");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string hostLogDbExtension = ".drumlog";
+            string partLogDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
             string dbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
             string contracts = "contracts";
@@ -46,7 +47,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 File.Delete(fileName);
             }
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts, contractFileExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypt = new CryptoManager();
 
@@ -81,7 +82,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestCreateLogin");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string hostLogDbExtension = ".drumlog";
+            string partLogDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
             string contracts = "contracts";
             string contractFileExtension = ".drumContract";
@@ -98,7 +100,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 File.Delete(fileName);
             }
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts, contractFileExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypt = new CryptoManager();
 
@@ -181,7 +183,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestCreateDeleteUser");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string hostLogDbExtension = ".drumlog";
+            string partLogDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
             string dbName = "CreateDelete";
             string contracts = "contracts";
@@ -203,7 +206,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 File.Delete(fileName);
             }
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts, contractFileExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypt = new CryptoManager();
             var xManager = new TransactionEntryManager();

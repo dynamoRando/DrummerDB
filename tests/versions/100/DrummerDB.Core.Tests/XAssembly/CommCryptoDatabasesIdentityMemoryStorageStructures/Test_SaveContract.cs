@@ -43,11 +43,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestComCon");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
             string systemDbExtension = ".drumsys";
             string userDbName = "TestAuthUser";
             string contracts = "contracts";
             string contractFileExtension = ".drumContract";
+            string partLogDbExtension = ".drumpartlog";
 
             // contract variables
             string authorName = "TestAuthor";
@@ -89,7 +90,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 f.Delete();
             }
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension, contracts, contractFileExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
