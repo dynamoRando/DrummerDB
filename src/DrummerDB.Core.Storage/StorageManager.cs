@@ -47,13 +47,13 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// <param name="partialDbExtension">The file extension for partial dbs</param>
         /// <param name="logFileExtension">The file extension for a db log file</param>
         internal StorageManager(
-            string storageFolder, 
-            string hostDbExtension, 
-            string partialDbExtension, 
-            string hostLogFileExtension, 
+            string storageFolder,
+            string hostDbExtension,
+            string partialDbExtension,
+            string hostLogFileExtension,
             string partLogFileExtension,
-            string systemDbExtension, 
-            string contractFolder, 
+            string systemDbExtension,
+            string contractFolder,
             string contractFileExtension
             )
         {
@@ -213,13 +213,11 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
         public bool DeleteHostDatabase(string dbName)
         {
-            throw new NotImplementedException("We need to modify this to account for host and partial databases");
-
-            if (_userDbFiles.Contains(dbName))
+            if (_userDbFiles.Contains(dbName, DataFileType.Host))
             {
-                var db = _userDbFiles.Get(dbName);
+                var db = _userDbFiles.Get(dbName, DataFileType.Host);
                 db.DeleteFromDisk();
-                _userDbFiles.Remove(dbName);
+                _userDbFiles.Remove(dbName, DataFileType.Host);
                 return true;
             }
 
@@ -426,9 +424,9 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// </summary>
         /// <param name="dbName">The dbName to check</param>
         /// <returns>A reference to the specified <see cref="UserDbFileHandler"/>, or <c>NULL</c> if it is not found</returns>
-        public UserDbFileHandler GetUserDatabaseFile(string dbName)
+        public UserDbFileHandler GetUserDatabaseFile(string dbName, DataFileType type)
         {
-            return _userDbFiles.Get(dbName);
+            return _userDbFiles.Get(dbName, type);
         }
 
         public List<string> GetUserDatabaseNames()
@@ -711,7 +709,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
                         IDbLogFile logDbFile = DbLogFileFactory.GetDbLogFileVersion(version, Path.Combine(_storageFolder, dbFileName + _hostLogFileExtension));
                         var file = new UserDbFileHandler100(fileName, _storageFolder, _hostDbExtension, _hostLogFileExtension, hostDb, logDbFile, dbId, type);
 
-                        if (!_userDbFiles.Contains(file.DatabaseName))
+                        if (!_userDbFiles.Contains(file.DatabaseName, type))
                         {
                             _userDbFiles.Add(file);
                         }
@@ -726,7 +724,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
                         IDbLogFile logDbFile = DbLogFileFactory.GetDbLogFileVersion(version, Path.Combine(_storageFolder, dbFileName + _hostLogFileExtension));
                         var file = new UserDbFileHandler100(fileName, _storageFolder, _partialDbExtension, _hostLogFileExtension, hostDb, logDbFile, dbId, type);
 
-                        if (!_userDbFiles.Contains(file.DatabaseName))
+                        if (!_userDbFiles.Contains(file.DatabaseName, type))
                         {
                             _userDbFiles.Add(file);
                         }
