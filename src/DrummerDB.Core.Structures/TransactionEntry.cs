@@ -250,13 +250,13 @@ namespace Drummersoft.DrummerDB.Core.Structures
                         var tableOp = new CreateTableTransaction(tableSchema);
                         Action = tableOp;
                         break;
-                    case TransactionSchemaOperation.CreateDatabase:
+                    case TransactionSchemaOperation.CreateHostDatabase:
                         var bLengthOfDbName = action.Slice(currentOffset, Constants.SIZE_OF_INT);
                         int lengthOfDbName = DbBinaryConvert.BinaryToInt(bLengthOfDbName);
                         currentOffset += Constants.SIZE_OF_INT;
                         var bDbName = action.Slice(currentOffset, lengthOfDbName);
                         string dbName = DbBinaryConvert.BinaryToString(bDbName);
-                        var createDb = new CreateDbTransaction(dbName); ;
+                        var createDb = new CreateHostDbTransaction(dbName); ;
                         Action = createDb;
                         currentOffset += lengthOfDbName;
                         break;

@@ -390,6 +390,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             SystemDatabase system = null;
             string dbName = contract.DatabaseName;
             TransactionEntry xact = null;
+            system = GetGuSystemDatabase();
             Guid systemDbId = GetGuSystemDatabase().Id;
             databaseId = Guid.Empty;
 
@@ -413,7 +414,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     if (!HasUserDatabase(dbName, DatabaseType.Host))
                     {
-                        xact = GenerateTransactionEntryForNewPartDatabase(transaction, contract);
+                        xact = GenerateTransactionEntryForNewPartDatabase(transaction, contract, systemDbId);
                         _xEntryManager.AddEntry(xact);
                         partDb = CreatePartialUserDatabaseOnDisk(contract, _storage, _crypt, _cache);
                         _storage.LogOpenTransaction(systemDbId, xact);
@@ -884,7 +885,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 AddUserDatabaseToCollection(partDb);
             }
 
-            throw new NotImplementedException();
+            return partDb;
         }
         /// <summary>
         /// Creates the needed system pages from <see cref="DatabasePageFactory"/>, asks <see cref="IStorageManager"/> to save those pages to disk, and adds the <see cref="ISystemPage"/> to <see cref="ICacheManager"/> and returns the 
@@ -928,7 +929,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public TransactionEntry GetTransactionEntryForNewHostDatabase(TransactionRequest request, string dbName, Guid systemDbId)
         {
-            var createDbX = new CreateDbTransaction(dbName);
+            var createDbX = new CreateHostDbTransaction(dbName);
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
 
             var xEntry = new TransactionEntry
@@ -945,9 +946,23 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return xEntry;
         }
 
-        public TransactionEntry GenerateTransactionEntryForNewPartDatabase(TransactionRequest request, Contract contract)
+        public TransactionEntry GenerateTransactionEntryForNewPartDatabase(TransactionRequest request, Contract contract, Guid systemDbId)
         {
-            throw new NotImplementedException();
+            var createDbX = new CreatePartialDbTransaction(contract);
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
+
+            var xEntry = new TransactionEntry
+                (request.TransactionBatchId,
+                systemDbId,
+                TransactionActionType.Schema,
+                Constants.DatabaseVersions.V100,
+                createDbX,
+                request.UserName,
+                false,
+                sequenceId
+                );
+
+            return xEntry;
         }
 
         #endregion

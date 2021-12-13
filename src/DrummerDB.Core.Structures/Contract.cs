@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.Enum;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
@@ -46,6 +47,69 @@ namespace Drummersoft.DrummerDB.Core.Structures
             DatabaseId = Guid.Empty;
             Version = Guid.Empty;
             Status = ContractStatus.Unknown;
+        }
+
+        public byte[] ToBinaryFormat()
+        {
+            var arrays = new List<byte[]>();
+
+            var hostInfo = Host.ToBinaryFormat();
+            arrays.Add(hostInfo);
+
+            // contractGuid
+            var bContractGuid = DbBinaryConvert.GuidToBinary(ContractGUID);
+            arrays.Add(bContractGuid);
+
+            // generated date 
+            var bGeneratedDate = DbBinaryConvert.DateTimeToBinary(GeneratedDate.ToString());
+            arrays.Add(bGeneratedDate);
+
+            // description
+            var bDescription = DbBinaryConvert.StringToBinary(Description);
+            var descriptionLength = bDescription.Length;
+            var bDescriptionLength = DbBinaryConvert.IntToBinary(descriptionLength);
+            arrays.Add(bDescriptionLength);
+            arrays.Add(bDescription);
+
+            // databaseName
+            var bDatabaseName = DbBinaryConvert.StringToBinary(DatabaseName);
+            var databaseNameLength = bDatabaseName.Length;
+            var bDatabaseNameLength = DbBinaryConvert.IntToBinary(databaseNameLength);
+            arrays.Add(bDatabaseNameLength);
+            arrays.Add(bDatabaseName);
+
+            // databaseId
+            var bDatabaseId = DbBinaryConvert.GuidToBinary(DatabaseId);
+            arrays.Add(bDatabaseId);
+
+            // tables
+            var tableArrays = new List<byte[]>();
+
+            foreach (var table in Tables)
+            {
+                var ts = table as TableSchema;
+                tableArrays.Add(ts.ToBinaryFormat());
+            }
+
+            var bTableArrays = DbBinaryConvert.ArrayStitch(tableArrays);
+            var tableArraysLength = bTableArrays.Length;
+            arrays.Add(DbBinaryConvert.IntToBinary(tableArraysLength));
+            arrays.Add(bTableArrays);
+
+            // version
+            var bVersion = DbBinaryConvert.GuidToBinary(Version);
+            arrays.Add(bVersion);
+
+            // status
+            var bStatus = DbBinaryConvert.IntToBinary(Convert.ToInt32(Status));
+            arrays.Add(bStatus);
+
+            return DbBinaryConvert.ArrayStitch(arrays);
+        }
+
+        public void SetFromBinaryArray(byte[] data)
+        {
+            throw new NotImplementedException();
         }
     }
 
