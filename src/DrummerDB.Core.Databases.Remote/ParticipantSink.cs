@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using structParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
 using Grpc.Net.Client;
 using static Drummersoft.DrummerDB.Common.Communication.DatabaseService.DatabaseService;
+using System.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -23,14 +24,26 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
         public bool IsOnline()
         {
+            TestReply? reply = null;
             var request = new TestRequest();
             string echo = "Test";
             request.RequestEchoMessage = echo;
-            var reply = Client.IsOnline(request);
 
-            if (string.Equals(reply.ReplyEchoMessage, echo))
+            try
             {
-                return true;
+                reply = Client.IsOnline(request);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+            }
+
+            if (reply is not null)
+            {
+                if (string.Equals(reply.ReplyEchoMessage, echo))
+                {
+                    return true;
+                }
             }
 
             return false;
