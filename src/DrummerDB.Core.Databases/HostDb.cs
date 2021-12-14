@@ -53,6 +53,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _remote.UpdateHostInfo(hostGuid, hostName, token);
         }
 
+        public void UpdateHostInfo(HostInfo hostInfo)
+        {
+            _remote.UpdateHostInfo(hostInfo);
+        }
+
         public override bool AddTable(TableSchema schema, out Guid tableObjectId)
         {
             return _baseDb.AddTable(schema, out tableObjectId);

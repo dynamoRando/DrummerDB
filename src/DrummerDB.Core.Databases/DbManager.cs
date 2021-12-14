@@ -83,7 +83,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         #endregion
 
-        #region Public Methods        
+        #region Public Methods    
+        internal void SetHostInfo(HostInfo hostInfo)
+        {
+            _hostInfo = hostInfo;
+        }
+
         internal bool CreateAdminLogin(string userName, string pwInput, Guid userGUID)
         {
             bool result = false;
@@ -752,12 +757,35 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public void UpdateHostInfoInDatabases(Guid hostGuid, string hostName, byte[] token)
         {
+            _hostInfo.HostGUID = hostGuid;
+            _hostInfo.HostName = hostName;
+            _hostInfo.Token = token;
+
             foreach (var db in _userDatabases)
             {
                 if (db is HostDb)
                 {
                     var host = db as HostDb;
                     host.UpdateHostInfo(hostGuid, hostName, token);
+                }
+            }
+        }
+
+        public void UpdateHostInfoInDatabases(HostInfo hostInfo)
+        {
+            _hostInfo = hostInfo;
+
+            // this happens during testing, where we haven't gone thru
+            // the full bootup process yet
+            if (_userDatabases is not null)
+            {
+                foreach (var db in _userDatabases)
+                {
+                    if (db is HostDb)
+                    {
+                        var host = db as HostDb;
+                        host.UpdateHostInfo(hostInfo);
+                    }
                 }
             }
         }

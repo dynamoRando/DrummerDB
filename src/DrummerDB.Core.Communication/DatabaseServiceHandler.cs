@@ -19,6 +19,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private IDbManager _dbManager;
         private IStorageManager _storageManager;
         private HostInfo _hostInfo;
+        private bool _overridesSettings = false;
         #endregion
 
         #region Public Properties
@@ -71,9 +72,10 @@ namespace Drummersoft.DrummerDB.Core.Communication
             _authenticationManager = authenticationManager;
         }
 
-        public void SetHostInfo(HostInfo hostInfo)
+        public void SetHostInfo(HostInfo hostInfo, bool overridesSettings)
         {
             _hostInfo = hostInfo;
+            _overridesSettings = overridesSettings;
         }
 
         public bool UserHasSystemPermission(string userName, SystemPermission permission)

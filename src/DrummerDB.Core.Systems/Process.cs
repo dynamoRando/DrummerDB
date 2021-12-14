@@ -138,9 +138,6 @@ namespace Drummersoft.DrummerDB.Core.Systems
             SetupQueries();
             LoadDatabases();
             CheckForAdminSetup();
-
-
-
         }
 
         public void Stop()
@@ -191,6 +188,8 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public void StartDbServer(int overrideSettingsPortNumber, bool overrideSettingsUseHttps)
         {
             _network.StartServerForDatabaseService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber, _storage);
+            _hostInfo.DatabasePortNumber = overrideSettingsPortNumber;
+            _dbManager.UpdateHostInfoInDatabases(_hostInfo);
         }
 
         /// <summary>

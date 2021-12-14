@@ -83,6 +83,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             _hostInfo.Token = token;
         }
 
+        public void UpdateHostInfo(HostInfo hostInfo)
+        {
+            _hostInfo = hostInfo;
+        }
+
         public bool SaveContractAtParticipant(structParticipant participant, structContract contract, out string errorMessage)
         {
             errorMessage = string.Empty;
