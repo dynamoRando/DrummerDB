@@ -171,6 +171,7 @@ message SaveContractResult {
 message ParticipantAcceptsContractRequest {
 	DrumDB.Participant participant = 1;
 	string contractGUID = 2;
+	string databaseName = 3;
 }
 
 message ParticipantAcceptsContractResult {

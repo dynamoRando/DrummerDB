@@ -293,6 +293,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return true;
         }
 
+        public bool XactUpdateParticipantAcceptsContract(Participant participant, Guid contractGuid)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool SendContractToParticipant(string aliasName, Guid contractGUID, out string errorMessage)
         {
             var participant = GetParticipant(aliasName);

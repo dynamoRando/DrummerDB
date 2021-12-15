@@ -113,6 +113,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             var contract = new drumContract();
             contract.ContractGUID = Guid.Parse(request.ContractGUID);
+            contract.DatabaseName = request.DatabaseName;
 
             _handler.AcceptContract(participant, contract);
 

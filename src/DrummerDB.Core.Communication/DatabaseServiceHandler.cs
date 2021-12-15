@@ -91,17 +91,20 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public bool AcceptContract(Participant participant, Contract contract)
         {
-            var db = _dbManager.GetHostDatabase(contract.DatabaseId);
+            var db = _dbManager.GetHostDatabase(contract.DatabaseName);
 
-            // need to generate a SQL plan to update the datbase participant
-            // as having accepted the contract
-            throw new NotImplementedException();
+            if (db is not null)
+            {
+                return db.XactUpdateParticipantAcceptsContract(participant, contract.ContractGUID);
+            }
+
+            return false;
         }
 
         public bool SaveContract(Contract contract)
         {
             var sysDb = _dbManager.GetSystemDatabase();
-            
+
             if (!sysDb.HasContractInHostsTable(contract))
             {
                 if (!sysDb.SaveContractToHostsTable(contract))
@@ -118,7 +121,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             {
                 return false;
             }
-           
+
 
             return true;
         }

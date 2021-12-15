@@ -56,6 +56,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             var request = new ParticipantAcceptsContractRequest();
             request.ContractGUID = contract.ContractGUID.ToString();
+            request.DatabaseName = contract.DatabaseName;
 
             var comParticipant = new Common.Communication.Participant();
             comParticipant.Alias = _hostInfo.HostName;
