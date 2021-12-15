@@ -104,6 +104,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             throw new NotImplementedException();
         }
 
+        public bool XactLogParticipantAcceptsContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, Contract contract)
+        {
+            // ?? this bypasses the query transaction layer
+            throw new NotImplementedException();
+        }
+
         public bool XactLogParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, Contract contract)
         {
             var storage = _metaData.StorageManager;
