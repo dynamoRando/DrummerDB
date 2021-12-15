@@ -9,6 +9,7 @@ using static Drummersoft.DrummerDB.Common.Communication.DatabaseService.Database
 using drumContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 using drumTableSchema = Drummersoft.DrummerDB.Core.Structures.TableSchema;
 using drumColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
+using drumParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
 using System.Collections.Generic;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Common;
@@ -103,6 +104,18 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public override Task<ParticipantAcceptsContractResult> AcceptContract(ParticipantAcceptsContractRequest request, ServerCallContext context)
         {
+            var participant = new drumParticipant();
+            participant.Alias = request.Participant.Alias;
+            participant.IP4Address = request.Participant.Ip4Address;
+            participant.IP6Address = request.Participant.Ip6Address;
+            participant.PortNumber = Convert.ToInt32(request.Participant.DatabasePortNumber);
+            participant.Id = Guid.Parse(request.Participant.ParticipantGUID);
+
+            var contract = new drumContract();
+            contract.ContractGUID = Guid.Parse(request.ContractGUID);
+
+            _handler.AcceptContract(participant, contract);
+
             throw new NotImplementedException();
             return base.AcceptContract(request, context);
         }

@@ -528,6 +528,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
+        public HostDb GetHostDatabase(Guid databaseId)
+        {
+            throw new NotImplementedException();
+        }
+
         public HostDb GetHostDatabase(string dbName)
         {
             return _userDatabases.GetUserDatabase(dbName, DatabaseType.Host) as HostDb;

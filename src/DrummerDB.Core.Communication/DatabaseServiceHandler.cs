@@ -89,6 +89,15 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return manager.XactCreateNewHostDatabase(databaseName, out databaseId);
         }
 
+        public bool AcceptContract(Participant participant, Contract contract)
+        {
+            var db = _dbManager.GetHostDatabase(contract.DatabaseId);
+
+            // need to generate a SQL plan to update the datbase participant
+            // as having accepted the contract
+            throw new NotImplementedException();
+        }
+
         public bool SaveContract(Contract contract)
         {
             var sysDb = _dbManager.GetSystemDatabase();

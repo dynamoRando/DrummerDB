@@ -10,6 +10,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Interface
         public IDatabase GetDatabase(string dbName, DatabaseType type);
 
         public HostDb GetHostDatabase(string dbName);
+        public HostDb GetHostDatabase(Guid databaseId);
 
         HostDb GetHostDb(string dbName);
 

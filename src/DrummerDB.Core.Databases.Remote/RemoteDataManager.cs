@@ -8,6 +8,7 @@ using System;
 using structParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
 using structHost = Drummersoft.DrummerDB.Core.Structures.HostInfo;
 using structContract = Drummersoft.DrummerDB.Core.Structures.Contract;
+using Google.Protobuf;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -55,6 +56,16 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             var request = new ParticipantAcceptsContractRequest();
             request.ContractGUID = contract.ContractGUID.ToString();
+
+            var comParticipant = new Common.Communication.Participant();
+            comParticipant.Alias = _hostInfo.HostName;
+            comParticipant.Ip4Address = _hostInfo.IP4Address;
+            comParticipant.Ip6Address = _hostInfo.IP6Address;
+            comParticipant.DatabasePortNumber = Convert.ToUInt32(_hostInfo.DatabasePortNumber);
+            comParticipant.Token = ByteString.CopyFrom(_hostInfo.Token);
+            comParticipant.ParticipantGUID = _hostInfo.HostGUID.ToString();
+            
+            request.Participant = comParticipant;
 
             try
             {
