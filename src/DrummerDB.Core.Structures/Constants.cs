@@ -27,6 +27,10 @@
         public const string COOP_SCHEMA = "coop";
         public const string COOP_SCHEMA_GUID = "86c05a00-d08f-4c03-803b-7adccaa60995";
 
+
+        // default user name for database service actions
+        public const string DATABASE_SERVICE = "DB_SERVICE";
+
         // all system defined tables, see SystemSchemaConstants100.cs and SystemDatabaseConstants100.cs
         public static class SYS_TABLE_ID_LIST
         {

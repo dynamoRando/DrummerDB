@@ -90,20 +90,37 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return Task.FromResult(result);
         }
 
+        /// <summary>
+        /// Record a copy of contract sent from a host
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override Task<SaveContractResult> SaveContract(SaveContractRequest request, ServerCallContext context)
         {
+            string errorMessage = string.Empty;
             var databaseContract = ConvertContractRequestToContract(request);
 
-            var result = _handler.SaveContract(databaseContract);
+            var result = _handler.SaveContract(databaseContract, out errorMessage);
 
             var reply = new SaveContractResult();
             reply.IsSaved = result;
+            reply.ErrorMessage = errorMessage;
 
             return Task.FromResult(reply);
         }
 
+        /// <summary>
+        /// Record that a participant has accepted a pending contract
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public override Task<ParticipantAcceptsContractResult> AcceptContract(ParticipantAcceptsContractRequest request, ServerCallContext context)
         {
+            string errorMessage = string.Empty;
+
             var participant = new drumParticipant();
             participant.Alias = request.Participant.Alias;
             participant.IP4Address = request.Participant.Ip4Address;
@@ -115,7 +132,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             contract.ContractGUID = Guid.Parse(request.ContractGUID);
             contract.DatabaseName = request.DatabaseName;
 
-            _handler.AcceptContract(participant, contract);
+            _handler.AcceptContract(participant, contract, out errorMessage);
 
             throw new NotImplementedException();
             return base.AcceptContract(request, context);

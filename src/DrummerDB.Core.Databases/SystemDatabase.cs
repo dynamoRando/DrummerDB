@@ -390,7 +390,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
-        public bool SaveContractToHostsTable(Contract contract)
+        public bool XactSaveContractToHostsTable(Contract contract, TransactionRequest transaction, TransactionMode transactionMode)
         {
             var hosts = GetTable(Hosts.TABLE_NAME);
             string hostId = contract.Host.HostGUID.ToString();
@@ -400,14 +400,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (countOfHosts == 0)
             {
+                _storage.SaveContractToDisk(contract);
+
                 // need host, we need to add this
-                return SaveNewContract(contract);
+                return XactSaveNewContract(contract, transaction, transactionMode);
             }
 
             if (countOfHosts == 1)
             {
                 // we need to update an existing contract
-                return SaveExistingContract(contract);
+                return XactSaveExistingContract(contract, transaction, transactionMode);
             }
 
             if (countOfHosts > 1)
@@ -415,8 +417,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 throw new InvalidOperationException("There somehow exists mutiple hosts with the same id");
             }
 
-
-            return false;
+            return false;            
         }
 
         public bool HasLogin(string userName)
@@ -822,7 +823,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        private bool SaveNewContract(Contract contract)
+        private bool XactSaveNewContract(Contract contract, TransactionRequest transaction, TransactionMode transactionMode)
         {
             // add record to hosts table
             var hosts = GetTable(Hosts.TABLE_NAME);
@@ -844,7 +845,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             hostRow.SetValue(Hosts.Columns.IP6Address, ip6);
             hostRow.SetValue(Hosts.Columns.PortNumber, portNumber.ToString());
             hostRow.SetValue(Hosts.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
-            hosts.XactAddRow(hostRow);
+            hosts.XactAddRow(hostRow, transaction, transactionMode);
 
             // save contract data to all contract tables
             var coopContracts = GetTable(CooperativeContracts.TABLE_NAME);
@@ -858,7 +859,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             coopContractRow.SetValue(CooperativeContracts.Columns.Version, contract.Version.ToString());
             coopContractRow.SetValue(CooperativeContracts.Columns.GeneratedDate, contract.GeneratedDate.ToString());
             coopContractRow.SetValue(CooperativeContracts.Columns.Status, Convert.ToInt32(contract.Status).ToString());
-            coopContracts.XactAddRow(coopContractRow);
+            coopContracts.XactAddRow(coopContractRow, transaction, transactionMode);
 
             var coopTable = GetTable(CooperativeTables.TABLE_NAME);
             var coopTableColumn = GetTable(CooperativeTableSchemas.TABLE_NAME);
@@ -871,7 +872,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 coopTableRow.SetValue(CooperativeTables.Columns.DatabaseName, contract.DatabaseName);
                 coopTableRow.SetValue(CooperativeTables.Columns.DatabaseId, contract.DatabaseId.ToString());
                 coopTableRow.SetValue(CooperativeTables.Columns.LogicalStoragePolicy, Convert.ToInt32(table.StoragePolicy).ToString());
-                coopTable.XactAddRow(coopTableRow);
+                coopTable.XactAddRow(coopTableRow, transaction, transactionMode);
 
                 foreach (var column in table.Columns)
                 {
@@ -888,14 +889,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnOrdinal, column.Ordinal.ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnIsNullable, column.IsNullable.ToString());
                     colRow.SetValue(CooperativeTableSchemas.Columns.ColumnBinaryOrder, column.Ordinal.ToString());
-                    coopTableColumn.XactAddRow(colRow);
+                    coopTableColumn.XactAddRow(colRow, transaction, transactionMode);
                 }
             }
 
             return true;
         }
 
-        private bool SaveExistingContract(Contract contract)
+        private bool XactSaveExistingContract(Contract contract, TransactionRequest transaction, TransactionMode transactionMode)
         {
             throw new NotImplementedException();
         }

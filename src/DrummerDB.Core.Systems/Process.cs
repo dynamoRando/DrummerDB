@@ -133,9 +133,9 @@ namespace Drummersoft.DrummerDB.Core.Systems
             SetupMemory();
             SetupTransactionEntryManager();
             SetupDatabases();
-            SetupNetwork();
             SetupAuth();
             SetupQueries();
+            SetupNetwork();
             LoadDatabases();
             CheckForAdminSetup();
         }

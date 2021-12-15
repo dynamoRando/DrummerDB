@@ -293,10 +293,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return true;
         }
 
-        public bool XactUpdateParticipantAcceptsContract(Participant participant, Guid contractGuid)
+        public bool XactUpdateParticipantAcceptsContract(Participant participant, Guid contractGuid, TransactionRequest transaction, TransactionMode transactionMode, out string errorMessage)
         {
             // ?? this bypasses the query transaction layer
-            _baseDb.XactLogParticipantAcceptsContract(null, null, participant, contract);
+            //_baseDb.XactLogParticipantAcceptsContract(null, null, participant, null);
 
             throw new NotImplementedException();
         }

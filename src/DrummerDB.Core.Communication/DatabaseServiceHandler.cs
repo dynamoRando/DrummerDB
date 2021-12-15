@@ -2,6 +2,8 @@ using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
+using Drummersoft.DrummerDB.Core.QueryTransaction;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using System;
@@ -20,6 +22,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private IStorageManager _storageManager;
         private HostInfo _hostInfo;
         private bool _overridesSettings = false;
+        private QueryManager _queryManager;
         #endregion
 
         #region Public Properties
@@ -39,6 +42,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
         #endregion
 
         #region Public Methods
+        public void SetQueryManager(IQueryManager queryManager)
+        {
+            _queryManager = queryManager as QueryManager;
+        }
+
         public void SetAuthentication(IAuthenticationManager auth)
         {
             _authenticationManager = auth;
@@ -89,41 +97,24 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return manager.XactCreateNewHostDatabase(databaseName, out databaseId);
         }
 
-        public bool AcceptContract(Participant participant, Contract contract)
+        /// <summary>
+        /// Record in the target host databaset that the participant has accepted the contract
+        /// </summary>
+        /// <param name="participant">The participant sending the response</param>
+        /// <param name="contract">The contract that the participant has accepted</param>
+        /// <returns><c>TRUE</c> if successful, otherwise <c>FALSE</c></returns>
+        public bool AcceptContract(Participant participant, Contract contract, out string errorMessage)
         {
-            var db = _dbManager.GetHostDatabase(contract.DatabaseName);
-
-            if (db is not null)
-            {
-                return db.XactUpdateParticipantAcceptsContract(participant, contract.ContractGUID);
-            }
-
-            return false;
+            errorMessage = string.Empty;
+            var acceptContractAction = new AcceptContractDbAction(participant, contract, _dbManager as DbManager);
+            return _queryManager.ExecuteDatabaseServiceAction(acceptContractAction, out errorMessage);
         }
 
-        public bool SaveContract(Contract contract)
+        public bool SaveContract(Contract contract, out string errorMessage)
         {
-            var sysDb = _dbManager.GetSystemDatabase();
-
-            if (!sysDb.HasContractInHostsTable(contract))
-            {
-                if (!sysDb.SaveContractToHostsTable(contract))
-                {
-                    return false;
-                }
-
-                if (!_storageManager.SaveContractToDisk(contract))
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-
-
-            return true;
+            errorMessage = string.Empty;
+            var saveContractAction = new SaveContractDbAction(contract, _dbManager as DbManager);
+            return _queryManager.ExecuteDatabaseServiceAction(saveContractAction, out errorMessage);
         }
         #endregion
 

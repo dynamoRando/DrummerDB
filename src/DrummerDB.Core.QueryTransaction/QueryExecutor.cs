@@ -54,6 +54,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Public Methods
+        public bool ExecuteDatabaseServiceAction(IDatabaseServiceAction action, out string errorMessage)
+        {
+            bool isSuccessful = false;
+            Guid transactionBatchId = _transactionManager.GetPendingBatchTransactionId();
+            TransactionRequest transaction = _transactionManager.EnqueueBatchTransaction(transactionBatchId, Constants.DATABASE_SERVICE, action.Id);
+            isSuccessful = action.Execute(transaction, TransactionMode.None, out errorMessage);
+            _transactionManager.DequeueBatchTransaction(transactionBatchId);
+
+            return isSuccessful;
+        }
+
+
         public bool CancelPlan(Guid planId)
         {
             if (_activePlans.Contains(planId))

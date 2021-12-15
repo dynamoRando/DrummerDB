@@ -166,6 +166,7 @@ message SaveContractRequest {
 message SaveContractResult {
 	//Drum.AuthResult authenticationResult = 1;
 	bool isSaved = 1;
+	string errorMessage = 2;
 }
 
 message ParticipantAcceptsContractRequest {
@@ -176,4 +177,5 @@ message ParticipantAcceptsContractRequest {
 
 message ParticipantAcceptsContractResult {
 	bool contractAcceptanceIsAcknowledged = 1;
+	string errorMessage = 2;
 }

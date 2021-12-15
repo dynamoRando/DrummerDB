@@ -194,6 +194,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _databaseServiceHandler.SetDatabase(dbManager);
                 _databaseServiceHandler.SetStorage(storage);
                 _databaseServiceHandler.SetHostInfo(_hostInfo, _overrideDbPort);
+                _databaseServiceHandler.SetQueryManager(_queryManager);
                 }
 
             if (useHttps)

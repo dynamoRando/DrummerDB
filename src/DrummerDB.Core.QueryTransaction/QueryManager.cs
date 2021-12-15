@@ -66,11 +66,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #region Public Methods
         /// <summary>
         /// Validates the sql statement is both syntatically and logically correct (that specified columns/tables exist, etc.) If it cannot,
-        /// the out variable errorMessage will contain a description of errors
+        /// the out variable errorMessage will contain a description of errors. 
         /// </summary>
         /// <param name="sqlStatement">The sql statement to verify</param>
         /// <param name="errorMessage">A description of an error attempting to parse the query, if any</param>
         /// <returns><c>TRUE</c> if the SQL query can be executed, otherwise <c>FALSE</c></returns>
+        /// <remarks>This function works on SQL statements and DrummerDB SQL statements.</remarks>
         public bool IsStatementValid(string sqlStatement, out string errorMessage)
         {
             bool isStatementValid = false;
@@ -149,6 +150,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="pw">The user's pw</param>
         /// <param name="userSessionId">The session id of the user (used for open transactions)</param>
         /// <returns>The results of the sql statement</returns>
+        /// <remarks>This function works on SQL statements and DrummerDB SQL statements.</remarks>
         public Resultset ExecuteValidatedStatement(string sqlStatement, string dbName, string un, string pw, Guid userSessionId)
         {
             // default to host type databases; may need to make this a thing that is passed by the SQL client
@@ -160,6 +162,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
 
             return ExecutePlan(plan, un, pw, userSessionId);
+        }
+
+        public bool ExecuteDatabaseServiceAction(IDatabaseServiceAction action, out string errorMessage)
+        {
+            return _queryExecutor.ExecuteDatabaseServiceAction(action, out errorMessage);
         }
         #endregion
 
