@@ -102,6 +102,10 @@ namespace Drummersoft.DrummerDB.Core.Structures
                 case SQLDecimal:
                     Length = Constants.SIZE_OF_DECIMAL;
                     break;
+                case SQLVarbinary:
+                    var convertedVarBin = type as SQLVarbinary;
+                    Length = convertedVarBin.MaxLength;
+                    break;
                 default:
                     Length = 0;
                     break;

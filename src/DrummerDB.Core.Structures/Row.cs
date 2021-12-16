@@ -412,6 +412,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                 {
                                     // for binary types, if we're not already NULL (we read this earlier) then we have the size prefix and the byte array
                                     // so go ahead and fast forward by the IsNull value
+
                                     runningTotal += Constants.SIZE_OF_BOOL;
                                     parseLength += Constants.SIZE_OF_BOOL;
 
@@ -420,7 +421,13 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                     runningTotal += Constants.SIZE_OF_INT;
                                     parseLength += Constants.SIZE_OF_INT;
 
-                                    rowValue.SetValue(span.Slice(runningTotal, length).ToArray());
+                                    // troubleshoot issue with varbinary not having leadning IsNull value (which is false, but for parsing
+                                    // purposes we need it included
+                                    int tempSliceIncludeLeadingNull = runningTotal - Constants.SIZE_OF_BOOL;
+                                    int tempLength = length + Constants.SIZE_OF_BOOL;
+
+                                    //rowValue.SetValue(span.Slice(runningTotal, length).ToArray());
+                                    rowValue.SetValue(span.Slice(tempSliceIncludeLeadingNull, tempLength).ToArray());
 
                                     runningTotal += length;
                                     parseLength += length;

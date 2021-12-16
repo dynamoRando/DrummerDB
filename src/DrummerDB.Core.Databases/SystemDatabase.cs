@@ -840,7 +840,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var hostRow = hosts.GetNewLocalRow();
             hostRow.SetValue(Hosts.Columns.HostGUID, hostId);
             hostRow.SetValue(Hosts.Columns.HostName, hostName);
-            hostRow.SetValue(Hosts.Columns.Token, token);
+
+            // need to add the 1 byte NOT NULL prefix to token
+            bool isNotFalse = false;
+            var bIsNotFalse = DbBinaryConvert.BooleanToBinary(isNotFalse);
+            var bTokenArray = new byte[bIsNotFalse.Length + token.Length];
+
+            Array.Copy(bIsNotFalse, 0, bTokenArray, 0, bIsNotFalse.Length);
+            Array.Copy(token, 0, bTokenArray, bIsNotFalse.Length, token.Length);
+
+            hostRow.SetValue(Hosts.Columns.Token, bTokenArray);
+            //hostRow.SetValue(Hosts.Columns.Token, host.Token);
+            // end token save value
+
             hostRow.SetValue(Hosts.Columns.IP4Address, ip4);
             hostRow.SetValue(Hosts.Columns.IP6Address, ip6);
             hostRow.SetValue(Hosts.Columns.PortNumber, portNumber.ToString());
