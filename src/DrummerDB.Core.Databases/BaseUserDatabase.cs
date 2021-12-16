@@ -106,8 +106,48 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool XactLogParticipantAcceptsContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, Contract contract)
         {
-            // ?? this bypasses the query transaction layer
-            throw new NotImplementedException();
+            var storage = _metaData.StorageManager;
+            TransactionEntry xact = null;
+
+            switch (transactionMode)
+            {
+                case TransactionMode.None:
+                    
+                    xact = GetTransactionEntryForParticipantAcceptsContract(GetParticipantAcceptedContractTransaction(participant, contract), transaction);
+                    _xEntryManager.AddEntry(xact);
+                    storage.LogOpenTransaction(_metaData.Id, xact);
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkComplete();
+                    storage.LogCloseTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                case TransactionMode.Try:
+
+                    xact = GetTransactionEntryForParticipantAcceptsContract(GetParticipantAcceptedContractTransaction(participant, contract), transaction);
+                    _xEntryManager.AddEntry(xact);
+                    storage.LogOpenTransaction(_metaData.Id, xact);
+
+                    return true;
+                case TransactionMode.Rollback:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkDeleted();
+                    storage.RemoveOpenTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                case TransactionMode.Commit:
+
+                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xact.MarkComplete();
+                    storage.LogCloseTransaction(_metaData.Id, xact);
+                    _xEntryManager.RemoveEntry(xact);
+
+                    return true;
+                default:
+                    throw new InvalidOperationException("Unknown transaction mode");
+            }
         }
 
         public bool XactLogParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, Contract contract)
@@ -634,6 +674,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new DropTableTransaction(schema, table, pages);
         }
 
+        private ParticipantAcceptedContractTransaction GetParticipantAcceptedContractTransaction(Participant participant, Contract contract)
+        {
+            return new ParticipantAcceptedContractTransaction(participant, contract);
+        }
+
         private ParticipantSaveContractTransaction GetParticipantSaveContractTransaction(Participant participant, Contract contract)
         {
             return new ParticipantSaveContractTransaction(participant, contract);
@@ -674,7 +719,28 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return entry;
         }
 
+        /// <summary>
+        /// Returns an accept contract transaction (i.e. from participant to host)
+        /// </summary>
+        /// <param name="transaction">The transaciton</param>
+        /// <param name="request">The request</param>
+        /// <returns>A transaction entry</returns>
         private TransactionEntry GetTransactionEntryForNotifyAcceptContract(AcceptContractTransaction transaction, TransactionRequest request)
+        {
+            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
+            var entry = new TransactionEntry(request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
+                transaction, request.UserName, false, sequenceId);
+
+            return entry;
+        }
+
+        /// <summary>
+        /// Returns an accepted contract transaciton (i.e the hosth as recived notice of contract acceptance from a participant)
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private TransactionEntry GetTransactionEntryForParticipantAcceptsContract(ParticipantAcceptedContractTransaction transaction, TransactionRequest request)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
             var entry = new TransactionEntry(request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,

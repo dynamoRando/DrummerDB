@@ -127,6 +127,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             participant.IP6Address = request.Participant.Ip6Address;
             participant.PortNumber = Convert.ToInt32(request.Participant.DatabasePortNumber);
             participant.Id = Guid.Parse(request.Participant.ParticipantGUID);
+            participant.Url = string.Empty;
 
             var contract = new drumContract();
             contract.ContractGUID = Guid.Parse(request.ContractGUID);

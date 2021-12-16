@@ -67,13 +67,22 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             Assert.Equal((int)LogicalStoragePolicy.ParticipantOwned, convertedProductPolicy);
 
-            var generateHostName = harness.ExecuteSQL(company, $@"
+            // generate host info for both sides
+            var generateCompanyHostName = harness.ExecuteSQL(company, $@"
             DRUMMER BEGIN;
             GENERATE HOST INFO AS HOSTNAME {company.Alias};
             DRUMMER END;
             ", sysDbName);
 
-            Assert.False(generateHostName.Results.First().IsError);
+            Assert.False(generateCompanyHostName.Results.First().IsError);
+
+            var generateCustomerHostName = harness.ExecuteSQL(customer, $@"
+            DRUMMER BEGIN;
+            GENERATE HOST INFO AS HOSTNAME {customer.Alias};
+            DRUMMER END;
+            ", sysDbName);
+
+            Assert.False(generateCustomerHostName.Results.First().IsError);
 
             var reviewHostName = harness.ExecuteSQL(company, $@"
             DRUMMER BEGIN;

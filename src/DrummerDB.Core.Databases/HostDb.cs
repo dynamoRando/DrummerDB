@@ -337,7 +337,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var participantTable = GetTable(Participants.TABLE_NAME);
 
-            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.ParticpantGUID, participant.Id.ToString());
+            // should we be doing this by participant GUID or participant Alias? We don't generally save off the particicpant id we're adding,
+            // only the alias. probably need syntax for this.
+            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.Alias, participant.Alias);
             int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
 
             if (totalParticipants != 1)
@@ -354,7 +356,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var row in rowsForParticipant)
             {
-                row.SetValue(Participants.Columns.Status, DbBinaryConvert.IntToBinary(Convert.ToInt32(ContractStatus.Accepted)));
+                row.SetValue(Participants.Columns.Status, (Convert.ToInt32(ContractStatus.Accepted)).ToString());
                 row.SetValue(Participants.Columns.AcceptedContractVersion, contractGuid.ToString());
                 row.SetValue(Participants.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
                 row.SetValue(Participants.Columns.AcceptedContractDateTimeUTC, DateTime.UtcNow.ToString());

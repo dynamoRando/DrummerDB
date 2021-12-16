@@ -16,6 +16,7 @@
         DropTenantDatabase,
         Unknown,
         ParticipantSaveContract,
-        NotifyAcceptContract
+        NotifyAcceptContract,
+        ReceivedContractAcceptance
     }
 }

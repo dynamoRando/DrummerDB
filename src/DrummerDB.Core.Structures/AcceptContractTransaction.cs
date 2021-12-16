@@ -15,6 +15,9 @@ using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
+    /// <summary>
+    /// Used to denote that a participant is accepting a contract (i.e. participant is sending to host)
+    /// </summary>
     internal class AcceptContractTransaction : TransactionActionSchema
     {
         private Contract _contract;

@@ -527,6 +527,15 @@ namespace Drummersoft.DrummerDB.Core.Structures
             var rowValue = GetRowValueWithColumnName(columnName);
             if (rowValue is not null)
             {
+                // warning check
+                if (rowValue.Column.IsNullable)
+                {
+                    if (rowValue.Column.Length == value.Length)
+                    {
+                        throw new InvalidOperationException("You have forgotten to set the leading FALSE IsNull byte");
+                    }
+                }
+
                 rowValue.SetValue(value);
             }
         }
