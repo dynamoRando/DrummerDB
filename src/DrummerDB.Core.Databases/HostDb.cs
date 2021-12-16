@@ -339,6 +339,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             // should we be doing this by participant GUID or participant Alias? We don't generally save off the particicpant id we're adding,
             // only the alias. probably need syntax for this.
+
+            // we wind up in a situation where the participant id's don't match. when we add participant with alias ABCD 
+            // we generate the participant id locally
+            // and when the participant executes their own GENERATE HOSTINFO AS HOSTNAME ZYXW they generate their own id
+            // and so these don't match when searching by participant GUID
             var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.Alias, participant.Alias);
             int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
 
