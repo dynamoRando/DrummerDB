@@ -368,8 +368,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 participantTable.XactUpdateRow(row, transaction, transactionMode);
             }
 
-
-            throw new NotImplementedException();
+            errorMessage = string.Empty;
+            return true;
         }
 
         public bool SendContractToParticipant(string aliasName, Guid contractGUID, out string errorMessage)

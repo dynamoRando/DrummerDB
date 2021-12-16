@@ -133,10 +133,13 @@ namespace Drummersoft.DrummerDB.Core.Communication
             contract.ContractGUID = Guid.Parse(request.ContractGUID);
             contract.DatabaseName = request.DatabaseName;
 
-            _handler.AcceptContract(participant, contract, out errorMessage);
+            var result = _handler.AcceptContract(participant, contract, out errorMessage);
 
-            throw new NotImplementedException();
-            return base.AcceptContract(request, context);
+            var comResult = new ParticipantAcceptsContractResult();
+            comResult.ContractAcceptanceIsAcknowledged = result;
+            comResult.ErrorMessage = errorMessage;
+            
+            return Task.FromResult(comResult);
         }
         #endregion
 

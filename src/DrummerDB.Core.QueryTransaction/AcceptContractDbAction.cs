@@ -36,8 +36,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 isSuccessful = db.XactUpdateParticipantAcceptsContract(_participant, _contract.ContractGUID, transaction, transactionMode, out errorMessage);
             }
+            else
+            {
+                errorMessage = $"Database {_contract.DatabaseName} was not found as a local host database";
+                return false;
+            }
 
-            throw new NotImplementedException();
+            errorMessage = string.Empty;
+            return isSuccessful;
         }
     }
 }

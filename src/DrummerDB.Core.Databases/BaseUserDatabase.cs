@@ -60,6 +60,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var storage = _metaData.StorageManager;
             TransactionEntry xact = null;
+            List<TransactionEntry> xacts = null;
 
             switch (transactionMode)
             {
@@ -83,7 +84,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     return true;
                 case TransactionMode.Rollback:
 
-                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xacts = _xEntryManager.GetBatch(transaction.TransactionBatchId);
+                    xact = xacts.Where(x => x.Action is AcceptContractTransaction).First();
                     xact.MarkDeleted();
                     storage.RemoveOpenTransaction(_metaData.Id, xact);
                     _xEntryManager.RemoveEntry(xact);
@@ -91,7 +93,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     return true;
                 case TransactionMode.Commit:
 
-                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
+                    xacts = _xEntryManager.GetBatch(transaction.TransactionBatchId);
+                    xact = xacts.Where(x => x.Action is AcceptContractTransaction).First();
                     xact.MarkComplete();
                     storage.LogCloseTransaction(_metaData.Id, xact);
                     _xEntryManager.RemoveEntry(xact);

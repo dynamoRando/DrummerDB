@@ -40,7 +40,7 @@ namespace Drummersoft.DrummerDB.Core.Cryptography
         public int GetRandomNumber()
         {
             const int maxValue = 5000;
-            return new Random().Next(maxValue);
+            return new Random().Next(1, maxValue);
         }
 
         public int GetByteLength()

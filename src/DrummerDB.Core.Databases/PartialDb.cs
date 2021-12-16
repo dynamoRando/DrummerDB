@@ -45,9 +45,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             string errorMessage = string.Empty;
             var isLogged = _baseDb.XactLogNotifyHostAcceptedContract(transaction, transactionMode, contract);
-            _remote.NotifyAcceptContract(contract, out errorMessage);
-
-            throw new NotImplementedException();
+            return _remote.NotifyAcceptContract(contract, out errorMessage);
         }
 
         public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)

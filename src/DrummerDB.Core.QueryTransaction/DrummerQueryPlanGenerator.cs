@@ -765,7 +765,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 // we need to create a read table operator to specify to update the specific host name
 
                                 // specify the column that we're interested in reading + updating
-                                string[] colNames = new string[1] { Tables.Hosts.Columns.LastCommunicationUTC };
+                                string[] colNames = new string[2] { Tables.Hosts.Columns.LastCommunicationUTC, Tables.Hosts.Columns.HostName };
 
                                 // filter by the host name
                                 var value = RowValueMaker.Create(hostTable, Tables.Hosts.Columns.HostName, hostName, true);
