@@ -9,6 +9,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Enum
     internal enum ContractStatus
     {
         Unknown,
+        NotSent,
         Pending,
         Accepted,
         Rejected

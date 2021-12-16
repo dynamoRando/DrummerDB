@@ -616,7 +616,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var colIp6 = Participants.GetColumn(Participants.Columns.IP6Address);
                     var colPortNumber = Participants.GetColumn(Participants.Columns.PortNumber);
                     var colLastCom = Participants.GetColumn(Participants.Columns.LastCommunicationUTC);
-                    var colAcceptedContract = Participants.GetColumn(Participants.Columns.HasAcceptedContract);
+                    var colAcceptedContract = Participants.GetColumn(Participants.Columns.Status);
                     var colContractVersion = Participants.GetColumn(Participants.Columns.AcceptedContractVersion);
                     var colContractVersionDate = Participants.GetColumn(Participants.Columns.AcceptedContractDateTimeUTC);
                     var colToken = Participants.GetColumn(Participants.Columns.Token);
@@ -632,7 +632,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var valueIp6 = new InsertValue(4, colIp6.Name, stringIP6);
                     var valuePortNumber = new InsertValue(5, colPortNumber.Name, portNumber);
                     var valueLastCom = new InsertValue(6, colLastCom.Name);
-                    var valueAcceptedContract = new InsertValue(7, colAcceptedContract.Name, "false");
+                    var valueAcceptedContract = new InsertValue(7, colAcceptedContract.Name, Convert.ToInt32(ContractStatus.NotSent).ToString());
                     var valueContractVersion = new InsertValue(8, colContractVersion.Name);
                     var valueContractVersionDate = new InsertValue(9, colContractVersionDate.Name);
                     var valueToken = new InsertValue(10, colToken.Name);

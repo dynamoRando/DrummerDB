@@ -520,6 +520,8 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// </summary>
         /// <param name="columnName">The column to set the value</param>
         /// <param name="value">The value in byte array format</param>
+        /// <remarks>WARNING: If setting the byte value directly, if column is NULLABLE, this will bypass setting the nullable not null prefix.
+        /// Make sure if you want the binary array to include the leading NOT NULL bool value prefix, to include it.</remarks>
         public void SetValue(string columnName, byte[] value)
         {
             var rowValue = GetRowValueWithColumnName(columnName);

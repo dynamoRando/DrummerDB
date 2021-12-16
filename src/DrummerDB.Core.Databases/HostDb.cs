@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100;
 using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -285,6 +286,37 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _baseDb.XactLogParticipantSaveLatestContract(transaction, transactionMode, participant, contract);
             var isSaved = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
 
+            var participantTable = GetTable(Participants.TABLE_NAME);
+            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.ParticpantGUID, participant.Id.ToString());
+            int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
+
+            if (totalParticipants > 1)
+            {
+                throw new InvalidOperationException($"More than 1 participant found for alias {participant.Alias}");
+            }
+
+            if (totalParticipants == 0)
+            {
+                throw new InvalidOperationException($"Participant with alias {participant.Alias} not found. " +
+                    $"Participant must be added first using DRUMMER keyword ADD PARTICIPANT");
+            }
+            else
+            {
+                var rowsForParticipant = participantTable.GetRowsWithValue(participantSearch);
+
+                if (rowsForParticipant.Count != 1)
+                {
+                    throw new InvalidOperationException($"More that 1 or no participant found for alias {participant.Alias}");
+                }
+
+                foreach (var row in rowsForParticipant)
+                {
+                    row.SetValue(Participants.Columns.Status, Convert.ToInt32(ContractStatus.Pending).ToString());
+                    row.SetValue(Participants.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
+                    participantTable.XactUpdateRow(row, transaction, transactionMode);
+                }
+            }
+
             if (!isSaved)
             {
                 return false;
@@ -297,6 +329,38 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             // ?? this bypasses the query transaction layer
             //_baseDb.XactLogParticipantAcceptsContract(null, null, participant, null);
+
+            var contract = GetContract(contractGuid);
+            _baseDb.XactLogParticipantAcceptsContract(transaction, transactionMode, participant, contract);
+
+            // need to update the appropriate tables to show that the contract is accepted.
+
+            var participantTable = GetTable(Participants.TABLE_NAME);
+
+            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.ParticpantGUID, participant.Id.ToString());
+            int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
+
+            if (totalParticipants != 1)
+            {
+                throw new InvalidOperationException($"More than 1 or no participant found for alias {participant.Alias}");
+            }
+
+            var rowsForParticipant = participantTable.GetRowsWithValue(participantSearch);
+
+            if (rowsForParticipant.Count != 1)
+            {
+                throw new InvalidOperationException($"More that 1 or no participant found for alias {participant.Alias}");
+            }
+
+            foreach (var row in rowsForParticipant)
+            {
+                row.SetValue(Participants.Columns.Status, DbBinaryConvert.IntToBinary(Convert.ToInt32(ContractStatus.Accepted)));
+                row.SetValue(Participants.Columns.AcceptedContractVersion, contractGuid.ToString());
+                row.SetValue(Participants.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
+                row.SetValue(Participants.Columns.AcceptedContractDateTimeUTC, DateTime.UtcNow.ToString());
+                participantTable.XactUpdateRow(row, transaction, transactionMode);
+            }
+
 
             throw new NotImplementedException();
         }

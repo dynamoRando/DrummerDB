@@ -183,7 +183,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         }
 
         public override RowAddress[] GetRowAddressesWithAllValues(IRowValue[] values)
-         {
+        {
             List<RowAddress> result = new List<RowAddress>();
 
             List<RowAddress> rows = GetRowIdsOnPage();
@@ -610,15 +610,18 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             {
                 var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
-                byte[] a;
-                byte[] b;
-
-                a = rowData.GetValueInByte(value.Column.Name);
-                b = value.GetValueInBinary(false, value.Column.IsNullable);
-
-                if (DbBinaryConvert.BinaryEqual(a, b))
+                if (!rowData.IsForwarded && !rowData.IsDeleted)
                 {
-                    count++;
+                    byte[] a;
+                    byte[] b;
+
+                    a = rowData.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                    if (DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        count++;
+                    }
                 }
             }
 
@@ -637,12 +640,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 byte[] a;
                 byte[] b;
 
-                a = rowData.GetValueInByte(value.Column.Name);
-                b = value.GetValueInBinary(false, value.Column.IsNullable);
-
-                if (DbBinaryConvert.BinaryEqual(a, b))
+                if (!rowData.IsForwarded && !rowData.IsDeleted)
                 {
-                    result.Add(row);
+                    a = rowData.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                    if (DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        result.Add(row);
+                    }
                 }
             }
 

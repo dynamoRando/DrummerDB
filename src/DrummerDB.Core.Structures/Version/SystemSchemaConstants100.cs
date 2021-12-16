@@ -527,7 +527,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string IP6Address = "IP6Address";
                     public const string PortNumber = "PortNumber";
                     public const string LastCommunicationUTC = "LastCommunicationUTC";
-                    public const string HasAcceptedContract = "HasAcceptedContract";
+                    public const string Status = "Status";
                     public const string AcceptedContractVersion = "AcceptedContractVersion";
                     public const string AcceptedContractDateTimeUTC = "AcceptedContractDateTimeUTC";
                     public const string Token = "Token";
@@ -577,8 +577,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                         var lastComm = new ColumnSchema(Columns.LastCommunicationUTC, new SQLDateTime(), 6, true);
                         _columns.Add(lastComm);
 
-                        var acceptedContract = new ColumnSchema(Columns.HasAcceptedContract, new SQLBit(), 7, true);
-                        _columns.Add(acceptedContract);
+                        var contractStatus = new ColumnSchema(Columns.Status, new SQLInt(), 7, true);
+                        _columns.Add(contractStatus);
 
                         var acceptedContractVersion = new ColumnSchema(Columns.AcceptedContractVersion, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 8, true);
                         _columns.Add(acceptedContractVersion);
