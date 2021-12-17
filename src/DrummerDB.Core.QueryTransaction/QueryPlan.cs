@@ -8,11 +8,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     internal class QueryPlan
     {
         private string _sqlStatement = string.Empty;
+        private ICooperativePlanOptions[] _options;
+
         public readonly Guid PlanId;
         public List<IQueryPlanPart> Parts { get; set; }
         public LockObjectRequestCollection LockObjectRequests { get; set; }
         public TransactionPlan TransactionPlan { get; set; }
         public string SqlStatement => _sqlStatement;
+        public ICooperativePlanOptions[] Options => _options;
+        public bool HasCooperativeOptions => _options.Length > 0;
 
         public QueryPlan(string sqlStatement)
         {
@@ -20,6 +24,16 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             Parts = new List<IQueryPlanPart>();
             LockObjectRequests = new LockObjectRequestCollection();
             _sqlStatement = sqlStatement;
+            _options = new ICooperativePlanOptions[0];
+        }
+
+        public QueryPlan(string sqlStatement, ICooperativePlanOptions[] options)
+        {
+            PlanId = Guid.NewGuid();
+            Parts = new List<IQueryPlanPart>();
+            LockObjectRequests = new LockObjectRequestCollection();
+            _sqlStatement = sqlStatement;
+            _options = options;
         }
 
         /// <summary>

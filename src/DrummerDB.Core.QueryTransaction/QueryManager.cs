@@ -243,7 +243,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        if (ContainsCooperativeKeywords(sqlStatement))
+                        {
+                            throw new NotImplementedException();
+                        }
+                        else
+                        {
+                            return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        }
+
                     }
                 }
             }
@@ -257,13 +265,22 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     // for the parser to work correctly, we need to remove the USE {dbName} statement
                     sqlStatement = RemoveUsingStatement(sqlStatement, parsedDbName);
-
+                    QueryPlan result = null;
 
                     if (_log is not null)
                     {
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
-                        var result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        if (ContainsCooperativeKeywords(sqlStatement))
+                        {
+                            var coopOptions = ParseStatementForCooperativeOptions(sqlStatement);
+                            result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager, coopOptions);
+                        }
+                        else
+                        {
+                            result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        }
+
                         sw.Stop();
                         _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
                         return result;
@@ -291,7 +308,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         }
                         else
                         {
-                            result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                            if (ContainsCooperativeKeywords(sqlStatement))
+                            {
+                                var coopOptions = ParseStatementForCooperativeOptions(sqlStatement);
+                                result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager, coopOptions);
+                            }
+                            else
+                            {
+                                result = _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                            }
                         }
 
                         sw.Stop();
@@ -306,9 +331,16 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        if (ContainsCooperativeKeywords(sqlStatement))
+                        {
+                            var coopOptions = ParseStatementForCooperativeOptions(sqlStatement);
+                            return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager, coopOptions);
+                        }
+                        else
+                        {
+                            return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
+                        }
                     }
-
                 }
             }
 
@@ -331,13 +363,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 databaseName = words[1];
             }
 
-            /*
-            if (input.Contains($"{DDLKeywords.CREATE} {SQLGeneralKeywords.DATABASE} "))
-            {
-                databaseName = input.Replace($"{DDLKeywords.CREATE} {SQLGeneralKeywords.DATABASE} ", string.Empty).Trim();
-            }
-            */
-
             return databaseName;
         }
 
@@ -354,6 +379,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private bool ContainsCooperativeKeywords(string statement)
         {
             return statement.Contains(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT);
+        }
+
+        private ICooperativePlanOptions[] ParseStatementForCooperativeOptions(string statement)
+        {
+            throw new NotImplementedException();
         }
         #endregion
 
