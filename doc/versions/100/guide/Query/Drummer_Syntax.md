@@ -130,7 +130,7 @@ This action will mark the contract as saved in the "coop" (Cooperative) system t
 
 Returns all contracts that have been accepted.
 
-### Request Host Notify Accepted Contract
+## Request Host Notify Accepted Contract
 ### Syntax
 `REQUEST HOST NOTIFY ACCEPTED CONTRACT BY {hostAlias}`
 

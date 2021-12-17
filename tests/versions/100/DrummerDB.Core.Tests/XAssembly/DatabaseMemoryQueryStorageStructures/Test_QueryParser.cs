@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.Storage;
@@ -390,7 +391,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             // -- ACT
             string errorDropMessage = string.Empty;
-            var isDropStatementValid = parser.IsStatementValid(sqlDropTableStatement, manager, out errorDropMessage);
+            var isDropStatementValid = parser.IsStatementValid(sqlDropTableStatement, manager, DatabaseType.Host, out errorDropMessage);
 
             /// -- ASSERT
             Assert.True(isDropStatementValid);

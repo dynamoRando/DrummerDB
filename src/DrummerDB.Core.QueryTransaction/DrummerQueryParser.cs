@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
@@ -41,7 +42,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Public Methods
-        public bool IsStatementValid(string statement, IDbManager dbManager, out string errorMessage)
+        public bool IsStatementValid(string statement, IDbManager dbManager, DatabaseType type, out string errorMessage)
         {
             string dbName = GetDatabaseName(statement);
 
@@ -50,12 +51,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 throw new ArgumentException("Unable to parse database name in statement");
             }
 
-            return IsStatementValid(statement, dbName, dbManager, out errorMessage);
+            return IsStatementValid(statement, dbName, dbManager, type, out errorMessage);
         }
 
-        public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, out string errorMessage)
+        public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, DatabaseType type, out string errorMessage)
         {
-            if (!dbManager.HasDatabase(dbName, DatabaseType.Host))
+            if (!dbManager.HasDatabase(dbName, type))
             {
                 errorMessage = $"Database {dbName} was not found";
                 return false;
@@ -63,7 +64,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             else
             {
                 // default host type
-                IDatabase database = dbManager.GetDatabase(dbName, DatabaseType.Host);
+                IDatabase database = dbManager.GetDatabase(dbName, type);
                 if (database is not null)
                 {
                     _db = database;

@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases.Interface;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Version;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
@@ -44,7 +45,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="errorMessage">Outputs any error messages occured in validating the statement</param>
         /// <returns><c>TRUE</c> if the database can execute the statement, otherise <c>FALSE</c></returns>
         /// <exception cref="ArgumentException">Thrown when the Database Name cannot be parsed from the statement</exception>
-        public bool IsStatementValid(string statement, IDbManager dbManager, out string errorMessage)
+        public bool IsStatementValid(string statement, IDbManager dbManager, DatabaseType type, out string errorMessage)
         {
             string dbName = GetDatabaseName(statement);
 
@@ -57,14 +58,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (!statement.Contains($"{DDLKeywords.CREATE} {SQLGeneralKeywords.DATABASE} "))
             {
                 // default host database type
-                if (!dbManager.HasDatabase(dbName, DatabaseType.Host))
+                if (!dbManager.HasDatabase(dbName, type))
                 {
                     errorMessage = $"Database {dbName} was not found";
                     return false;
                 }
                 else
                 {
-                    IDatabase database = dbManager.GetDatabase(dbName, DatabaseType.Host);
+                    IDatabase database = dbManager.GetDatabase(dbName, type);
                     return WalkStatementForValidity(statement, database, out errorMessage);
                 }
             }
@@ -75,7 +76,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
         }
 
-        public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, out string errorMessage)
+        public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, DatabaseType type, out string errorMessage)
         {
             if (string.IsNullOrEmpty(dbName))
             {
@@ -84,14 +85,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             // default to host database type
             // may need to change later
-            if (!dbManager.HasDatabase(dbName, DatabaseType.Host))
+            if (!dbManager.HasDatabase(dbName, type))
             {
                 errorMessage = $"Database {dbName} was not found";
                 return false;
             }
             else
             {
-                IDatabase database = dbManager.GetDatabase(dbName, DatabaseType.Host);
+                IDatabase database = dbManager.GetDatabase(dbName, type);
                 if (database is not null)
                 {
                     return WalkStatementForValidity(statement, database, out errorMessage);

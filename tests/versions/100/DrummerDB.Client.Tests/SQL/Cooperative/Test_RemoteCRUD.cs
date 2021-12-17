@@ -215,7 +215,39 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // END REPEAT OF TEST Test_Generate_Accept_Contract
 
+            // -------------------------------------------------------------
+            // insert customer name as a test for remote data saving
+            var addCustomerName = harness.ExecuteSQL(company,
+            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            INSERT INTO {customerTableName} 
+            (
+                ID,
+                CUSTOMERNAME,
+            )
+            VALUES
+            (
+                {customer.ProcessId},
+                {customer.Alias}
+            );
+            ", dbName);
 
+            Assert.False(addCustomerName.Results.First().IsError);
+
+            // check to see if we can read the customer name at the host
+            var selectCustomerNameAtHost = harness.ExecuteSQL(company,
+            $@"
+            SELECT * FROM {customerTableName};
+            ", dbName);
+
+            Assert.False(selectCustomerNameAtHost.Results.First().IsError);
+
+            // check to see if we can read the customer name at the participant
+            var selectCustomerNameAtParticipant = harness.ExecuteSQL(customer,
+            $@"
+            SELECT * FROM {customerTableName};
+            ", dbName);
+
+            Assert.False(selectCustomerNameAtParticipant.Results.First().IsError);
         }
     }
 }

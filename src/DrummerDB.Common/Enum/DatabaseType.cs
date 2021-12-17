@@ -1,9 +1,9 @@
-﻿namespace Drummersoft.DrummerDB.Core.Structures.Enum
+﻿namespace Drummersoft.DrummerDB.Common
 {
     /// <summary>
     /// The type of database. See also <seealso cref="DataFileType"/>.
     /// </summary>
-    internal enum DatabaseType
+    public enum DatabaseType
     {
         Unknown,
         Host,

@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
@@ -72,7 +73,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="errorMessage">A description of an error attempting to parse the query, if any</param>
         /// <returns><c>TRUE</c> if the SQL query can be executed, otherwise <c>FALSE</c></returns>
         /// <remarks>This function works on SQL statements and DrummerDB SQL statements.</remarks>
-        public bool IsStatementValid(string sqlStatement, out string errorMessage)
+        public bool IsStatementValid(string sqlStatement, DatabaseType type, out string errorMessage)
         {
             bool isStatementValid = false;
 
@@ -82,11 +83,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 sw.Start();
                 if (ContainsDrummerKeywords(sqlStatement))
                 {
-                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, type, out errorMessage);
                 }
                 else
                 {
-                    isStatementValid = _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                    isStatementValid = _queryParser.IsStatementValid(sqlStatement, _dbManager, type, out errorMessage);
                 }
                 sw.Stop();
                 _log.Performance(LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
@@ -97,16 +98,26 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 if (ContainsDrummerKeywords(sqlStatement))
                 {
-                    return _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                    return _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, type, out errorMessage);
                 }
                 else
                 {
-                    return _queryParser.IsStatementValid(sqlStatement, _dbManager, out errorMessage);
+                    return _queryParser.IsStatementValid(sqlStatement, _dbManager, type, out errorMessage);
                 }
             }
         }
 
+        public bool IsStatementValid(string sqlStatement, out string errorMessage)
+        {
+            return IsStatementValid(sqlStatement, DatabaseType.Host, out errorMessage);
+        }
+
         public bool IsStatementValid(string sqlStatement, string dbName, out string errorMessage)
+        {
+            return IsStatementValid(sqlStatement, dbName, DatabaseType.Host, out errorMessage);
+        }
+
+        public bool IsStatementValid(string sqlStatement, string dbName, DatabaseType type, out string errorMessage)
         {
             errorMessage = string.Empty;
             bool isStatementValid = false;
@@ -117,11 +128,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 sw.Start();
                 if (ContainsDrummerKeywords(sqlStatement))
                 {
-                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, out errorMessage);
                 }
                 else
                 {
-                    isStatementValid = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                    isStatementValid = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, out errorMessage);
                 }
 
                 sw.Stop();
@@ -132,11 +143,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 if (ContainsDrummerKeywords(sqlStatement))
                 {
-                    return _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                    return _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, out errorMessage);
                 }
                 else
                 {
-                    return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, out errorMessage);
+                    return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, out errorMessage);
                 }
             }
         }
@@ -151,10 +162,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="userSessionId">The session id of the user (used for open transactions)</param>
         /// <returns>The results of the sql statement</returns>
         /// <remarks>This function works on SQL statements and DrummerDB SQL statements.</remarks>
-        public Resultset ExecuteValidatedStatement(string sqlStatement, string dbName, string un, string pw, Guid userSessionId)
+        public Resultset ExecuteValidatedStatement(string sqlStatement, string dbName, string un, string pw, Guid userSessionId, DatabaseType type)
         {
-            // default to host type databases; may need to make this a thing that is passed by the SQL client
-            QueryPlan plan = GetQueryPlan(sqlStatement, dbName, DatabaseType.Host);
+            QueryPlan plan = GetQueryPlan(sqlStatement, dbName, type);
 
             if (plan is null)
             {
@@ -162,6 +172,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
 
             return ExecutePlan(plan, un, pw, userSessionId);
+        }
+
+        public Resultset ExecuteValidatedStatement(string sqlStatement, string dbName, string un, string pw, Guid userSessionId)
+        {
+            return ExecuteValidatedStatement(sqlStatement, dbName, un, pw, userSessionId, DatabaseType.Host);
         }
 
         public bool ExecuteDatabaseServiceAction(IDatabaseServiceAction action, out string errorMessage)
@@ -265,7 +280,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager);
                     }
-                    
+
                 }
             }
 

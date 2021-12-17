@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 

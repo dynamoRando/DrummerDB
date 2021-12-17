@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases.Interface;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
@@ -41,19 +42,19 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return _auth.ValidateLogin(userName, pw);
         }
 
-        internal bool IsValidQuery(string sqlStatement, string userName, string pw, out string errorMessage)
+        internal bool IsValidQuery(string sqlStatement, string userName, string pw, DatabaseType type, out string errorMessage)
         {
-            return _query.IsStatementValid(sqlStatement, out errorMessage);
+            return _query.IsStatementValid(sqlStatement, type, out errorMessage);
         }
 
-        internal bool IsValidQuery(string sqlStatement, string userName, string pw, string databaseName, out string errorMessage)
+        internal bool IsValidQuery(string sqlStatement, string userName, string pw, string databaseName, DatabaseType type, out string errorMessage)
         {
-            return _query.IsStatementValid(sqlStatement, databaseName, out errorMessage);
+            return _query.IsStatementValid(sqlStatement, databaseName, type, out errorMessage);
         }
 
-        internal Resultset ExecuteQuery(string sqlStatement, string userName, string pw, string dbName, Guid userSessionId)
+        internal Resultset ExecuteQuery(string sqlStatement, string userName, string pw, string dbName, Guid userSessionId, DatabaseType type)
         {
-            return _query.ExecuteValidatedStatement(sqlStatement, dbName, userName, pw, userSessionId);
+            return _query.ExecuteValidatedStatement(sqlStatement, dbName, userName, pw, userSessionId, type);
         }
 
         public void SetAuthentication(IAuthenticationManager authentication)
