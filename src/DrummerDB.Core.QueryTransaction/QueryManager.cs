@@ -8,6 +8,7 @@ using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
@@ -381,9 +382,25 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return statement.Contains(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT);
         }
 
-        private ICooperativePlanOptions[] ParseStatementForCooperativeOptions(string statement)
+        private ICoopActionPlanOption[] ParseStatementForCooperativeOptions(string statement)
         {
-            throw new NotImplementedException();
+            var options = new List<ICoopActionPlanOption>();
+
+            var lines = statement.Split(";");
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT))
+                {
+                    var trimmedLine = line.Trim();
+                    var participantAlias = line.Replace(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT + " ", string.Empty).Trim();
+                    var alias = new CoopActionOptionParticipant();
+                    alias.ParticipantAlias = participantAlias;
+                    options.Add(alias);
+                }
+            }
+
+            return options.ToArray();
         }
         #endregion
 

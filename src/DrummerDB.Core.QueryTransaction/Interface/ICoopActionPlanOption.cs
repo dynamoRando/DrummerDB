@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction.Interface
 {
-    internal interface ICooperativePlanOptions
+    internal interface ICoopActionPlanOption
     {
     }
 }

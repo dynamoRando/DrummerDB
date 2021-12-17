@@ -173,7 +173,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return _generator.QueryPlan;
         }
 
-        public QueryPlan ParseStatementForQueryPlan(string statement, IDatabase database, StatementType type, ICooperativePlanOptions[] options)
+        public QueryPlan ParseStatementForQueryPlan(string statement, IDatabase database, StatementType type, ICoopActionPlanOption[] options)
         {
             if (_walker is null)
             {

@@ -8,6 +8,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.Interface
     internal interface IQueryPlanGenerator
     {
         QueryPlan GetQueryPlan(string statement, IDatabase database, IDbManager dbManager);
-        QueryPlan GetQueryPlan(string statement, IDatabase database, IDbManager dbManager, ICooperativePlanOptions[] options);
+        QueryPlan GetQueryPlan(string statement, IDatabase database, IDbManager dbManager, ICoopActionPlanOption[] options);
     }
 }
