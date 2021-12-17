@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Common.Communication.SQLService;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Common.Communication.SQLService;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -96,6 +97,13 @@ namespace Drummersoft.DrummerDB.Client.Tests
             return sqlClient.ExecuteSQL(sql, dbName, process.UserName, process.Password, process.UserSessionId);
         }
 
+        public SQLQueryReply ExecuteSQL(TestProcessInfo testProcessInfo, string sql, string dbName, DatabaseType type)
+        {
+            var process = GetTestProcess(testProcessInfo.ProcessId);
+            var sqlClient = process.SQLClient;
+            return sqlClient.ExecuteSQL(sql, dbName, process.UserName, process.Password, process.UserSessionId, type);
+        }
+
         public SQLQueryReply ExecuteSQL(TestProcessInfo testProcessInfo, string sql)
         {
             var process = GetTestProcess(testProcessInfo.ProcessId);
@@ -108,6 +116,13 @@ namespace Drummersoft.DrummerDB.Client.Tests
             var process = GetTestProcess(testProcessId);
             var sqlClient = process.SQLClient;
             return sqlClient.ExecuteSQL(sql, dbName, process.UserName, process.Password, process.UserSessionId);
+        }
+
+        public SQLQueryReply ExecuteSQL(int testProcessId, string sql, string dbName, DatabaseType type)
+        {
+            var process = GetTestProcess(testProcessId);
+            var sqlClient = process.SQLClient;
+            return sqlClient.ExecuteSQL(sql, dbName, process.UserName, process.Password, process.UserSessionId, type);
         }
 
         public SQLQueryReply ExecuteSQL(int testProcessId, string sql)
