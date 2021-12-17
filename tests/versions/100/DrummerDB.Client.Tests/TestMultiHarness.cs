@@ -103,7 +103,6 @@ namespace Drummersoft.DrummerDB.Client.Tests
             return sqlClient.ExecuteSQL(sql, process.UserName, process.Password, process.UserSessionId);
         }
 
-
         public SQLQueryReply ExecuteSQL(int testProcessId, string sql, string dbName)
         {
             var process = GetTestProcess(testProcessId);
