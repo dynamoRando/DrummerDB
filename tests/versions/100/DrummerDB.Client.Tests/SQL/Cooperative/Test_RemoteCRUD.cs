@@ -229,7 +229,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
                 {customer.ProcessId},
                 {customer.Alias}
             );
-            ", dbName);
+            ", dbName, DatabaseType.Host);
 
             Assert.False(addCustomerName.Results.First().IsError);
 
@@ -237,7 +237,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var selectCustomerNameAtHost = harness.ExecuteSQL(company,
             $@"
             SELECT * FROM {customerTableName};
-            ", dbName);
+            ", dbName, DatabaseType.Host);
 
             Assert.False(selectCustomerNameAtHost.Results.First().IsError);
 
@@ -245,7 +245,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var selectCustomerNameAtParticipant = harness.ExecuteSQL(customer,
             $@"
             SELECT * FROM {customerTableName};
-            ", dbName);
+            ", dbName, DatabaseType.Partial);
 
             Assert.False(selectCustomerNameAtParticipant.Results.First().IsError);
         }
