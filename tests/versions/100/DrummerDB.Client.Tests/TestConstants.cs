@@ -62,6 +62,12 @@ namespace Drummersoft.DrummerDB.Client.Tests
 
             // 7050
             public const int COOP_DB_MULTI_TEST = 7050;
+
+            // 9050
+            public const int COOP_DB_SQL_CRUD_TEST = 9050;
+
+            // 9060
+            public const int COOP_DB_DB_CRUD_TEST = 9060;
         }
     }
 }
