@@ -204,7 +204,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var table = db.GetTable(TableName);
                     foreach (var insertRow in Rows)
                     {
-                        var row = table.GetRowForRemoteInsert(participant);
+                        var row = table.GetNewRemoteRow(participant);
                         foreach (var insertValue in insertRow.Values)
                         {
                             if (insertValue.IsNull)

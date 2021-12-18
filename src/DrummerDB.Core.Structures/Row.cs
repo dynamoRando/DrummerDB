@@ -10,6 +10,8 @@ namespace Drummersoft.DrummerDB.Core.Structures
 {
     internal class Row : IRow
     {
+        private Participant _participant;
+
         /*
          * Row Byte Array Layout:
          * RowId IsLocal IsDeleted IsForwarded ForwardOffset ForwardedPageId {{SizeOfRow | ParticipantId} | RowData}
@@ -55,6 +57,18 @@ namespace Drummersoft.DrummerDB.Core.Structures
             IsForwarded = false;
             ForwardOffset = 0;
             ForwardedPageId = 0;
+        }
+
+        public Row(int id, bool isLocal, Participant participant)
+        {
+            Id = id;
+            IsLocal = isLocal;
+            IsDeleted = false;
+            IsForwarded = false;
+            ForwardOffset = 0;
+            ForwardedPageId = 0;
+            _participant = participant;
+            ParticipantId = participant.Id;
         }
 
         /// <summary>

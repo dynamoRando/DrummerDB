@@ -264,9 +264,23 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return row;
         }
 
-        public Row GetRowForRemoteInsert(Participant participant)
+        public Row GetNewRemoteRow(Participant participant)
         {
-            throw new NotImplementedException();
+            var row = new Row(GetNextRowId(), false, participant);
+            var values = new RowValue[_schema.Columns.Length];
+            int i = 0;
+
+            foreach (var column in _schema.Columns)
+            {
+                var value = new RowValue();
+                value.Column = column;
+                values[i] = value;
+                i++;
+            }
+
+            row.Values = values;
+
+            return row;
         }
 
         /// <summary>
@@ -801,7 +815,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                             var updateAction = xact.GetActionAsUpdate();
                             xact.MarkComplete();
                             IBaseDataPage pageToSave = _cache.UserDataGetPage(updateAction.Address.ToPageAddress());
-                            _storage.SavePageDataToDisk(updateAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type, 
+                            _storage.SavePageDataToDisk(updateAction.Address.ToPageAddress(), pageToSave.Data, pageToSave.Type,
                                 pageToSave.DataPageType(), pageToSave.IsDeleted());
                             _storage.LogCloseTransaction(_schema.DatabaseId, xact);
                             _xEntryManager.RemoveEntry(xact);
