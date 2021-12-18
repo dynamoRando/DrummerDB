@@ -872,7 +872,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     else
                     {
                         throw new NotImplementedException("remote row data has not been implemented");
-                        // TODO - haven't tested this yet, this is prototyping
+
+                        // format needs to be 
+                        // participant id
+                        // length of data hash (int - 4 bytes)
+                        // data hash
+
+                        // TODO - the below is obsolete code
                         var binaryParticipantId = span.Slice(runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID);
                         Guid partipantId = DbBinaryConvert.BinaryToGuid(binaryParticipantId);
                         row.ParticipantId = partipantId;

@@ -56,7 +56,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -124,7 +124,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -196,7 +196,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -301,7 +301,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -399,7 +399,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var columnId = new ColumnSchema("Id", sqlInt, 1); ;
             columns.Add(columnId);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -474,7 +474,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
             var mockStorage = new MockStorageManager();
@@ -578,7 +578,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
             var mockStorage = new MockStorageManager();
@@ -683,7 +683,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -787,7 +787,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -906,7 +906,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnNameAge);
             columns.Add(nicName);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -966,7 +966,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(nicName);
             columns.Add(columnRank);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -1090,7 +1090,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(nicName);
             columns.Add(columnRank);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -1198,7 +1198,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnBirthday);
             columns.Add(columnSalary);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();
@@ -1334,7 +1334,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(charColumn);
             columns.Add(columnRank);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var cache = new CacheManager();
             var mockRemoteDataManager = new MockRemoteDataManager();

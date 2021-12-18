@@ -180,7 +180,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                     dColumns.Add(dColumn);
                 }
 
-                var tableSchema = new drumTableSchema(tableId, tableName, dContract.DatabaseId, dColumns);
+                var tableSchema = new drumTableSchema(tableId, tableName, dContract.DatabaseId, dColumns, dContract.DatabaseName);
                 tableSchema.SetStoragePolicy((LogicalStoragePolicy)logicalStoragePolicy);
 
                 dContract.Tables.Add(tableSchema);

@@ -79,7 +79,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Integration
             cols.Add(col1);
 
             var db = dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
             db.AddTable(tableSchema, out tableObjectId);
 
             // --- ASSERT

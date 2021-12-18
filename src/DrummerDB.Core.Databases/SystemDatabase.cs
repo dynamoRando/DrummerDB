@@ -352,7 +352,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                                     }
                                 }
 
-                                var tableSchema = new TableSchema(tableId, tableName.Trim(), returnValue.DatabaseId, columns);
+                                var tableSchema = new TableSchema(tableId, tableName.Trim(), returnValue.DatabaseId, columns, Name);
 
                                 if (returnValue.Tables is null)
                                 {

@@ -444,7 +444,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         }
                     }
 
-                    schema = new TableSchema(storedTableId, storedTableName, _dbId, columnSchema, schemaInfo);
+                    schema = new TableSchema(storedTableId, storedTableName, _dbId, columnSchema, schemaInfo, dbName);
                     schema.DatabaseName = dbName;
 
                 }
@@ -574,11 +574,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 if (!string.IsNullOrEmpty(tableSchemaName))
                 {
-                    tableSchema = new TableSchema(tableId, tableName, _dbId, columnSchema, new DatabaseSchemaInfo(tableSchemaName, tableSchemaId));
+                    tableSchema = new TableSchema(tableId, tableName, _dbId, columnSchema, new DatabaseSchemaInfo(tableSchemaName, tableSchemaId), dbName);
                 }
                 else
                 {
-                    tableSchema = new TableSchema(tableId, tableName, _dbId, columnSchema);
+                    tableSchema = new TableSchema(tableId, tableName, _dbId, columnSchema, dbName);
                 }
                 tableSchema.DatabaseName = dbName;
                 result[i] = tableSchema;

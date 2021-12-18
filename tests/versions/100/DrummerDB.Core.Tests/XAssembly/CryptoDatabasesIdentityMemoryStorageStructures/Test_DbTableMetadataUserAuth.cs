@@ -96,7 +96,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var db = manager.GetUserDatabase(userDbName, DatabaseType.Host);
 
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, userDbName);
 
             var addTableResult = db.AddTable(tableSchema, out _);
 
@@ -185,7 +185,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
             manager.XactCreateNewHostDatabase(userDbName, out _);
             var db = manager.GetUserDatabase(userDbName, DatabaseType.Host);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, userDbName);
             var addTableResult = db.AddTable(tableSchema, out tableObjectId);
 
             // --- ACT

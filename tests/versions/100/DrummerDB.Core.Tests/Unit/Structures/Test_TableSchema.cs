@@ -24,7 +24,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Unit.Structures
 
             var tableName = "Employees";
 
-            var table = new TableSchema(1, tableName, Guid.NewGuid(), columns);
+            var table = new TableSchema(1, tableName, Guid.NewGuid(), columns, string.Empty);
 
             Assert.Equal(table.Name, tableName);
         }

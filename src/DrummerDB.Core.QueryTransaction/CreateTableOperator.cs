@@ -42,7 +42,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             DatabaseSchemaInfo schemaInfo = targetDb.GetSchemaInformation(schemaName);
 
-                            TableSchema schema = new TableSchema(id, tableName, targetDb.Id, Columns, schemaInfo);
+                            TableSchema schema = new TableSchema(id, tableName, targetDb.Id, Columns, schemaInfo, DatabaseName);
+                            schema.DatabaseName = targetDb.Name;
 
                             if (!targetDb.HasTable(tableName) && transactionMode == TransactionMode.Try)
                             {
@@ -70,7 +71,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        TableSchema schema = new TableSchema(id, TableName, targetDb.Id, Columns);
+                        TableSchema schema = new TableSchema(id, TableName, targetDb.Id, Columns, DatabaseName);
 
                         if (!targetDb.HasTable(TableName) && transactionMode == TransactionMode.Try)
                         {

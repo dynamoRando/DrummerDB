@@ -47,7 +47,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnName);
             columns.Add(columnNameAge);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockStorage = new MockStorageManager(tableSchema);
             var xManager = new TransactionEntryManager();
@@ -107,7 +107,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var columnId = new ColumnSchema("Id", sqlInt, 1);
             columns.Add(columnId);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockStorage = new MockStorageManager(tableSchema);
             var xManager = new TransactionEntryManager();
@@ -169,7 +169,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var columnId = new ColumnSchema("Id", nvarchar, 1); ;
             columns.Add(columnId);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockStorage = new MockStorageManager(tableSchema);
             var mockXManager = new TransactionEntryManager();

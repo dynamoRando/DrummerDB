@@ -73,7 +73,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string tableName = "TestTable";
             int tableId = 999;
             LogicalStoragePolicy policy = LogicalStoragePolicy.ParticipantOwned;
-            var table = new TableSchema(tableId, tableName, dbId, columns, tableObjectId);
+            var table = new TableSchema(tableId, tableName, dbId, columns, tableObjectId, userDbName);
             table.SetStoragePolicy(policy);
             table.ContractGUID = contractGuid;
             var tables = new List<ITableSchema>();

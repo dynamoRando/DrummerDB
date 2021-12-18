@@ -85,7 +85,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
 
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
 
             // --- ASSERT
             var result = db.AddTable(tableSchema, out _);
@@ -168,7 +168,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
 
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
 
             var result = db.AddTable(tableSchema, out tableId);
 

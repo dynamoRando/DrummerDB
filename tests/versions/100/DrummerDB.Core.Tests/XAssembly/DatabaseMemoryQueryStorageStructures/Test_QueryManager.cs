@@ -127,7 +127,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(nicName);
             columns.Add(columnRank);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, userDbName);
 
             Guid tableGuidId;
             bool tableCreated = db.AddTable(tableSchema, out tableGuidId);

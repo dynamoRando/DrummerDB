@@ -240,7 +240,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             manager.XactCreateNewHostDatabase(dbName, out _);
             var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
             var createTableResult = db.AddTable(tableSchema, out _);
 
             string errorMessage;
@@ -320,7 +320,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             manager.XactCreateNewHostDatabase(dbName, out _);
             var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
             var createTableResult = db.AddTable(tableSchema, out _);
 
             string errorMessage;
@@ -382,7 +382,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             manager.XactCreateNewHostDatabase(dbName, out _);
             var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
             var createTableResult = db.AddTable(tableSchema, out _);
 
             string sqlDropTableStatement = $@"

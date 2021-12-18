@@ -84,7 +84,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <param name="dbId">The database id the table is in</param>
         /// <param name="columns">The columns of the table</param>
         /// <param name="schema">The database schema the table belongs to</param>
-        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, DatabaseSchemaInfo schema)
+        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, DatabaseSchemaInfo schema, string databaseName)
         {
             _Id = id;
             _name = name;
@@ -93,6 +93,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             _schema = schema;
             _storagePolicy = LogicalStoragePolicy.None;
             ContractGUID = Guid.Empty;
+            DatabaseName = databaseName;
         }
 
         /// <summary>
@@ -102,20 +103,21 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <param name="name">The name of the table</param>
         /// <param name="dbId">The database id the table is in</param>
         /// <param name="columns">The columns of the table</param>
-        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns)
+        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, string databaseName)
         {
             _Id = id;
             _name = name;
             _dbId = dbId;
             _columns = columns.ToArray();
             _storagePolicy = LogicalStoragePolicy.None;
+            DatabaseName = databaseName;
 
             _schema = new DatabaseSchemaInfo(Constants.DBO_SCHEMA, Guid.Parse(Constants.DBO_SCHEMA_GUID));
             ContractGUID = Guid.Empty;
 
         }
 
-        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, Guid objectId) : this(id, name, dbId, columns)
+        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, Guid objectId, string databaseName) : this(id, name, dbId, columns, databaseName)
         {
             _objectId = objectId;
         }

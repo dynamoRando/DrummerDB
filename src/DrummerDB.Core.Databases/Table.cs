@@ -494,18 +494,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool XactAddRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
         {
-            if (_schema.StoragePolicy != LogicalStoragePolicy.None)
-            {
-                throw new NotImplementedException("Remote data handling has not been implemented");
-            }
-
-            // this is not completly correct, we want to save a row reference locally (so a reference to the row id and a data hash of the row, but for now to prevent 
-            // data security violations, we will throw an exception here
-            if (_schema.StoragePolicy == LogicalStoragePolicy.ParticipantOwned)
-            {
-                throw new InvalidOperationException("Storage policy does not allow saving row detail data locally");
-            }
-
             if (row.IsLocal)
             {
                 return XactAddLocalRow(row, request, transactionMode);
@@ -1087,14 +1075,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private bool XactAddRemoteRow(Row row, TransactionRequest request, TransactionMode transactionMode)
         {
-
-            throw new NotImplementedException();
-
             // copy paste of local row actions
 
             int pageId = 0;
             CacheAddRowResult addResult;
             TransactionEntry xact;
+            bool remoteSaveIsSuccessful = false;
+            string errorMessage = string.Empty;
 
             switch (transactionMode)
             {
@@ -1102,9 +1089,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     // we need to has the row data and the participant id and save this to cache
                     // we then need to save the data at the participant.
-                    string errorMessage = string.Empty;
-
-                    var remoteSaveIsSuccessful = _remoteManager.SaveRowAtParticipant(
+                    
+                    remoteSaveIsSuccessful = _remoteManager.SaveRowAtParticipant(
                         row,
                         _schema.DatabaseName,
                         _schema.DatabaseId,
@@ -1166,6 +1152,30 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     break;
 
                 case TransactionMode.Try:
+
+
+                    // we need to has the row data and the participant id and save this to cache
+                    // we then need to save the data at the participant.
+
+
+                    remoteSaveIsSuccessful = _remoteManager.SaveRowAtParticipant(
+                        row,
+                        _schema.DatabaseName,
+                        _schema.DatabaseId,
+                        Name,
+                        _schema.ObjectId,
+                        out errorMessage
+                        );
+
+                    if (remoteSaveIsSuccessful)
+                    {
+                        // need to add the participant id and data hash to cache 
+                        // and then save the page to disk
+                        // and also save this action to the transaction log
+                    }
+                    throw new NotImplementedException();
+
+                    // old code is below;
                     do
                     {
                         addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
