@@ -1,5 +1,4 @@
-﻿using Drummersoft.DrummerDB.Core.Cryptography;
-using Drummersoft.DrummerDB.Core.Databases.Remote;
+﻿using Drummersoft.DrummerDB.Core.Databases.Remote;
 using Drummersoft.DrummerDB.Core.Databases.Remote.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory.Enum;
@@ -1116,7 +1115,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     if (remoteSaveIsSuccessful)
                     {
-                        
                         // need to add the participant id and data hash to cache 
                         // and then save the page to disk
                         // and also save this action to the transaction log
