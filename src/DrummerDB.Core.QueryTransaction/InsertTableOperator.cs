@@ -34,6 +34,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             Rows = new List<InsertRow>();
             _tryRows = new List<Row>();
             Columns = new List<StatementColumn>();
+
+            if (_options is null)
+            {
+                _options = new ICoopActionPlanOption[0];
+            }
         }
 
         public InsertTableOperator(IDbManager db, ICoopActionPlanOption[] options) : this(db)
@@ -48,7 +53,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             bool rowsAdded = true;
 
             // default host type
-            var db = _db.GetHostDatabase(DatabaseName);
+            var db = _db.GetDatabase(DatabaseName, DatabaseType.Host);
 
             if (_options.Length > 0)
             {
