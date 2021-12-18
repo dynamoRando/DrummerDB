@@ -63,6 +63,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         var participantOption = (CoopActionOptionParticipant)option;
                         ExecuteForRemoteInsert(participantOption, transaction, transactionMode, ref messages, ref errorMessages);
+                        return;
                     }
                 }
             }
