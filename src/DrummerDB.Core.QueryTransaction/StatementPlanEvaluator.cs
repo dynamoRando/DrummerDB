@@ -22,7 +22,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (plan is not null)
             {
                 var insert = new InsertQueryPlanPart();
-                var insertTable = new InsertTableOperator(dbManager);
+                InsertTableOperator insertTable = null;
+                if (plan.HasCooperativeOptions)
+                {
+                    insertTable = new InsertTableOperator(dbManager, plan.Options);
+                }
+                else
+                {
+                    insertTable = new InsertTableOperator(dbManager);
+                }
                 insertTable.Rows = statement.Rows;
                 insertTable.TableName = statement.TableName;
                 insertTable.Columns = statement.Columns;

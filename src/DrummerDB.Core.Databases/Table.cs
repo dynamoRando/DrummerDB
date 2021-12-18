@@ -264,6 +264,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return row;
         }
 
+        public Row GetRowForRemoteInsert(Participant participant)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Gets the row.
         /// </summary>

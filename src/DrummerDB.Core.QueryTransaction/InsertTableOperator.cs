@@ -13,6 +13,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #region Private Fields
         private IDbManager _db;
         private List<Row> _tryRows;
+        private ICoopActionPlanOption[] _options;
         #endregion
 
         #region Public Properties
@@ -34,16 +35,32 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _tryRows = new List<Row>();
             Columns = new List<StatementColumn>();
         }
+
+        public InsertTableOperator(IDbManager db, ICoopActionPlanOption[] options) : this(db)
+        {
+            _options = options;
+        }
         #endregion
 
         #region Public Methods
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             bool rowsAdded = true;
-            
-            // default host type
-            var db = _db.GetDatabase(DatabaseName, DatabaseType.Host);
 
+            // default host type
+            var db = _db.GetHostDatabase(DatabaseName);
+
+            if (_options.Length > 0)
+            {
+                foreach (var option in _options)
+                {
+                    if (option is CoopActionOptionParticipant)
+                    {
+                        var participantOption = (CoopActionOptionParticipant)option;
+                        ExecuteForRemoteInsert(participantOption, transaction, transactionMode, ref messages, ref errorMessages);
+                    }
+                }
+            }
 
             if (string.IsNullOrEmpty(TableSchemaName))
             {
@@ -168,6 +185,53 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
+        private void ExecuteForRemoteInsert(CoopActionOptionParticipant participantOption, TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
+        {
+            bool rowsAdded = true;
+
+            Participant participant = new Participant(); 
+            var db = _db.GetHostDatabase(DatabaseName);
+            
+            if (db.HasParticipantAlias(participantOption.ParticipantAlias))
+            {
+                participant = db.GetParticipant(participantOption.ParticipantAlias);
+            }
+
+            if (string.IsNullOrEmpty(TableSchemaName))
+            {
+                if (db.HasTable(TableName))
+                {
+                    var table = db.GetTable(TableName);
+                    foreach (var insertRow in Rows)
+                    {
+                        var row = table.GetRowForRemoteInsert(participant);
+                        foreach (var insertValue in insertRow.Values)
+                        {
+                            if (insertValue.IsNull)
+                            {
+                                row.SetValueAsNullForColumn(insertValue.ColumnName);
+                            }
+                            else
+                            {
+                                row.SetValue(insertValue.ColumnName, insertValue.Value);
+                            }
+                        }
+
+                        if (!table.XactAddRow(row, transaction, transactionMode))
+                        {
+                            rowsAdded = false;
+                        }
+                        else
+                        {
+                            _tryRows.Add(row);
+                        }
+                    }
+
+                }
+            }
+
+            throw new NotImplementedException();
+        }
         #endregion
 
 

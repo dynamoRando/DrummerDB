@@ -393,7 +393,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (line.StartsWith(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT))
                 {
                     var trimmedLine = line.Trim();
-                    var participantAlias = line.Replace(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT + " ", string.Empty).Trim();
+                    var participantAlias = trimmedLine.Replace(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT + " ", string.Empty).Trim();
                     var alias = new CoopActionOptionParticipant();
                     alias.ParticipantAlias = participantAlias;
                     options.Add(alias);
