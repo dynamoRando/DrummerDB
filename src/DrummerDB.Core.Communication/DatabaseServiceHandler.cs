@@ -97,6 +97,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return manager.XactCreateNewHostDatabase(databaseName, out databaseId);
         }
 
+        public bool InsertRowIntoTable(Row row, Guid dbId, string dbName, string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Record in the target host databaset that the participant has accepted the contract
         /// </summary>

@@ -12,6 +12,7 @@ using Google.Protobuf;
 using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
 using comRowValue = Drummersoft.DrummerDB.Common.Communication.RowValue;
 using comColumnSchema = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
+using comTableSchema = Drummersoft.DrummerDB.Common.Communication.TableSchema;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -49,7 +50,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             string dbName,
             Guid dbId,
             string tableName,
-            Guid tableId,
+            int tableId,
             out string errorMessage)
         {
             errorMessage = string.Empty;
@@ -67,11 +68,14 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             var request = new InsertRowRequest();
             InsertRowResult? result = null;
 
-            request.DatabaseId = dbId.ToString();
-            request.DatabaseName = dbName;
-            request.TableId = tableId.ToString();
-            request.TableName = tableName;
-            
+            var comTableSchema = new comTableSchema();
+            comTableSchema.DatabaseId = dbId.ToString();
+            comTableSchema.DatabaseName = dbName;
+            comTableSchema.TableId = Convert.ToUInt32(tableId);
+            comTableSchema.TableName = tableName;
+
+            request.Table = comTableSchema;
+
             // need to build row values
             foreach(var sRV in row.Values)
             {

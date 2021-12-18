@@ -1095,7 +1095,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         _schema.DatabaseName,
                         _schema.DatabaseId,
                         Name,
-                        _schema.ObjectId,
+                        _schema.Id,
                         out errorMessage
                         );
 
@@ -1163,7 +1163,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         _schema.DatabaseName,
                         _schema.DatabaseId,
                         Name,
-                        _schema.ObjectId,
+                        _schema.Id,
                         out errorMessage
                         );
 

@@ -93,6 +93,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public override Task<InsertRowResult> InsertRowIntoTable(InsertRowRequest request, ServerCallContext context)
         {
             throw new NotImplementedException();
+
+            var result = _handler.InsertRowIntoTable(null, Guid.Empty, null, null);
+
             return base.InsertRowIntoTable(request, context);
         }
 

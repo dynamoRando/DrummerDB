@@ -81,11 +81,8 @@ message CreateTableResult {
 // a message for inserting a row into a table in a database
 message InsertRowRequest {
 	Drum.AuthRequest authentication = 1;
-	string databaseName = 2;
-	string databaseId = 3;
-	string tableName = 4;
-	string tableId = 5;
-	repeated Drum.RowValue values = 6;
+	Drum.TableSchema table = 2;
+	repeated Drum.RowValue values = 3;
 }
 
 // a message for describing the result of a InsertRowRequest
