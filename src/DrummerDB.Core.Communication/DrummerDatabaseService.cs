@@ -104,6 +104,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
         /// <returns></returns>
         public override Task<SaveContractResult> SaveContract(SaveContractRequest request, ServerCallContext context)
         {
+            // we need to check authentication here
+
             string errorMessage = string.Empty;
             var databaseContract = ConvertContractRequestToContract(request);
 
@@ -126,6 +128,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public override Task<ParticipantAcceptsContractResult> AcceptContract(ParticipantAcceptsContractRequest request, ServerCallContext context)
         {
             string errorMessage = string.Empty;
+
+            // we need to check authentication here
 
             var participant = new drumParticipant();
             participant.Alias = request.Participant.Alias;

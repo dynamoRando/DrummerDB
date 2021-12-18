@@ -97,8 +97,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
                 request.Values.Add(cValue);
             }
 
-            throw new NotImplementedException("Not sure if this is finished");
-
             try
             {
                 result = sink.Client.InsertRowIntoTable(request);
