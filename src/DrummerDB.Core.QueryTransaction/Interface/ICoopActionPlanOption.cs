@@ -8,5 +8,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.Interface
 {
     internal interface ICoopActionPlanOption
     {
+        string Text { get; set; }
     }
 }

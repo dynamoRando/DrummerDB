@@ -250,7 +250,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         if (ContainsCooperativeKeywords(sqlStatement))
                         {
-                            throw new NotImplementedException();
+                            var options = ParseStatementForCooperativeOptions(sqlStatement);
+                            return _queryPlanGenerator.GetQueryPlan(sqlStatement, db, _dbManager, options);
                         }
                         else
                         {
@@ -400,6 +401,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var participantAlias = trimmedLine.Replace(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT + " ", string.Empty).Trim();
                     var alias = new CoopActionOptionParticipant();
                     alias.ParticipantAlias = participantAlias;
+                    alias.Text = trimmedLine;
                     options.Add(alias);
                 }
             }

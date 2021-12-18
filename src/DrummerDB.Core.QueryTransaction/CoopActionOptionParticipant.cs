@@ -10,5 +10,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     internal record struct CoopActionOptionParticipant : ICoopActionPlanOption
     {
         public string ParticipantAlias { get; set; }
+        public string Text { get; set; }
     }
 }

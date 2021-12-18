@@ -1,4 +1,6 @@
-﻿using Drummersoft.DrummerDB.Core.Databases.Remote.Interface;
+﻿using Drummersoft.DrummerDB.Core.Cryptography;
+using Drummersoft.DrummerDB.Core.Databases.Remote;
+using Drummersoft.DrummerDB.Core.Databases.Remote.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
@@ -21,7 +23,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         private ICacheManager _cache;
         private LogService _log;
         // this is never set?
-        private IRemoteDataManager _remoteManager;
+        private RemoteDataManager _remoteManager;
 
         private TableSchema _schema;
         private ProcessUserDatabaseSettings _settings;
@@ -45,13 +47,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public Table(TableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager) :
             this(schema, cache, storage, xEntryManager)
         {
-            _remoteManager = remoteManager;
+            _remoteManager = remoteManager as RemoteDataManager;
         }
 
         public Table(TableSchema schema, ICacheManager cache, IRemoteDataManager remoteManager, IStorageManager storage, ITransactionEntryManager xEntryManager, LogService log) :
          this(schema, cache, storage, xEntryManager, log)
         {
-            _remoteManager = remoteManager;
+            _remoteManager = remoteManager as RemoteDataManager;
         }
 
         public Table(TableSchema schema, ICacheManager cache, IStorageManager storage, ITransactionEntryManager xEntryManager)
@@ -493,10 +495,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool XactAddRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
         {
-            int pageId = 0;
-            CacheAddRowResult addResult;
-            TransactionEntry xact;
-
             if (_schema.StoragePolicy != LogicalStoragePolicy.None)
             {
                 throw new NotImplementedException("Remote data handling has not been implemented");
@@ -509,124 +507,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 throw new InvalidOperationException("Storage policy does not allow saving row detail data locally");
             }
 
-            switch (transactionMode)
+            if (row.IsLocal)
             {
-                case TransactionMode.None:
-                    do
-                    {
-                        addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
-
-                        var debugRow = row as Row;
-                        string debugData = BitConverter.ToString(debugRow.GetRowInPageBinaryFormat());
-
-                        switch (addResult)
-                        {
-                            case CacheAddRowResult.NoPagesOnTree:
-                                HandleNoPagesOnTree();
-                                break;
-                            case CacheAddRowResult.NoRoomOnTree:
-                                HandleNoRoomOnTree();
-                                break;
-                            case CacheAddRowResult.TreeNotInMemory:
-                                HandleDataTreeNotInMemory();
-                                break;
-                            case CacheAddRowResult.Success:
-                                break;
-                            default:
-                                throw new InvalidOperationException($"Unknown response from cache when adding {row.Id}");
-                        }
-                    }
-                    while (addResult != CacheAddRowResult.Success);
-
-                    if (addResult == CacheAddRowResult.Success && pageId != 0)
-                    {
-                        var pageAddress = new PageAddress(Address.DatabaseId, Address.TableId, pageId, Schema().Schema.SchemaGUID);
-                        IBaseDataPage pageToSave = _cache.UserDataGetPage(pageAddress);
-
-                        string pageData = BitConverter.ToString(pageToSave.Data);
-
-                        _storage.SavePageDataToDisk(pageAddress, pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
-
-                        return true;
-                    }
-
-                    return false;
-                case TransactionMode.Try:
-                    do
-                    {
-                        addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
-
-                        switch (addResult)
-                        {
-                            case CacheAddRowResult.NoPagesOnTree:
-                                HandleNoPagesOnTree();
-                                break;
-                            case CacheAddRowResult.NoRoomOnTree:
-                                HandleNoRoomOnTree();
-                                break;
-                            case CacheAddRowResult.TreeNotInMemory:
-                                HandleDataTreeNotInMemory();
-                                break;
-                            case CacheAddRowResult.Success:
-                                break;
-                            default:
-                                throw new InvalidOperationException($"Unknown response from cache when adding {row.Id}");
-                        }
-                    }
-                    while (addResult != CacheAddRowResult.Success);
-
-                    if (addResult == CacheAddRowResult.Success && pageId != 0)
-                    {
-                        xact = GetTransactionInsertEntry(request, row, pageId);
-                        _xEntryManager.AddEntry(xact);
-                        _storage.LogOpenTransaction(_schema.DatabaseId, xact);
-                        return true;
-                    }
-                    return false;
-                case TransactionMode.Rollback:
-                    xact = _xEntryManager.FindInsertTransactionForRowId(row.Id, Address.DatabaseId, Address.TableId);
-                    if (xact is not null)
-                    {
-                        var insertAction = xact.GetActionAsInsert();
-
-                        var page = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
-                        page.DeleteRow(row.Id);
-
-                        _xEntryManager.RemoveEntry(xact);
-
-                        xact.MarkDeleted();
-                        _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
-                        return true;
-                    }
-
-                    return false;
-                case TransactionMode.Commit:
-                    xact = _xEntryManager.FindInsertTransactionForRowId(row.Id, Address.DatabaseId, Address.TableId);
-                    if (xact is not null)
-                    {
-                        var insertAction = xact.GetActionAsInsert();
-                        xact.MarkComplete();
-                        IBaseDataPage pageToSave = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
-
-                        var debug = new PageDebug(pageToSave.Data);
-                        string dataString = debug.DebugData();
-
-                        _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
-                            pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),
-                            pageToSave.IsDeleted()
-                            );
-                        _storage.LogCloseTransaction(_schema.DatabaseId, xact);
-                        _xEntryManager.RemoveEntry(xact);
-
-                        return true;
-                    }
-
-                    return false;
-                default:
-                    throw new InvalidOperationException("Unknown transaction mode");
+                return XactAddLocalRow(row, request, transactionMode);
             }
-
-            return false;
+            else
+            {
+                return XactAddRemoteRow(row as Row, request, transactionMode);
+            }
         }
 
         /// <summary>
@@ -1072,6 +960,295 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             return false;
+        }
+
+        private bool XactAddLocalRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        {
+            int pageId = 0;
+            CacheAddRowResult addResult;
+            TransactionEntry xact;
+
+            switch (transactionMode)
+            {
+                case TransactionMode.None:
+                    do
+                    {
+                        addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
+
+                        var debugRow = row as Row;
+                        string debugData = BitConverter.ToString(debugRow.GetRowInPageBinaryFormat());
+
+                        switch (addResult)
+                        {
+                            case CacheAddRowResult.NoPagesOnTree:
+                                HandleNoPagesOnTree();
+                                break;
+                            case CacheAddRowResult.NoRoomOnTree:
+                                HandleNoRoomOnTree();
+                                break;
+                            case CacheAddRowResult.TreeNotInMemory:
+                                HandleDataTreeNotInMemory();
+                                break;
+                            case CacheAddRowResult.Success:
+                                break;
+                            default:
+                                throw new InvalidOperationException($"Unknown response from cache when adding {row.Id}");
+                        }
+                    }
+                    while (addResult != CacheAddRowResult.Success);
+
+                    if (addResult == CacheAddRowResult.Success && pageId != 0)
+                    {
+                        var pageAddress = new PageAddress(Address.DatabaseId, Address.TableId, pageId, Schema().Schema.SchemaGUID);
+                        IBaseDataPage pageToSave = _cache.UserDataGetPage(pageAddress);
+
+                        string pageData = BitConverter.ToString(pageToSave.Data);
+
+                        _storage.SavePageDataToDisk(pageAddress, pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
+
+                        return true;
+                    }
+
+                    return false;
+                case TransactionMode.Try:
+                    do
+                    {
+                        addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
+
+                        switch (addResult)
+                        {
+                            case CacheAddRowResult.NoPagesOnTree:
+                                HandleNoPagesOnTree();
+                                break;
+                            case CacheAddRowResult.NoRoomOnTree:
+                                HandleNoRoomOnTree();
+                                break;
+                            case CacheAddRowResult.TreeNotInMemory:
+                                HandleDataTreeNotInMemory();
+                                break;
+                            case CacheAddRowResult.Success:
+                                break;
+                            default:
+                                throw new InvalidOperationException($"Unknown response from cache when adding {row.Id}");
+                        }
+                    }
+                    while (addResult != CacheAddRowResult.Success);
+
+                    if (addResult == CacheAddRowResult.Success && pageId != 0)
+                    {
+                        xact = GetTransactionInsertEntry(request, row, pageId);
+                        _xEntryManager.AddEntry(xact);
+                        _storage.LogOpenTransaction(_schema.DatabaseId, xact);
+                        return true;
+                    }
+                    return false;
+                case TransactionMode.Rollback:
+                    xact = _xEntryManager.FindInsertTransactionForRowId(row.Id, Address.DatabaseId, Address.TableId);
+                    if (xact is not null)
+                    {
+                        var insertAction = xact.GetActionAsInsert();
+
+                        var page = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
+                        page.DeleteRow(row.Id);
+
+                        _xEntryManager.RemoveEntry(xact);
+
+                        xact.MarkDeleted();
+                        _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
+                        return true;
+                    }
+
+                    return false;
+                case TransactionMode.Commit:
+                    xact = _xEntryManager.FindInsertTransactionForRowId(row.Id, Address.DatabaseId, Address.TableId);
+                    if (xact is not null)
+                    {
+                        var insertAction = xact.GetActionAsInsert();
+                        xact.MarkComplete();
+                        IBaseDataPage pageToSave = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
+
+                        var debug = new PageDebug(pageToSave.Data);
+                        string dataString = debug.DebugData();
+
+                        _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
+                            pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),
+                            pageToSave.IsDeleted()
+                            );
+                        _storage.LogCloseTransaction(_schema.DatabaseId, xact);
+                        _xEntryManager.RemoveEntry(xact);
+
+                        return true;
+                    }
+
+                    return false;
+                default:
+                    throw new InvalidOperationException("Unknown transaction mode");
+            }
+        }
+
+        private bool XactAddRemoteRow(Row row, TransactionRequest request, TransactionMode transactionMode)
+        {
+
+            throw new NotImplementedException();
+
+            // copy paste of local row actions
+
+            int pageId = 0;
+            CacheAddRowResult addResult;
+            TransactionEntry xact;
+
+            switch (transactionMode)
+            {
+                case TransactionMode.None:
+
+                    // we need to has the row data and the participant id and save this to cache
+                    // we then need to save the data at the participant.
+                    string errorMessage = string.Empty;
+
+                    var remoteSaveIsSuccessful = _remoteManager.SaveRowAtParticipant(
+                        row,
+                        _schema.DatabaseName,
+                        _schema.DatabaseId,
+                        Name,
+                        _schema.ObjectId,
+                        out errorMessage
+                        );
+
+                    if (remoteSaveIsSuccessful)
+                    {
+                        
+                        // need to add the participant id and data hash to cache 
+                        // and then save the page to disk
+                        // and also save this action to the transaction log
+                    }
+
+                    /*
+                        addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
+
+                        var debugRow = row as Row;
+                        string debugData = BitConverter.ToString(debugRow.GetRowInPageBinaryFormat());
+
+                        switch (addResult)
+                        {
+                        case CacheAddRowResult.NoPagesOnTree:
+                            HandleNoPagesOnTree();
+                            break;
+                        case CacheAddRowResult.NoRoomOnTree:
+                            HandleNoRoomOnTree();
+                            break;
+                        case CacheAddRowResult.TreeNotInMemory:
+                            HandleDataTreeNotInMemory();
+                            break;
+                        case CacheAddRowResult.Success:
+                            break;
+                        default:
+                            throw new InvalidOperationException($"Unknown response from cache when adding {row.Id}");
+                        }
+                        }
+                        while (addResult != CacheAddRowResult.Success);
+
+                        if (addResult == CacheAddRowResult.Success && pageId != 0)
+                        {
+                        var pageAddress = new PageAddress(Address.DatabaseId, Address.TableId, pageId, Schema().Schema.SchemaGUID);
+                        IBaseDataPage pageToSave = _cache.UserDataGetPage(pageAddress);
+
+                        string pageData = BitConverter.ToString(pageToSave.Data);
+
+                        _storage.SavePageDataToDisk(pageAddress, pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(), pageToSave.IsDeleted());
+
+                        throw new NotImplementedException();
+                        return true;
+                        }
+
+                        return false;
+                     */
+                    throw new NotImplementedException();
+
+
+                    break;
+
+                case TransactionMode.Try:
+                    do
+                    {
+                        addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
+
+                        switch (addResult)
+                        {
+                            case CacheAddRowResult.NoPagesOnTree:
+                                HandleNoPagesOnTree();
+                                break;
+                            case CacheAddRowResult.NoRoomOnTree:
+                                HandleNoRoomOnTree();
+                                break;
+                            case CacheAddRowResult.TreeNotInMemory:
+                                HandleDataTreeNotInMemory();
+                                break;
+                            case CacheAddRowResult.Success:
+                                break;
+                            default:
+                                throw new InvalidOperationException($"Unknown response from cache when adding {row.Id}");
+                        }
+                    }
+                    while (addResult != CacheAddRowResult.Success);
+
+                    if (addResult == CacheAddRowResult.Success && pageId != 0)
+                    {
+                        xact = GetTransactionInsertEntry(request, row, pageId);
+                        _xEntryManager.AddEntry(xact);
+                        _storage.LogOpenTransaction(_schema.DatabaseId, xact);
+
+                        throw new NotImplementedException();
+                        return true;
+                    }
+                    return false;
+                case TransactionMode.Rollback:
+                    xact = _xEntryManager.FindInsertTransactionForRowId(row.Id, Address.DatabaseId, Address.TableId);
+                    if (xact is not null)
+                    {
+                        var insertAction = xact.GetActionAsInsert();
+
+                        var page = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
+                        page.DeleteRow(row.Id);
+
+                        _xEntryManager.RemoveEntry(xact);
+
+                        xact.MarkDeleted();
+                        _storage.RemoveOpenTransaction(_schema.DatabaseId, xact);
+
+                        throw new NotImplementedException();
+                        return true;
+                    }
+
+                    return false;
+                case TransactionMode.Commit:
+                    xact = _xEntryManager.FindInsertTransactionForRowId(row.Id, Address.DatabaseId, Address.TableId);
+                    if (xact is not null)
+                    {
+                        var insertAction = xact.GetActionAsInsert();
+                        xact.MarkComplete();
+                        IBaseDataPage pageToSave = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
+
+                        var debug = new PageDebug(pageToSave.Data);
+                        string dataString = debug.DebugData();
+
+                        _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
+                            pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),
+                            pageToSave.IsDeleted()
+                            );
+                        _storage.LogCloseTransaction(_schema.DatabaseId, xact);
+                        _xEntryManager.RemoveEntry(xact);
+
+                        throw new NotImplementedException();
+                        return true;
+                    }
+
+                    throw new NotImplementedException();
+                    return false;
+                default:
+                    throw new InvalidOperationException("Unknown transaction mode");
+            }
+
+            throw new NotImplementedException();
         }
         #endregion
 

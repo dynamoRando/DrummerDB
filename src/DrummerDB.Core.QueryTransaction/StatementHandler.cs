@@ -8,6 +8,8 @@ using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing;
 using System.Collections.Generic;
 using System.Linq;
+using System;
+using System.Text;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -73,6 +75,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 _validator.StatementReport.Errors = new List<string>();
             }
 
+            // need to remove cooperative statements since they are not sql standard
+            if (options.Length > 0)
+            {
+                statement = RemoveCooperativeActionsFromStatement(statement);
+            }
+
             // not sure if there's a way to not have to allocate new objects each time we evaluate a SQL statement
             AntlrInputStream inputStream = new AntlrInputStream(statement);
             var caseStream = new CaseChangingCharStream(inputStream, true);
@@ -97,6 +105,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _validator.Database = database;
 
             _validator.TokenStream = tokens;
+
+
+
             _walker.Walk(_validator, tree);
 
             if (errorHandler.Errors.Count > 0)
@@ -188,6 +199,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
 
             _generator.QueryPlan = new QueryPlan(statement, options);
+
+            // need to remove cooperative statements since they are not sql standard
+            if (options.Length > 0)
+            {
+                statement = RemoveCooperativeActionsFromStatement(statement);
+            }
 
             // not sure if there's a way to not have to allocate new objects each time we evaluate a SQL statement
             AntlrInputStream inputStream = new AntlrInputStream(statement);
@@ -295,6 +312,31 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
+        private string RemoveCooperativeActionsFromStatement(string statement)
+        {
+            var lines = statement.Split(";");
+            var newLines = new List<string>();
+
+            foreach (var line in lines)
+            {
+                if (!line.StartsWith(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT))
+                {
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        newLines.Add(line + ";");
+                    }
+                }
+            }
+
+            var builder = new StringBuilder();
+
+            foreach (var line in newLines)
+            {
+                builder.Append(line);
+            }
+
+            return builder.ToString();
+        }
         #endregion
 
     }

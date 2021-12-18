@@ -90,6 +90,12 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return Task.FromResult(result);
         }
 
+        public override Task<InsertRowResult> InsertRowIntoTable(InsertRowRequest request, ServerCallContext context)
+        {
+            throw new NotImplementedException();
+            return base.InsertRowIntoTable(request, context);
+        }
+
         /// <summary>
         /// Record a copy of contract sent from a host
         /// </summary>

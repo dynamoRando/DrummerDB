@@ -19,6 +19,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public List<InsertRow> Rows { get; set; }
         public string FullText { get; set; }
         public InsertRow PendingRow { get; set; }
+        public ICoopActionPlanOption[] Options { get; set; }
 
         public InsertStatement()
         {
@@ -26,6 +27,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             TableName = string.Empty;
             Rows = new List<InsertRow>();
             FullText = string.Empty;
+            Options = new ICoopActionPlanOption[0];
+        }
+
+        public bool HasOptions()
+        {
+            return Options.Length > 0;
         }
 
         public int GetMaxColumnId()

@@ -59,6 +59,7 @@ namespace Drummersoft.DrummerDB.Core.Cryptography
             // http://www.programmerguide.net/2015/02/generating-unique-token-in-c-generating.html
             return Convert.FromBase64String(GenerateTokenString());
         }
+
         #endregion
 
         #region Private Methods

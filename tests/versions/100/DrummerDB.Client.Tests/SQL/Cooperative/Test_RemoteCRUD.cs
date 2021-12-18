@@ -222,12 +222,12 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             INSERT INTO {customerTableName} 
             (
                 ID,
-                CUSTOMERNAME,
+                CUSTOMERNAME
             )
             VALUES
             (
                 {customer.ProcessId},
-                {customer.Alias}
+                '{customer.Alias}'
             );
             ", dbName, DatabaseType.Host);
 

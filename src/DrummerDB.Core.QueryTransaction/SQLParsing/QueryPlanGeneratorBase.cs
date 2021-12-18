@@ -308,6 +308,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             _statement = new InsertStatement();
             var insertStatement = _statement as InsertStatement;
             insertStatement.FullText = fullText;
+
+            if (_plan.HasCooperativeOptions)
+            {
+                insertStatement.Options = _plan.Options;
+            }
         }
 
         public override void EnterNull_notnull([NotNull] TSqlParser.Null_notnullContext context)

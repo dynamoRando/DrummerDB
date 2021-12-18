@@ -9,6 +9,9 @@ using structParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
 using structHost = Drummersoft.DrummerDB.Core.Structures.HostInfo;
 using structContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 using Google.Protobuf;
+using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
+using comRowValue = Drummersoft.DrummerDB.Common.Communication.RowValue;
+using comColumnSchema = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -41,6 +44,80 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #endregion
 
         #region Public Methods
+        public bool SaveRowAtParticipant(
+            structRow row,
+            string dbName,
+            Guid dbId,
+            string tableName,
+            Guid tableId,
+            out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            structParticipant participant = row.Participant;
+            
+            ParticipantSink sink;
+            sink = GetOrAddParticipantSink(participant);
+
+            if (!sink.IsOnline())
+            {
+                errorMessage = $"Participant {participant.Alias} is not online";
+                return false;
+            }
+
+            var request = new InsertRowRequest();
+            InsertRowResult? result = null;
+
+            request.DatabaseId = dbId.ToString();
+            request.DatabaseName = dbName;
+            request.TableId = tableId.ToString();
+            request.TableName = tableName;
+            
+            // need to build row values
+            foreach(var sRV in row.Values)
+            {
+                var cValue = new comRowValue();
+                
+                // build out column for the value
+                var cColumn = new comColumnSchema();
+                cColumn.ColumnName = sRV.Column.Name;
+                cColumn.ColumnId = Convert.ToUInt32(sRV.Column.Id);
+                cColumn.ColumnType = Convert.ToUInt32(
+                    SQLColumnTypeConverter.Convert(sRV.Column.DataType, Constants.DatabaseVersions.V100));
+                cColumn.ColumnLength = Convert.ToUInt32(sRV.Column.Length);
+                cColumn.IsNullable = sRV.Column.IsNullable;
+
+                // build out value
+                cValue.IsNullValue = sRV.IsNull();
+                if (!sRV.IsNull())
+                {
+                    cValue.Value = ByteString.CopyFrom(sRV.GetValueInBinary());
+                }
+                
+                cValue.Column = cColumn;
+                request.Values.Add(cValue);
+            }
+
+            throw new NotImplementedException("Not sure if this is finished");
+
+            try
+            {
+                result = sink.Client.InsertRowIntoTable(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+
+            if (result is null)
+            {
+                return false;
+            }
+            else
+            {
+                return result.IsSuccessful;
+            }
+        }
+
         public bool NotifyAcceptContract(structContract contract, out string errorMessage)
         {
             errorMessage = string.Empty;

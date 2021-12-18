@@ -904,6 +904,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <returns>The offset where the row was added</returns>
         private int AppendRowToData(IRow row)
         {
+
             var rowData = row.GetRowInPageBinaryFormat();
             int nextAvailableRowOffset = DataPageConstants.RowDataStartOffset(_V100) + _totalBytesUsed;
 

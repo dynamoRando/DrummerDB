@@ -5,6 +5,7 @@ using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
@@ -40,6 +41,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public bool IsForwarded { get; set; }
         public int ForwardOffset { get; set; }
         public int ForwardedPageId { get; set; }
+        public Participant Participant => _participant;
         #endregion
 
         #region Constructors
@@ -568,22 +570,38 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <remarks>A local row consists of: preamble + sizeOfRow + rowData (ordered by fixed binary columns first, then by variable binary columns, each with an INT size prefix before the actual data for variable size columns.)</remarks>
         public byte[] GetRowInPageBinaryFormat()
         {
-            // TODO: need to change this in the future to handle remote rows
-            byte[] preamble = GetPreambleInBinary();
+            if (IsLocal)
+            {
+                return GetRowInBinaryFormat();
+            }
+            else
+            {
+                // need the participant id and the row hash
 
-            // TODO: in the future, for remote rows, this should only return the particiapnt id, and not the actual values 
-            byte[] data = GetRowDataInBinary();
-            int sizeOfRow = preamble.Length + data.Length + RowConstants.SIZE_OF_ROW_SIZE;
+                // ideally this code should be in Drummersoft.DrummerDB.Core.Cryptogrpahy
+                // but the dependencies wouldn't work (would result in a circular reference)
+                // may later change the dependency layout, but for now leaving this here
+                // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
+                var sourceData = GetRowInBinaryFormat();
+                var sha256Hash = SHA256.Create();
 
-            byte[] sizeOfRowArray = DbBinaryConvert.IntToBinary(sizeOfRow);
+                var bRowHash = sha256Hash.ComputeHash(sourceData);
+                var bRowHashLength = DbBinaryConvert.IntToBinary(bRowHash.Length);
 
-            var result = new byte[preamble.Length + sizeOfRowArray.Length + data.Length];
+                var bParticipantId = DbBinaryConvert.GuidToBinary(Participant.Id);
 
-            Array.Copy(preamble, result, preamble.Length);
-            Array.Copy(sizeOfRowArray, 0, result, RowConstants.SizeOfRowOffset(), sizeOfRowArray.Length);
-            Array.Copy(data, 0, result, RowConstants.RowDataOffset(), data.Length);
+                var arrays = new List<byte[]>();
+                arrays.Add(bParticipantId);
+                arrays.Add(bRowHashLength);
+                arrays.Add(bRowHash);
 
-            return result;
+                // format needs to be 
+                // participant id
+                // length of data hash (int - 4 bytes)
+                // data hash
+
+                return DbBinaryConvert.ArrayStitch(arrays);
+            }
         }
 
         /// <summary>
@@ -616,6 +634,26 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Private Methods
+        private byte[] GetRowInBinaryFormat()
+        {
+            // TODO: need to change this in the future to handle remote rows
+            byte[] preamble = GetPreambleInBinary();
+
+            // TODO: in the future, for remote rows, this should only return the particiapnt id, and not the actual values 
+            byte[] data = GetRowDataInBinary();
+            int sizeOfRow = preamble.Length + data.Length + RowConstants.SIZE_OF_ROW_SIZE;
+
+            byte[] sizeOfRowArray = DbBinaryConvert.IntToBinary(sizeOfRow);
+
+            var result = new byte[preamble.Length + sizeOfRowArray.Length + data.Length];
+
+            Array.Copy(preamble, result, preamble.Length);
+            Array.Copy(sizeOfRowArray, 0, result, RowConstants.SizeOfRowOffset(), sizeOfRowArray.Length);
+            Array.Copy(data, 0, result, RowConstants.RowDataOffset(), data.Length);
+
+            return result;
+        }
+
         private IRowValue GetRowValueWithColumnName(string columnName)
         {
             foreach (var value in Values)
