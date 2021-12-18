@@ -7,6 +7,7 @@ using Drummersoft.DrummerDB.Core.QueryTransaction.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -49,7 +50,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="type">The type of SQL statement: DDL or DML</param>
         /// <returns>A report detailing any errors found.</returns>
         /// <remarks>The Antlr generated code requires the statement to be in UPPERCASE</remarks>
-        public StatementReport ParseStatementForValiditity(string statement, IDatabase database, StatementType type)
+        public StatementReport ParseStatementForValiditity(string statement, IDatabase database, StatementType type, ICoopActionPlanOption[] options)
         {
             if (_validator is null)
             {
@@ -65,6 +66,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _validator.StatementReport.OriginalStatement = statement;
             _validator.StatementReport.IsValid = true;
             _validator.Type = type;
+            _validator.Options = options.ToList();
 
             if (_validator.StatementReport.Errors is null)
             {

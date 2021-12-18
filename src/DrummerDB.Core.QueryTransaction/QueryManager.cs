@@ -84,17 +84,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 sw.Start();
                 if (ContainsDrummerKeywords(sqlStatement))
                 {
-                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, type, out errorMessage);
+                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
                 }
                 else
                 {
                     if (ContainsCooperativeKeywords(sqlStatement))
                     {
-                        throw new NotImplementedException("Need to write cooperative action flow");
+                        var options = ParseStatementForCooperativeOptions(sqlStatement);
+                        isStatementValid = _queryParser.IsStatementValid(sqlStatement, _dbManager, type, options, out errorMessage);
                     }
                     else
                     {
-                        isStatementValid = _queryParser.IsStatementValid(sqlStatement, _dbManager, type, out errorMessage);
+                        isStatementValid = _queryParser.IsStatementValid(sqlStatement, _dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
                     }
                 }
                 sw.Stop();
@@ -106,17 +107,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 if (ContainsDrummerKeywords(sqlStatement))
                 {
-                    return _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, type, out errorMessage);
+                    return _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
                 }
                 else
                 {
                     if (ContainsCooperativeKeywords(sqlStatement))
                     {
-                        throw new NotImplementedException("Need to write cooperative action flow");
+                        var options = ParseStatementForCooperativeOptions(sqlStatement);
+                        return _drummerQueryParser.IsStatementValid(sqlStatement, _dbManager, type, options, out errorMessage);
                     }
                     else
                     {
-                        return _queryParser.IsStatementValid(sqlStatement, _dbManager, type, out errorMessage);
+                        return _queryParser.IsStatementValid(sqlStatement, _dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
                     }
                 }
             }
@@ -143,17 +145,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 sw.Start();
                 if (ContainsDrummerKeywords(sqlStatement))
                 {
-                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, out errorMessage);
+                    isStatementValid = _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
                 }
                 else
                 {
                     if (ContainsCooperativeKeywords(sqlStatement))
                     {
-                        throw new NotImplementedException("Need to write cooperative action flow");
+                        var options = ParseStatementForCooperativeOptions(sqlStatement);
+                        isStatementValid = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, options, out errorMessage);
                     }
                     else
                     {
-                        isStatementValid = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, out errorMessage);
+                        isStatementValid = _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
                     }
                 }
 
@@ -165,17 +168,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 if (ContainsDrummerKeywords(sqlStatement))
                 {
-                    return _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, out errorMessage);
+                    return _drummerQueryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
                 }
                 else
                 {
                     if (ContainsCooperativeKeywords(sqlStatement))
                     {
-                        throw new NotImplementedException("Need to write cooperative action flow");
+                        var options = ParseStatementForCooperativeOptions(sqlStatement);
+                        return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, options, out errorMessage);
                     }
                     else
                     {
-                        return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, out errorMessage);
+                        return _queryParser.IsStatementValid(sqlStatement, dbName, _dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
                     }
                 }
             }

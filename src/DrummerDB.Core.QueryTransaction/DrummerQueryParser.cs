@@ -42,7 +42,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Public Methods
-        public bool IsStatementValid(string statement, IDbManager dbManager, DatabaseType type, out string errorMessage)
+        public bool IsStatementValid(string statement, IDbManager dbManager, DatabaseType type, ICoopActionPlanOption[] options, out string errorMessage)
         {
             string dbName = GetDatabaseName(statement);
 
@@ -51,10 +51,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 throw new ArgumentException("Unable to parse database name in statement");
             }
 
-            return IsStatementValid(statement, dbName, dbManager, type, out errorMessage);
+            return IsStatementValid(statement, dbName, dbManager, type, options, out errorMessage);
         }
 
-        public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, DatabaseType type, out string errorMessage)
+        public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, DatabaseType type, ICoopActionPlanOption[] options, out string errorMessage)
         {
             if (!dbManager.HasDatabase(dbName, type))
             {

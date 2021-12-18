@@ -37,6 +37,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Public Methods
+        public bool IsStatementValid(string statement, IDbManager dbManager, DatabaseType type, out string errorMessage)
+        {
+            return IsStatementValid(statement, dbManager, type, new ICoopActionPlanOption[0], out errorMessage);
+        }
+
         /// <summary>
         /// Attempts to validate that the SQL statement is valid against database objects. Assumes the USE "DatabaseName" keyword is part of the statement.
         /// </summary>
@@ -45,7 +50,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="errorMessage">Outputs any error messages occured in validating the statement</param>
         /// <returns><c>TRUE</c> if the database can execute the statement, otherise <c>FALSE</c></returns>
         /// <exception cref="ArgumentException">Thrown when the Database Name cannot be parsed from the statement</exception>
-        public bool IsStatementValid(string statement, IDbManager dbManager, DatabaseType type, out string errorMessage)
+        public bool IsStatementValid(string statement, IDbManager dbManager, DatabaseType type, ICoopActionPlanOption[] options, out string errorMessage)
         {
             string dbName = GetDatabaseName(statement);
 
@@ -66,7 +71,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 else
                 {
                     IDatabase database = dbManager.GetDatabase(dbName, type);
-                    return WalkStatementForValidity(statement, database, out errorMessage);
+                    return WalkStatementForValidity(statement, database, options, out errorMessage);
                 }
             }
             else
@@ -76,7 +81,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
         }
 
-        public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, DatabaseType type, out string errorMessage)
+        public bool IsStatementValid(string statement, IDbManager dbManager, string dbName, out string errorMessage)
+        {
+            return IsStatementValid(statement, dbName, dbManager, DatabaseType.Host, new ICoopActionPlanOption[0], out errorMessage);
+        }
+
+        public bool IsStatementValid(string statement, string dbName, IDbManager dbManager, DatabaseType type, ICoopActionPlanOption[] options, out string errorMessage)
         {
             if (string.IsNullOrEmpty(dbName))
             {
@@ -95,7 +105,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 IDatabase database = dbManager.GetDatabase(dbName, type);
                 if (database is not null)
                 {
-                    return WalkStatementForValidity(statement, database, out errorMessage);
+                    return WalkStatementForValidity(statement, database, options, out errorMessage);
                 }
             }
 
@@ -111,7 +121,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="dbName">The name of the db to check against</param>
         /// <param name="errorMessage">Outputs any error messages occured in validating the statement</param>
         /// <returns><c>TRUE</c> if the database can execute the statement, otherise <c>FALSE</c></returns>
-        public bool IsStatementValid(string statement, IDbManager dbManager, string dbName, out string errorMessage)
+        public bool IsStatementValid(string statement, IDbManager dbManager, string dbName, ICoopActionPlanOption[] options, out string errorMessage)
         {
             // default host database type, may need to change later
             if (!dbManager.HasDatabase(dbName, DatabaseType.Host))
@@ -121,7 +131,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
             else
             {
-                return WalkStatementForValidity(statement, dbManager.GetDatabase(dbName, DatabaseType.Host), out errorMessage);
+                return WalkStatementForValidity(statement, dbManager.GetDatabase(dbName, DatabaseType.Host), options, out errorMessage);
             }
         }
 
@@ -148,7 +158,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Private Methods
-        private bool WalkStatementForValidity(string statement, IDatabase database, out string errorMessage)
+        private bool WalkStatementForValidity(string statement, IDatabase database, ICoopActionPlanOption[] options, out string errorMessage)
         {
             StatementType type;
             errorMessage = string.Empty;
@@ -158,7 +168,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             //statement = statement.ToUpper();
             type = DetermineStatementType(statement);
 
-            StatementReport report = _statementHandler.ParseStatementForValiditity(statement, database, type);
+            StatementReport report = _statementHandler.ParseStatementForValiditity(statement, database, type, options);
             foreach (var error in report.Errors)
             {
                 errorMessage += error + Environment.NewLine;
