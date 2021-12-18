@@ -32,7 +32,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -87,7 +86,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -130,7 +128,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -166,7 +163,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -208,7 +204,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns(), new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -249,7 +244,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.COOP_SCHEMA, Guid.Parse(Constants.COOP_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -311,7 +305,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.COOP_SCHEMA, Guid.Parse(Constants.COOP_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -416,7 +409,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.COOP_SCHEMA, Guid.Parse(Constants.COOP_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -500,7 +492,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.COOP_SCHEMA, Guid.Parse(Constants.COOP_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 
@@ -557,7 +548,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
                     var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.COOP_SCHEMA, Guid.Parse(Constants.COOP_SCHEMA_GUID)), dbName);
-                    schema.DatabaseName = dbName;
                     return schema;
                 }
 

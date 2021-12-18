@@ -43,7 +43,6 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             DatabaseSchemaInfo schemaInfo = targetDb.GetSchemaInformation(schemaName);
 
                             TableSchema schema = new TableSchema(id, tableName, targetDb.Id, Columns, schemaInfo, DatabaseName);
-                            schema.DatabaseName = targetDb.Name;
 
                             if (!targetDb.HasTable(tableName) && transactionMode == TransactionMode.Try)
                             {

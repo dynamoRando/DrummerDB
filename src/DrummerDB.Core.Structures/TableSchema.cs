@@ -23,6 +23,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         private Guid _objectId;
         private DatabaseSchemaInfo _schema;
         private LogicalStoragePolicy _storagePolicy;
+        private string _dbName;
         #endregion
 
         #region Public Properties
@@ -50,7 +51,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public Guid ObjectId => _objectId;
         public DatabaseSchemaInfo Schema => _schema;
 
-        public string DatabaseName { get; set; }
+        public string DatabaseName => _dbName;
         public LogicalStoragePolicy StoragePolicy => _storagePolicy;
         public Guid ContractGUID { get; set; }
         #endregion
@@ -93,7 +94,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             _schema = schema;
             _storagePolicy = LogicalStoragePolicy.None;
             ContractGUID = Guid.Empty;
-            DatabaseName = databaseName;
+            _dbName = databaseName;
         }
 
         /// <summary>
@@ -110,7 +111,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             _dbId = dbId;
             _columns = columns.ToArray();
             _storagePolicy = LogicalStoragePolicy.None;
-            DatabaseName = databaseName;
+            _dbName = databaseName;
 
             _schema = new DatabaseSchemaInfo(Constants.DBO_SCHEMA, Guid.Parse(Constants.DBO_SCHEMA_GUID));
             ContractGUID = Guid.Empty;

@@ -23,7 +23,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
 
         DatabaseSchemaInfo Schema { get; }
 
-        string DatabaseName { get; set; }
+        string DatabaseName { get; }
 
         /// <summary>
         /// Sorts the schema in binary order (fixed binary sizes first, then variable sizes afterwards with int size prefixes).

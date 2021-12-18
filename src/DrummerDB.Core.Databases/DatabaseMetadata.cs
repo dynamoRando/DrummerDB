@@ -230,11 +230,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (string.IsNullOrEmpty(item.DatabaseName))
-                    {
-                        item.DatabaseName = GetDatabaseName();
-                    }
-
                     return item;
                 }
             }
