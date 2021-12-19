@@ -14,13 +14,14 @@ using System.Collections.Generic;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Diagnostics;
+using Drummersoft.DrummerDB.Common.Communication.Enum;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
     internal class DrummerDatabaseService : DatabaseServiceBase
     {
         #region Private Fields
-        private readonly ILogger<DrummerDatabaseService> _logger;
         private readonly DatabaseServiceHandler _handler;
         #endregion
 
@@ -46,8 +47,18 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public override Task<AuthResult> IsLoginValid(AuthRequest request, ServerCallContext context)
         {
+            bool hasLogin;
             AuthResult result = null;
-            bool hasLogin = _handler.SystemHasLogin(request.UserName, request.Pw);
+
+            if (request.Pw is null)
+            {
+                hasLogin = _handler.SystemHasHost(request.UserName, request.Token.ToByteArray());
+            }
+            else
+            {
+                hasLogin = _handler.SystemHasLogin(request.UserName, request.Pw);
+            }
+
             if (hasLogin)
             {
                 result = new AuthResult();
@@ -92,9 +103,21 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public override Task<InsertRowResult> InsertRowIntoTable(InsertRowRequest request, ServerCallContext context)
         {
-            throw new NotImplementedException();
+            if (request.MessageInfo is not null)
+            {
+                LogMessageInfo(request.MessageInfo);
+            }
 
-            var result = _handler.InsertRowIntoTable(null, Guid.Empty, null, null);
+            var hasLogin = IsLoginValid(request.Authentication, context);
+            if (hasLogin.Result.IsAuthenticated)
+            {
+                var result = _handler.InsertRowIntoTable(null, Guid.Empty, null, null);
+            }
+            else
+            {
+                throw new InvalidOperationException("The requestor has not been authenticated");
+            }
+
 
             return base.InsertRowIntoTable(request, context);
         }
@@ -151,7 +174,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             var comResult = new ParticipantAcceptsContractResult();
             comResult.ContractAcceptanceIsAcknowledged = result;
             comResult.ErrorMessage = errorMessage;
-            
+
             return Task.FromResult(comResult);
         }
         #endregion
@@ -204,6 +227,20 @@ namespace Drummersoft.DrummerDB.Core.Communication
             dContract.Host = host;
 
             return dContract;
+        }
+
+        private void LogMessageInfo(MessageInfo info)
+        {
+            var addresses = new string[info.MessageAddresses.Count];
+
+            for (int i = 0; i < addresses.Length; i++)
+            {
+                addresses[i] = info.MessageAddresses[i];
+            }
+
+            MessageType type = (MessageType)info.MessageType;
+
+            _handler.LogMessageInfo(info.IsLittleEndian, addresses, DateTime.Parse(info.MessageGeneratedTimeUTC), type, Guid.Parse(info.MessageGUID));
         }
         #endregion
 

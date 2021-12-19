@@ -33,6 +33,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public bool SystemHasHost(string hostName, byte[] token)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool SystemHasLogin(string userName, string pw)
         {
             throw new NotImplementedException();

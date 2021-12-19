@@ -83,6 +83,7 @@ message InsertRowRequest {
 	Drum.AuthRequest authentication = 1;
 	Drum.TableSchema table = 2;
 	repeated Drum.RowValue values = 3;
+	Drum.MessageInfo messageInfo = 4; 
 }
 
 // a message for describing the result of a InsertRowRequest

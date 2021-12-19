@@ -13,6 +13,10 @@ using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
 using comRowValue = Drummersoft.DrummerDB.Common.Communication.RowValue;
 using comColumnSchema = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
 using comTableSchema = Drummersoft.DrummerDB.Common.Communication.TableSchema;
+using System.Net;
+using Drummersoft.DrummerDB.Common.Communication.Enum;
+using Drummersoft.DrummerDB.Core.Diagnostics;
+using System.Text;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -28,7 +32,8 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         private HostSinkCollection _hostSinkCollection;
 
         // used to identify/authorize ourselves to our participants
-        private HostInfo _hostInfo;
+        private structHost _hostInfo;
+        private LogService _logger;
         #endregion
 
         #region Public Properties
@@ -36,11 +41,16 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #endregion
 
         #region Constructors
-        public RemoteDataManager(HostInfo hostInfo)
+        public RemoteDataManager(structHost hostInfo)
         {
             _participantSinkCollection = new ParticipantSinkCollection();
             _hostSinkCollection = new HostSinkCollection();
             _hostInfo = hostInfo;
+        }
+
+        public RemoteDataManager(structHost hostInfo, LogService logger) : this(hostInfo)
+        {
+            _logger = logger;
         }
         #endregion
 
@@ -55,7 +65,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         {
             errorMessage = string.Empty;
             structParticipant participant = row.Participant;
-            
+
             ParticipantSink sink;
             sink = GetOrAddParticipantSink(participant);
 
@@ -68,6 +78,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             var request = new InsertRowRequest();
             InsertRowResult? result = null;
 
+            // need authentication information to send
+            request.Authentication = GetAuthRequest();
+            request.MessageInfo = GetMessageInfo(MessageType.InsertRowRequest);
+
             var comTableSchema = new comTableSchema();
             comTableSchema.DatabaseId = dbId.ToString();
             comTableSchema.DatabaseName = dbName;
@@ -77,10 +91,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             request.Table = comTableSchema;
 
             // need to build row values
-            foreach(var sRV in row.Values)
+            foreach (var sRV in row.Values)
             {
                 var cValue = new comRowValue();
-                
+
                 // build out column for the value
                 var cColumn = new comColumnSchema();
                 cColumn.ColumnName = sRV.Column.Name;
@@ -96,13 +110,14 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
                 {
                     cValue.Value = ByteString.CopyFrom(sRV.GetValueInBinary());
                 }
-                
+
                 cValue.Column = cColumn;
                 request.Values.Add(cValue);
             }
 
             try
             {
+                LogMessageInfo(request.MessageInfo);
                 result = sink.Client.InsertRowIntoTable(request);
             }
             catch (Exception ex)
@@ -144,7 +159,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             comParticipant.DatabasePortNumber = Convert.ToUInt32(_hostInfo.DatabasePortNumber);
             comParticipant.Token = ByteString.CopyFrom(_hostInfo.Token);
             comParticipant.ParticipantGUID = _hostInfo.HostGUID.ToString();
-            
+
             request.Participant = comParticipant;
 
             try
@@ -263,12 +278,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #endregion
 
         #region Private Methods
-        private AuthRequest GenerateAuthRequest()
-        {
-            throw new NotImplementedException();
-        }
-
-
         /// <summary>
         /// Tries to get the sink for the specified participant from the current collection. If it does
         /// not exist, it will create it and then add it to the collection and return it.
@@ -339,6 +348,51 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             }
 
             return sink;
+        }
+
+        private AuthRequest GetAuthRequest()
+        {
+            var request = new AuthRequest();
+            request.UserName = _hostInfo.HostName;
+            request.Token = ByteString.CopyFrom(_hostInfo.Token);
+
+            return request;
+        }
+
+        private MessageInfo GetMessageInfo(MessageType type)
+        {
+            var info = new MessageInfo();
+            info.IsLittleEndian = BitConverter.IsLittleEndian;
+
+            var addresses = Dns.GetHostAddresses(Dns.GetHostName());
+
+            foreach (var address in addresses)
+            {
+                info.MessageAddresses.Add(address.ToString());
+            }
+
+            info.MessageGeneratedTimeUTC = DateTime.UtcNow.ToString();
+            info.MessageType = Convert.ToUInt32(type);
+            info.MessageGUID = Guid.NewGuid().ToString();
+
+            return info;
+        }
+
+        private void LogMessageInfo(MessageInfo info)
+        {
+            var type = (MessageType)info.MessageType;
+
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append($"DrummerDB.Core.Databases.Remote - Remote Data Manager: Sending Message {type} ");
+            stringBuilder.Append($"Message Id: {info.MessageGUID}");
+            stringBuilder.Append($"Message UTC Generated: {info.MessageGeneratedTimeUTC}");
+            stringBuilder.Append($"IsLittleEndian: {info.IsLittleEndian}");
+            foreach (var address in info.MessageAddresses)
+            {
+                stringBuilder.Append($"Message address: {address}");
+            }
+
+            _logger.Info(stringBuilder.ToString());
         }
         #endregion
 

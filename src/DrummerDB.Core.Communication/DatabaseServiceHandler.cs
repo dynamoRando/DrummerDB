@@ -1,5 +1,7 @@
+using Drummersoft.DrummerDB.Common.Communication.Enum;
 using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
@@ -8,6 +10,7 @@ using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using System;
 using System.Diagnostics;
+using System.Text;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -23,6 +26,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private HostInfo _hostInfo;
         private bool _overridesSettings = false;
         private QueryManager _queryManager;
+        private LogService _logger;
         #endregion
 
         #region Public Properties
@@ -60,6 +64,16 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public void SetStorage(IStorageManager storage)
         {
             _storageManager = storage;
+        }
+
+        public void SetLogger(LogService logger)
+        {
+            _logger = logger;
+        }
+
+        public bool SystemHasHost(string hostName, byte[] token)
+        {
+            return _authenticationManager.SystemHasHost(hostName, token);
         }
 
         public bool SystemHasLogin(string userName, string pw)
@@ -121,6 +135,23 @@ namespace Drummersoft.DrummerDB.Core.Communication
             var saveContractAction = new SaveContractDbAction(contract, _dbManager as DbManager);
             return _queryManager.ExecuteDatabaseServiceAction(saveContractAction, out errorMessage);
         }
+
+        public void LogMessageInfo(bool isLittleEndian, string[] ipAddresses, DateTime messageGeneratedTimeUTC, MessageType type, Guid id)
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.Append($"DrummerDB.Core.Communication - DatabaseServieHandler: Received Message {type}. ");
+            stringBuilder.Append($"Message Id {id}");
+            stringBuilder.Append($"Message UTC Generated: {messageGeneratedTimeUTC}");
+            stringBuilder.Append($"IsLittleEndian: {isLittleEndian}");
+            foreach (var address in ipAddresses)
+            {
+                stringBuilder.Append($"Message address: {address}");
+            }
+
+            _logger.Info(stringBuilder.ToString());
+        }
+
         #endregion
 
         #region Private Methods

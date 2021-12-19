@@ -70,12 +70,12 @@ message RowParticipantAddress {
 	string databaseId = 3;
 }
 
-// A message for authentication purposes
+// A message for authentication purposes (note: this is proof of concept, and obviously not secure)
 message AuthRequest{
   string userName = 1;
   string pw = 2;
   bytes pwHash = 3;
-  string token = 4;
+  bytes token = 4;
 }
 
 // A message describing the results of an authentication attempt
@@ -100,4 +100,13 @@ message TestRequest {
 message TestReply {
 	string replyTimeUTC = 1;
 	string replyEchoMessage = 2;
+}
+
+// a message for general information
+message MessageInfo {
+	bool isLittleEndian = 1;
+	repeated string messageAddresses = 2;
+	string messageGeneratedTimeUTC = 3;
+	uint32 messageType = 4;
+	string messageGUID = 5;
 }

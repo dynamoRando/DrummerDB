@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DrummerDB.Core.Databases\DrummerDB.Core.Databases.csproj" />
+    <ProjectReference Include="..\DrummerDB.Core.Diagnostics\DrummerDB.Core.Diagnostics.csproj" />
     <ProjectReference Include="..\DrummerDB.Core.IdentityAccess.Structures\DrummerDB.Core.IdentityAccess.Structures.csproj" />
   </ItemGroup>
 

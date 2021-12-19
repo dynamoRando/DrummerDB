@@ -16,5 +16,6 @@ namespace Drummersoft.DrummerDB.Core.IdentityAccess.Interface
         public bool ValidateLogin(string userName, string pwInput);
         public void SetInitalSystemAdmin(string initialSystemLogin, string intialSystemPw);
         bool UserHasDbPermission(string userName, string pw, string dbName, DbPermission permission, Guid objectId);
+        bool SystemHasHost(string hostName, byte[] token);
     }
 }
