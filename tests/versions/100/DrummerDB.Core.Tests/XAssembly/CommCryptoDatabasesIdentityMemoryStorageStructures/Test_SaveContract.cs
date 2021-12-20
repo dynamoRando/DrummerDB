@@ -2,6 +2,7 @@
 using Drummersoft.DrummerDB.Core.Cryptography;
 using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.Storage;
@@ -90,11 +91,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 f.Delete();
             }
 
+            var logService = new LogService();
             var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, crypto, xManager);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, crypto, xManager, logService, notifications);
             var auth = new AuthenticationManager(manager);
             
             manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());

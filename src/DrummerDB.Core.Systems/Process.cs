@@ -42,6 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         private ICryptoManager _crypt;
         private ITransactionEntryManager _xEntryManager;
         private LogService _logService;
+        private SystemNotifications _notifications;
 
         // test variables
         private string _storageFolder;
@@ -79,6 +80,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public Process(string storageFolderPath)
         {
             _storageFolder = storageFolderPath;
+            _notifications = new SystemNotifications();
         }
 
         /// <summary>
@@ -101,6 +103,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         {
             _loadSystemDatabases = loadSystemDatabases;
             _loadUserDatabases = loadUserDatabases;
+            _notifications = new SystemNotifications();
         }
 
         /// <summary>
@@ -113,6 +116,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public Process(string storageFolderPath, bool loadSystemDatabases, bool loadUserDatabases) : this(loadSystemDatabases, loadUserDatabases)
         {
             _storageFolder = storageFolderPath;
+            _notifications = new SystemNotifications();
         }
         #endregion
 
@@ -259,7 +263,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
         private void SetupDatabases()
         {
-            _dbManager = new DbManager(_xEntryManager, _logService);
+            _dbManager = new DbManager(_xEntryManager, _logService, _notifications);
         }
 
         private void LoadDatabases()
@@ -317,7 +321,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
             var sqlPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.SQLServicePort };
             var databasePort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.DatabaseServicePort };
             var infoPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.InfoServicePort };
-            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager, _logService, _hostInfo);
+            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager, _logService, _hostInfo, _notifications);
         }
 
         private void SetupAuth()

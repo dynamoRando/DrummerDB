@@ -1,5 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
@@ -76,8 +77,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
 
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             // --- ACT
@@ -159,8 +162,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             // --- ACT

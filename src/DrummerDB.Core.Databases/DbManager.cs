@@ -25,12 +25,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
     {
         #region Private Fields
         private ICacheManager _cache;
-
         private ICryptoManager _crypt;
-
         private HostInfo _hostInfo;
-
         private LogService _log;
+        private SystemNotifications _notifications;
 
         // settings
         private ProcessUserDatabaseSettings _settings;
@@ -61,10 +59,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         }
 
 
-        internal DbManager(ITransactionEntryManager xEntryManager, LogService log)
+        internal DbManager(ITransactionEntryManager xEntryManager, LogService log, SystemNotifications notifications)
         {
             _xEntryManager = xEntryManager;
             _log = log;
+            _notifications = notifications;
         }
 
         internal DbManager(IStorageManager storage, ICacheManager cache, ICryptoManager crypt, ITransactionEntryManager xEntryManager) : this(xEntryManager)
@@ -75,7 +74,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         }
 
 
-        internal DbManager(IStorageManager storage, ICacheManager cache, ICryptoManager crypt, ITransactionEntryManager xEntryManager, LogService log) : this(xEntryManager, log)
+        internal DbManager(IStorageManager storage, ICacheManager cache, ICryptoManager crypt, ITransactionEntryManager xEntryManager, LogService log, SystemNotifications notifications) : this(xEntryManager, log, notifications)
         {
             _storage = storage;
             _cache = cache;
@@ -775,6 +774,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     host.UpdateHostInfo(hostGuid, hostName, token);
                 }
             }
+
+            _notifications.RaiseUpdateHostUpdatedEvent(_hostInfo);
         }
 
         public void UpdateHostInfoInDatabases(HostInfo hostInfo)

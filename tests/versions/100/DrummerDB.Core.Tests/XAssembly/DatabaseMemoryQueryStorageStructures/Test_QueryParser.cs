@@ -1,5 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.Storage;
@@ -74,11 +75,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("col1", new SQLInt(), 1);
             cols.Add(col1);
 
+            var logService = new LogService();
             var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
@@ -151,11 +154,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COLUMN1", new SQLInt(), 1);
             cols.Add(col1);
 
+            var logService = new LogService();
             var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
@@ -228,11 +233,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
+            var logService = new LogService();
             var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
@@ -307,11 +314,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
+            var logService = new LogService();
             var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
 
@@ -370,11 +379,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
+            var logService = new LogService();
             var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
             manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);

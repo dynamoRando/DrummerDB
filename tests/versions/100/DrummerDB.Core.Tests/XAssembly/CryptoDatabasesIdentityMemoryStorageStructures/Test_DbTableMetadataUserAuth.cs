@@ -2,6 +2,7 @@
 using Drummersoft.DrummerDB.Core.Cryptography;
 using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Memory;
@@ -86,7 +87,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, crypto, xManager);
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, crypto, xManager, logService, notifications);
             var auth = new AuthenticationManager(manager);
 
             manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
@@ -178,7 +181,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, crypto, xManager);
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, crypto, xManager, logService, notifications);
             var auth = new AuthenticationManager(manager);
 
             manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());

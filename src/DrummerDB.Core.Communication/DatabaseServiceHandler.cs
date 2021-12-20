@@ -27,6 +27,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private bool _overridesSettings = false;
         private QueryManager _queryManager;
         private LogService _logger;
+        private SystemNotifications _notifications;
         #endregion
 
         #region Public Properties
@@ -69,6 +70,13 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public void SetLogger(LogService logger)
         {
             _logger = logger;
+        }
+
+        public void SetNotifications(SystemNotifications notifications)
+        {
+            _notifications = notifications;
+            _notifications.HostInfoUpdated += HandleUpdatedHostInfo;
+
         }
 
         public bool SystemHasHost(string hostName, byte[] token)
@@ -140,7 +148,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.Append($"DrummerDB.Core.Communication - DatabaseServiceHandler: Received Message {type} ");
+            stringBuilder.Append($"DatabaseServiceHandler: Received Message {type} ");
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append($"Message Id {id} ");
             stringBuilder.Append(Environment.NewLine);
@@ -161,6 +169,14 @@ namespace Drummersoft.DrummerDB.Core.Communication
         #endregion
 
         #region Private Methods
+        private void HandleUpdatedHostInfo(object sender, EventArgs e)
+        {
+            if (e is HostUpdatedEventArgs)
+            {
+                var args = e as HostUpdatedEventArgs;
+                _hostInfo = args.HostInfo;
+            }
+        }
         #endregion
     }
 }

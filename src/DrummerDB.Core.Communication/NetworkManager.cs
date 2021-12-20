@@ -22,6 +22,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private InfoServiceServer _infoServiceServer;
         private DatabaseServiceServer _databaseServiceServer;
         private LogService _logService;
+        private SystemNotifications _notifications;
 
         // internal objects
         private SQLServiceHandler _sqlServiceHandler;
@@ -38,7 +39,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         #endregion
 
         #region Constructors
-        public NetworkManager(PortSettings databaseServiceSettings, PortSettings sqlServiceSettings, PortSettings infoServiceSettings, IQueryManager queryManager, IDbManager dbManager, LogService logService, HostInfo hostInfo)
+        public NetworkManager(PortSettings databaseServiceSettings, PortSettings sqlServiceSettings, PortSettings infoServiceSettings, IQueryManager queryManager, IDbManager dbManager, LogService logService, HostInfo hostInfo, SystemNotifications notifications)
         {
             _queryManager = queryManager;
             _dbManager = dbManager;
@@ -48,6 +49,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             _infoServicePort = infoServiceSettings;
             _logService = logService;
             _hostInfo = hostInfo;   
+            _notifications = notifications;
         }
         #endregion
 
@@ -201,6 +203,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _databaseServiceHandler.SetHostInfo(_hostInfo, _overrideDbPort);
                 _databaseServiceHandler.SetQueryManager(_queryManager);
                 _databaseServiceHandler.SetLogger(_logService); 
+                _databaseServiceHandler.SetNotifications(_notifications);
                 }
 
             if (useHttps)
