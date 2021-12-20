@@ -407,6 +407,8 @@ namespace Drummersoft.DrummerDB.Core.Systems
             }
         }
 
+        // kept here as an example only
+        // https://stackoverflow.com/questions/20352325/logging-in-multiple-files-using-nlog
         /// <summary>
         /// Create Custom Logger using parameters passed.
         /// </summary>
