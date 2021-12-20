@@ -2,6 +2,7 @@
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
 
 namespace Drummersoft.DrummerDB.Core.Communication.Interface
 {
@@ -37,5 +38,6 @@ namespace Drummersoft.DrummerDB.Core.Communication.Interface
         public void StopServerForSQLService();
         public void StopServerForInfoService();
         public void StopServerForDatabaseService();
+        public void SetHostInfo(HostInfo info);
     }
 }

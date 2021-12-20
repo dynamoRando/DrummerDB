@@ -52,6 +52,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
         #endregion
 
         #region Public Methods
+        public void SetHostInfo(HostInfo info)
+        {
+            _hostInfo = info;
+        }
+
         public void StartServerForSQLService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber, IQueryManager queryManager)
         {
             _sqlServicePort.PortNumber = portNumber;
@@ -195,6 +200,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _databaseServiceHandler.SetStorage(storage);
                 _databaseServiceHandler.SetHostInfo(_hostInfo, _overrideDbPort);
                 _databaseServiceHandler.SetQueryManager(_queryManager);
+                _databaseServiceHandler.SetLogger(_logService); 
                 }
 
             if (useHttps)

@@ -159,6 +159,7 @@ message GetRowFromPartialDatabaseResult {
 message SaveContractRequest {
 	//Drum.AuthRequest authentication = 1;
 	DrumDB.Contract contract = 1;
+	Drum.MessageInfo messageInfo = 2;
 }
 
 message SaveContractResult {
@@ -171,6 +172,7 @@ message ParticipantAcceptsContractRequest {
 	DrumDB.Participant participant = 1;
 	string contractGUID = 2;
 	string databaseName = 3;
+	Drum.MessageInfo messageInfo = 4;
 }
 
 message ParticipantAcceptsContractResult {

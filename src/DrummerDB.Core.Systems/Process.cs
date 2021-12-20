@@ -257,7 +257,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
         private void SetupDatabases()
         {
-            _dbManager = new DbManager(_xEntryManager);
+            _dbManager = new DbManager(_xEntryManager, _logService);
         }
 
         private void LoadDatabases()
@@ -383,6 +383,15 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
             _logService.Info(currentMessage);
             _logService.Info(offsetMessage);
+
+            if (!string.IsNullOrEmpty(_storageFolder))
+            {
+                _logService.Info($"Database Folder: {_storageFolder}");
+            }
+            else
+            {
+                _logService.Info($"Database Folder: {Settings.DatabaseFolder}"); 
+            }
         }
 
         private void ConfigureHostInfo()

@@ -140,15 +140,21 @@ namespace Drummersoft.DrummerDB.Core.Communication
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.Append($"DrummerDB.Core.Communication - DatabaseServieHandler: Received Message {type}. ");
-            stringBuilder.Append($"Message Id {id}");
-            stringBuilder.Append($"Message UTC Generated: {messageGeneratedTimeUTC}");
-            stringBuilder.Append($"IsLittleEndian: {isLittleEndian}");
+            stringBuilder.Append($"DrummerDB.Core.Communication - DatabaseServiceHandler: Received Message {type} ");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"Message Id {id} ");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"Message UTC Generated: {messageGeneratedTimeUTC} ");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"IsLittleEndian: {isLittleEndian} ");
+            stringBuilder.Append(Environment.NewLine);
             foreach (var address in ipAddresses)
             {
-                stringBuilder.Append($"Message address: {address}");
+                stringBuilder.Append($"Message address: {address} ");
+                stringBuilder.Append(Environment.NewLine);
             }
 
+            stringBuilder.Append($"Message recieved at participant: {_hostInfo} ");
             _logger.Info(stringBuilder.ToString());
         }
 

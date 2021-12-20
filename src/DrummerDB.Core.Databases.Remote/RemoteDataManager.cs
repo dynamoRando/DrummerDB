@@ -17,6 +17,7 @@ using System.Net;
 using Drummersoft.DrummerDB.Common.Communication.Enum;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using System.Text;
+using static Drummersoft.DrummerDB.Common.Communication.DatabaseService.DatabaseService;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -50,6 +51,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
         public RemoteDataManager(structHost hostInfo, LogService logger) : this(hostInfo)
         {
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             _logger = logger;
         }
         #endregion
@@ -117,7 +123,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             try
             {
-                LogMessageInfo(request.MessageInfo);
+                LogMessageInfo(request.MessageInfo, sink);
                 result = sink.Client.InsertRowIntoTable(request);
             }
             catch (Exception ex)
@@ -151,6 +157,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             var request = new ParticipantAcceptsContractRequest();
             request.ContractGUID = contract.ContractGUID.ToString();
             request.DatabaseName = contract.DatabaseName;
+            request.MessageInfo = GetMessageInfo(MessageType.AcceptContractRequest);
 
             var comParticipant = new Common.Communication.Participant();
             comParticipant.Alias = _hostInfo.HostName;
@@ -164,6 +171,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             try
             {
+                LogMessageInfo(request.MessageInfo, sink);
                 result = sink.Client.AcceptContract(request);
             }
             catch (Exception ex)
@@ -210,9 +218,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             var request = new SaveContractRequest();
             request.Contract = ContractConverter.ConvertContractForCommunication(contract, _hostInfo);
+            request.MessageInfo = GetMessageInfo(MessageType.SaveContractRequest);
 
             try
             {
+                LogMessageInfo(request.MessageInfo, sink);
                 result = sink.Client.SaveContract(request);
             }
             catch (Exception ex)
@@ -378,19 +388,56 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             return info;
         }
 
-        private void LogMessageInfo(MessageInfo info)
+        private void LogMessageInfo(MessageInfo info, ParticipantSink sink)
         {
             var type = (MessageType)info.MessageType;
 
             var stringBuilder = new StringBuilder();
             stringBuilder.Append($"DrummerDB.Core.Databases.Remote - Remote Data Manager: Sending Message {type} ");
-            stringBuilder.Append($"Message Id: {info.MessageGUID}");
-            stringBuilder.Append($"Message UTC Generated: {info.MessageGeneratedTimeUTC}");
-            stringBuilder.Append($"IsLittleEndian: {info.IsLittleEndian}");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"Message Id: {info.MessageGUID} ");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"Message UTC Generated: {info.MessageGeneratedTimeUTC} ");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"IsLittleEndian: {info.IsLittleEndian} ");
+            stringBuilder.Append(Environment.NewLine);
             foreach (var address in info.MessageAddresses)
             {
-                stringBuilder.Append($"Message address: {address}");
+                stringBuilder.Append($"Message address: {address} ");
+                stringBuilder.Append(Environment.NewLine);
             }
+
+            stringBuilder.Append($"Message Sent from Host: {_hostInfo} ");
+            stringBuilder.Append(Environment.NewLine);
+
+            stringBuilder.Append($"Destination ParticipantSink: {sink.Participant}");
+
+            _logger.Info(stringBuilder.ToString());
+        }
+
+        private void LogMessageInfo(MessageInfo info, HostSink sink)
+        {
+            var type = (MessageType)info.MessageType;
+
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append($"DrummerDB.Core.Databases.Remote - Remote Data Manager: Sending Message {type} ");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"Message Id: {info.MessageGUID} ");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"Message UTC Generated: {info.MessageGeneratedTimeUTC} ");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append($"IsLittleEndian: {info.IsLittleEndian} ");
+            stringBuilder.Append(Environment.NewLine);
+            foreach (var address in info.MessageAddresses)
+            {
+                stringBuilder.Append($"Message address: {address} ");
+                stringBuilder.Append(Environment.NewLine);
+            }
+
+            stringBuilder.Append($"Message Sent from Participant: {_hostInfo} ");
+            stringBuilder.Append(Environment.NewLine);
+
+            stringBuilder.Append($"Destination HostSink: {sink.Host}");
 
             _logger.Info(stringBuilder.ToString());
         }

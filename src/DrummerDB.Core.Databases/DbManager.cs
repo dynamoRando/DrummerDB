@@ -204,7 +204,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     {
                         var systemPage = _storage.GetSystemPageForSystemDatabase(dbName);
                         _cache.AddSystemDbSystemPage(systemPage);
-                        var metaData = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(hostInfo));
+                        var metaData = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(hostInfo, _log));
                         var system = new SystemDatabase(metaData, _log);
 
                         _systemDatabases.Add(system);
@@ -258,7 +258,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var meta in userDbMeta)
             {
-                var remote = new RemoteDataManager(hostInfo);
+                var remote = new RemoteDataManager(hostInfo, _log);
                 var metadata = new DatabaseMetadata(_cache, meta.DatabaseId, meta.DatabaseVersion, _crypt, _storage, meta.DatabaseName, remote);
                 var hostDb = new HostDb(metadata, _xEntryManager, _log);
                 _userDatabases.Add(hostDb);
@@ -866,7 +866,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(_hostInfo));
+            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(_hostInfo, _log));
             var hostDb = new HostDb(metadata, _xEntryManager);
 
             if (!HasUserDatabase(hostDb.Name, DatabaseType.Host))
@@ -911,7 +911,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(_hostInfo));
+            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, _xEntryManager, new RemoteDataManager(_hostInfo, _log));
             var partDb = new PartialDb(metadata, _xEntryManager, contract);
 
             if (!HasUserDatabase(partDb.Name, DatabaseType.Partial))
@@ -949,7 +949,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 }
             }
 
-            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, xEntryManager, new RemoteDataManager(_hostInfo));
+            var metadata = new DatabaseMetadata(systemPage, _cache, _crypt, this, _storage, xEntryManager, new RemoteDataManager(_hostInfo, _log));
             var system = new SystemDatabase(metadata);
 
             return system;

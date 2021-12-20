@@ -50,7 +50,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             bool hasLogin;
             AuthResult result = null;
 
-            if (request.Pw is null)
+            if (request.Pw is null || request.Pw == String.Empty)
             {
                 hasLogin = _handler.SystemHasHost(request.UserName, request.Token.ToByteArray());
             }
@@ -64,6 +64,13 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 result = new AuthResult();
                 result.IsAuthenticated = true;
                 result.AuthenticationMessage = "Login exists at system level";
+                result.UserName = request.UserName;
+            }
+            else
+            {
+                result = new AuthResult();
+                result.IsAuthenticated = false;
+                result.AuthenticationMessage = "Login failure";
                 result.UserName = request.UserName;
             }
 
