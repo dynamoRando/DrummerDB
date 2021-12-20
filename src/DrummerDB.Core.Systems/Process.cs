@@ -15,6 +15,8 @@ using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using NLog;
+using NLog.Config;
+using NLog.Targets;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -347,8 +349,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         }
 
         private void ConfigureLogService()
-        {
-            var config = new NLog.Config.LoggingConfiguration();
+        {            
             string fullPath = string.Empty;
 
             if (!string.IsNullOrEmpty(_storageFolder))
@@ -360,17 +361,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
                 fullPath = Path.Combine(Settings.DatabaseFolder, Settings.LogFileName);
             }
 
-
-            // Targets where to log to: File and Console
-            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = fullPath };
-
-            // Rules for mapping loggers to targets            
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, logfile);
-
-            // Apply config           
-            NLog.LogManager.Configuration = config;
-
-            var logger = NLog.LogManager.GetCurrentClassLogger();
+            var logger = CreateCustomLogger(Guid.NewGuid().ToString(), fullPath);
 
             _logService = new LogService(logger, Settings.EnableLogging, Settings.LogPerformanceMetrics);
             _logService.Info("DrummerDB started");
@@ -390,7 +381,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
             }
             else
             {
-                _logService.Info($"Database Folder: {Settings.DatabaseFolder}"); 
+                _logService.Info($"Database Folder: {Settings.DatabaseFolder}");
             }
         }
 
@@ -414,6 +405,63 @@ namespace Drummersoft.DrummerDB.Core.Systems
                 _hostInfo.IP4Address = Settings.IP4Adress;
                 _hostInfo.IP6Address = string.Empty;
             }
+        }
+
+        /// <summary>
+        /// Create Custom Logger using parameters passed.
+        /// </summary>
+        /// <param name="name">Name of file.</param>
+        /// <param name="LogEntryLayout">Give "" if you want just message. If omited will switch to full log paramaters.</param>
+        /// <param name="logFileLayout">Filename only. No extension or file paths accepted.</param>
+        /// <param name="absoluteFilePath">If you want to save the log file to different path thatn application default log path, specify the path here.</param>
+        /// <returns>New instance of NLog logger completly isolated from default instance if any</returns>
+        public static Logger CreateCustomLogger(string name = "CustomLog",
+            string LogEntryLayout = "${ date:format=dd.MM.yyyy HH\\:mm\\:ss.fff} thread[${threadid}] ${logger} (${level:uppercase=true}): ${message}. ${exception:format=ToString}",
+            string logFileLayout = "logs/{0}.${{shortdate}}.log",
+            string absoluteFilePath = "")
+        {
+            var factory = new LogFactory();
+            var target = new FileTarget();
+            target.Name = name;
+            if (absoluteFilePath == "")
+                target.FileName = string.Format(logFileLayout, name);
+            else
+                target.FileName = string.Format(absoluteFilePath + "//" + logFileLayout, name);
+            if (LogEntryLayout == "") //if user specifes "" then use default layout.
+                target.Layout = "${message}. ${exception:format=ToString}";
+            else
+                target.Layout = LogEntryLayout;
+            var defaultconfig = LogManager.Configuration;
+            var config = new LoggingConfiguration();
+            config.AddTarget(name, target);
+
+            var ruleInfo = new LoggingRule("*", NLog.LogLevel.Trace, target);
+
+            config.LoggingRules.Add(ruleInfo);
+
+            factory.Configuration = config;
+
+            return factory.GetCurrentClassLogger();
+        }
+
+        public Logger CreateCustomLogger(string loggerName, string filePath)
+        {
+            var factory = new LogFactory();
+            var target = new FileTarget();
+            target.FileName = filePath;
+            target.Layout = "${date:format=yyyy-MM-dd HH\\:mm\\:ss.fff} - ${message} ${exception:format=ToString}";
+
+            var defaultconfig = LogManager.Configuration;
+            var config = new LoggingConfiguration();
+            config.AddTarget(loggerName, target);
+
+            var ruleInfo = new LoggingRule("*", NLog.LogLevel.Trace, target);
+
+            config.LoggingRules.Add(ruleInfo);
+
+            factory.Configuration = config;
+
+            return factory.GetCurrentClassLogger();
         }
 
         #endregion

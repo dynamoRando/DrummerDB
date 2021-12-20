@@ -437,7 +437,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             stringBuilder.Append($"Message Sent from Participant: {_hostInfo} ");
             stringBuilder.Append(Environment.NewLine);
 
-            stringBuilder.Append($"Destination HostSink: {sink.Host}");
+            stringBuilder.Append($"Destination HostSink: {sink.Host} ");
 
             _logger.Info(stringBuilder.ToString());
         }
