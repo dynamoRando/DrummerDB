@@ -144,6 +144,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
             SetupNetwork();
             LoadDatabases();
             CheckForAdminSetup();
+            RegisterForHostInfoChanges();
         }
 
         public void Stop()
@@ -332,6 +333,20 @@ namespace Drummersoft.DrummerDB.Core.Systems
         private void SetupCrypt()
         {
             _crypt = new CryptoManager();
+        }
+
+        private void RegisterForHostInfoChanges()
+        {
+            _notifications.HostInfoUpdated += HandleUpdatedHostInfo;
+        }
+
+        private void HandleUpdatedHostInfo(object sender, EventArgs e)
+        {
+            if (e is HostUpdatedEventArgs)
+            {
+                var args = e as HostUpdatedEventArgs;
+                _hostInfo = args.HostInfo;
+            }
         }
 
         private void CheckForAdminSetup()
