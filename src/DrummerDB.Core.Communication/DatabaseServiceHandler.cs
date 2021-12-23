@@ -1,3 +1,5 @@
+using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Common.Communication.DatabaseService;
 using Drummersoft.DrummerDB.Common.Communication.Enum;
 using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
@@ -119,9 +121,18 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return manager.XactCreateNewHostDatabase(databaseName, out databaseId);
         }
 
-        public bool InsertRowIntoTable(Row row, Guid dbId, string dbName, string tableName)
+        public bool InsertRowIntoTable(InsertRowRequest request)
         {
-            throw new NotImplementedException();
+            string errorMessage = string.Empty;
+            string dbName = request.Table.DatabaseName;
+            string tableName = request.Table.TableName;
+
+            var row = GetRowFromInsertRequest(request);
+            var partDb = _dbManager.GetPartialDb(dbName);
+            var table = partDb.GetTable(tableName);
+            var insertAction = new InsertRowToPartialDbAction(row, partDb, table);
+
+            return _queryManager.ExecuteDatabaseServiceAction(insertAction, out errorMessage);
         }
 
         /// <summary>
@@ -176,6 +187,88 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 var args = e as HostUpdatedEventArgs;
                 _hostInfo = args.HostInfo;
             }
+        }
+
+        /// <summary>
+        /// Attempts to turn a InsertRowRequest into a Row to be inserted in a table
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>This function serves as the inverse of the <see cref="RowValue.GetValueInBinary(bool, bool)"/> function.</remarks>
+        private Row GetRowFromInsertRequest(InsertRowRequest request)
+        {
+            string dbName = request.Table.DatabaseName;
+            string tableName = request.Table.TableName;
+
+            var partDb = _dbManager.GetPartialDb(dbName);
+            var table = partDb.GetTable(tableName);
+            var localRow = table.GetNewLocalRow();
+
+            foreach (var value in request.Values)
+            {
+                var binaryData = value.Value.ToByteArray();
+                var colType = (SQLColumnType)value.Column.ColumnType;
+
+                foreach (var rowValue in localRow.Values)
+                {
+                    if (string.Equals(rowValue.Column.Name, value.Column.ColumnName))
+                    {
+                        if (!rowValue.Column.IsNullable)
+                        {
+                            if (rowValue.Column.IsFixedBinaryLength)
+                            {
+                                rowValue.SetValue(binaryData);
+                                continue;
+                            }
+                            else
+                            {
+                                switch (colType)
+                                {
+                                    case SQLColumnType.Varchar:
+                                    case SQLColumnType.Char:
+                                        rowValue.SetValue(DbBinaryConvert.BinaryToString(value.Value.ToByteArray()));
+                                        break;
+                                    case SQLColumnType.Varbinary:
+                                    case SQLColumnType.Binary:
+                                        throw new NotImplementedException("Need to translate binary value");
+                                    default:
+                                        throw new InvalidOperationException("Unknown SQL type");
+                                }
+                            }
+                        }
+                        else // column is nullable
+                        {
+                            if (value.IsNullValue)
+                            {
+                                rowValue.SetValueAsNull();
+                                continue;
+                            }
+                            else // is nullable column, but value is not null
+                            {
+                                if (rowValue.Column.IsFixedBinaryLength)
+                                {
+                                    rowValue.SetValue(binaryData);
+                                    continue;
+                                }
+                                else
+                                {
+                                    // is a nullable column, value is not null, and is of variable length
+                                    // this usually means the byte[] has
+                                    // 1. a leading 1 byte BOOL indicating that the value is not null
+                                    // 2. a leading 4 byte INT indicating size
+                                    var span = new ReadOnlySpan<byte>(binaryData);
+                                    rowValue.SetValue(span);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return localRow;
         }
         #endregion
     }

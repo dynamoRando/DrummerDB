@@ -110,6 +110,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public override Task<InsertRowResult> InsertRowIntoTable(InsertRowRequest request, ServerCallContext context)
         {
+            bool isSuccessfulInsert = false;
+            var result = new InsertRowResult();
+
             if (request.MessageInfo is not null)
             {
                 LogMessageInfo(request.MessageInfo);
@@ -118,15 +121,21 @@ namespace Drummersoft.DrummerDB.Core.Communication
             var hasLogin = IsLoginValid(request.Authentication, context);
             if (hasLogin.Result.IsAuthenticated)
             {
-                var result = _handler.InsertRowIntoTable(null, Guid.Empty, null, null);
+                isSuccessfulInsert = _handler.InsertRowIntoTable(request);
             }
             else
             {
                 throw new InvalidOperationException("The requestor has not been authenticated");
             }
 
+            result.IsSuccessful = isSuccessfulInsert;
 
-            return base.InsertRowIntoTable(request, context);
+            if (!isSuccessfulInsert)
+            {
+                throw new NotImplementedException("Need to fill out failure details");
+            }
+
+            return Task.FromResult(result);
         }
 
         /// <summary>
@@ -249,6 +258,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             _handler.LogMessageInfo(info.IsLittleEndian, addresses, DateTime.Parse(info.MessageGeneratedTimeUTC), type, Guid.Parse(info.MessageGUID));
         }
+
         #endregion
 
 

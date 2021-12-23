@@ -314,6 +314,17 @@ namespace Drummersoft.DrummerDB.Core.Structures
             return false;
         }
 
+        /// <summary>
+        /// Overwrites the database id for this schema
+        /// </summary>
+        /// <param name="dbId">The database id</param>
+        /// <remarks>This function exists when creating a new partial database, which
+        /// has a different id than the host one. This is likely a design flaw and needs to be changed.</remarks>
+        public void ResetDbId(Guid dbId)
+        {
+            _dbId = dbId;
+        }
+
         public byte[] ToBinaryFormat()
         {
             SortBinaryOrder();
