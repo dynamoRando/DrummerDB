@@ -508,7 +508,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     {
                         var storedToken = row.GetValueInByte(Hosts.Columns.Token);
 
-                        // need to trim sent token
+                        // need to trim sent token - the sent token includes the size of bool and the size of the token itself
+                        // that we need to remove before we compare with what we have in storage
                         var span = new ReadOnlySpan<byte>(token);
                         int prefix = Constants.SIZE_OF_BOOL + Constants.SIZE_OF_INT;
                         var trimToken = span.Slice(prefix, token.Length - prefix);
