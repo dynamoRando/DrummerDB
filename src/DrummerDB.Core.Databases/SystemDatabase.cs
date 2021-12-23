@@ -417,7 +417,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 throw new InvalidOperationException("There somehow exists mutiple hosts with the same id");
             }
 
-            return false;            
+            return false;
         }
 
         public bool HasLogin(string userName)
@@ -477,6 +477,56 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             return true;
+        }
+
+        public bool ValidateHost(string hostName, byte[] token)
+        {
+            var hosts = GetTable(Hosts.TABLE_NAME);
+
+            var searchValue = RowValueMaker.Create(hosts, Hosts.Columns.HostName, hostName);
+            int totalCount = hosts.CountOfRowsWithValue(searchValue);
+
+            if (totalCount == 0)
+            {
+                return false;
+            }
+
+            if (totalCount > 1)
+            {
+                throw new InvalidOperationException("We have multiple entries for the same host somehow.");
+            }
+            else
+            {
+                var searchValueToken = RowValueMaker.Create(hosts, Hosts.Columns.Token, token);
+                var searchValues = new RowValue[2] { searchValue, searchValueToken };
+                int countOfHosts = hosts.CountOfRowsWithAllValues(searchValues);
+
+                if (countOfHosts == 1)
+                {
+                    var rows = hosts.GetRowsWithAllValues(searchValues);
+                    foreach (var row in rows)
+                    {
+                        var storedToken = row.GetValueInByte(Hosts.Columns.Token);
+
+                        // need to trim sent token
+                        var span = new ReadOnlySpan<byte>(token);
+                        int prefix = Constants.SIZE_OF_BOOL + Constants.SIZE_OF_INT;
+                        var trimToken = span.Slice(prefix, token.Length - prefix);
+
+                        if (DbBinaryConvert.BinaryEqual(trimToken, storedToken))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+            }
+
+            return false;
         }
 
         public bool ValidateLogin(string userName, string pwInput)

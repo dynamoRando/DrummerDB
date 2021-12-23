@@ -40,7 +40,7 @@ namespace Drummersoft.DrummerDB.Core.IdentityAccess
         public bool SystemHasHost(string hostName, byte[] token)
         {
             // note: we should be logging these attempts
-            throw new NotImplementedException();
+            return _dbs.GetSystemDatabase().ValidateHost(hostName,token);
         }
 
         public bool SystemHasLogin(string userName, string pw)

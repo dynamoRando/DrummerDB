@@ -18,6 +18,7 @@ using Drummersoft.DrummerDB.Common.Communication.Enum;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using System.Text;
 using static Drummersoft.DrummerDB.Common.Communication.DatabaseService.DatabaseService;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -364,7 +365,33 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         {
             var request = new AuthRequest();
             request.UserName = _hostInfo.HostName;
-            request.Token = ByteString.CopyFrom(_hostInfo.Token);
+
+            bool isTokenNull = false;
+            var bIsTokenNull = DbBinaryConvert.BooleanToBinary(isTokenNull);
+
+            // we have to format this with the leading isNull value and the size prefix
+            // note: we have a mistake here, we probably need to do a redesign
+            // on the other side in cache/storage, we save off the leading isNull byte (which is always false)
+            // with the data itself, so we need to match that on this side
+
+            var tokenOriginalValue = _hostInfo.Token;
+
+            var newTokenValue = new byte[tokenOriginalValue.Length + Constants.SIZE_OF_BOOL];
+            Array.Copy(bIsTokenNull, 0, newTokenValue, 0, bIsTokenNull.Length);
+            Array.Copy(tokenOriginalValue, 0, newTokenValue, bIsTokenNull.Length, tokenOriginalValue.Length);
+
+            int tokenLength = newTokenValue.Length;
+
+            var bTokenLength = DbBinaryConvert.IntToBinary(tokenLength);
+
+            byte[] messageToken;
+
+            messageToken = new byte[bIsTokenNull.Length + bTokenLength.Length + newTokenValue.Length];
+            Array.Copy(bIsTokenNull, 0, messageToken, 0, bIsTokenNull.Length);
+            Array.Copy(bTokenLength, 0, messageToken, bIsTokenNull.Length, bTokenLength.Length);
+            Array.Copy(newTokenValue, 0, messageToken, bIsTokenNull.Length + bTokenLength.Length, newTokenValue.Length);
+
+            request.Token = ByteString.CopyFrom(messageToken);
 
             return request;
         }
