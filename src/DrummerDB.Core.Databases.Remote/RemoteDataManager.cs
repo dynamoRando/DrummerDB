@@ -393,7 +393,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             var type = (MessageType)info.MessageType;
 
             var stringBuilder = new StringBuilder();
-            stringBuilder.Append($"DrummerDB.Core.Databases.Remote - Remote Data Manager: Sending Message {type} ");
+            stringBuilder.Append($"Remote Data Manager: Sending Message {type} ");
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append($"Message Id: {info.MessageGUID} ");
             stringBuilder.Append(Environment.NewLine);
