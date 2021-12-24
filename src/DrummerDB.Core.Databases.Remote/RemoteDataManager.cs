@@ -412,6 +412,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
         private TransactionInfo GetTransactionInfo(TransactionRequest request, TransactionMode mode)
         {
+            // we are currently sending this information to the participant as informational only
+            // we are not as of yet logging this information at the participant nor obeying the transaction mode
+            // TBD if we will actually log/act on the transaction information
+
             var xact = new TransactionInfo();
             xact.TransactionBatchId = request.TransactionBatchId.ToString();
             xact.TransactionMode = Convert.ToUInt32(mode);

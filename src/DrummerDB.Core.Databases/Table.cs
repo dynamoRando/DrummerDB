@@ -1240,6 +1240,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     
                 case TransactionMode.Commit:
+
+                    // ? what do we do about the remote row?
+                    // if it was previously successful, do we need to do anything again?
+                    // note that in the Try or None modes, the row insert happens at the participant under the transaction mode of "None"
+
                     xact = _xEntryManager.FindInsertTransactionForRowId(row.Id, Address.DatabaseId, Address.TableId);
                     if (xact is not null)
                     {
@@ -1256,8 +1261,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
                             );
                         _storage.LogCloseTransaction(_schema.DatabaseId, xact);
                         _xEntryManager.RemoveEntry(xact);
-
-                        throw new NotImplementedException();
                         return true;
                     }
 
