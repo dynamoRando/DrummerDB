@@ -198,6 +198,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             HostDb db = null;
             Table table = null;
 
+            db = _db.GetHostDatabase(DatabaseName);
+
             if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
             {
                 Participant participant = new Participant();

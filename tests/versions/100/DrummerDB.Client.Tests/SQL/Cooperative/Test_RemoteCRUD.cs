@@ -240,6 +240,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             ", dbName, DatabaseType.Host);
 
             Assert.False(selectCustomerNameAtHost.Results.First().IsError);
+            Assert.InRange(selectCustomerNameAtHost.Results.First().Rows.Count, 1, 1);
 
             // check to see if we can read the customer name at the participant
             var selectCustomerNameAtParticipant = harness.ExecuteSQL(customer,
@@ -248,6 +249,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             ", dbName, DatabaseType.Partial);
 
             Assert.False(selectCustomerNameAtParticipant.Results.First().IsError);
+            Assert.InRange(selectCustomerNameAtParticipant.Results.First().Rows.Count, 1, 1);
         }
     }
 }
