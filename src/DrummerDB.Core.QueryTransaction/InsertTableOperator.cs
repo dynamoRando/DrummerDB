@@ -5,6 +5,7 @@ using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
 using System;
 using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -194,49 +195,71 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private void ExecuteForRemoteInsert(CoopActionOptionParticipant participantOption, TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             bool rowsAdded = true;
+            HostDb db = null;
+            Table table = null;
 
-            Participant participant = new Participant(); 
-            var db = _db.GetHostDatabase(DatabaseName);
-            
-            if (db.HasParticipantAlias(participantOption.ParticipantAlias))
+            if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
             {
-                participant = db.GetParticipant(participantOption.ParticipantAlias);
-            }
+                Participant participant = new Participant();
+                db = _db.GetHostDatabase(DatabaseName);
 
-            if (string.IsNullOrEmpty(TableSchemaName))
-            {
-                if (db.HasTable(TableName))
+                if (db.HasParticipantAlias(participantOption.ParticipantAlias))
                 {
-                    var table = db.GetTable(TableName);
-                    foreach (var insertRow in Rows)
+                    participant = db.GetParticipant(participantOption.ParticipantAlias);
+                }
+
+                if (string.IsNullOrEmpty(TableSchemaName))
+                {
+                    if (db.HasTable(TableName))
                     {
-                        var row = table.GetNewRemoteRow(participant);
-                        foreach (var insertValue in insertRow.Values)
+                        table = db.GetTable(TableName);
+                        foreach (var insertRow in Rows)
                         {
-                            if (insertValue.IsNull)
+                            var row = table.GetNewRemoteRow(participant);
+                            foreach (var insertValue in insertRow.Values)
                             {
-                                row.SetValueAsNullForColumn(insertValue.ColumnName);
+                                if (insertValue.IsNull)
+                                {
+                                    row.SetValueAsNullForColumn(insertValue.ColumnName);
+                                }
+                                else
+                                {
+                                    row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                }
+                            }
+
+                            if (!table.XactAddRow(row, transaction, transactionMode))
+                            {
+                                rowsAdded = false;
                             }
                             else
                             {
-                                row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                _tryRows.Add(row);
                             }
                         }
-
-                        if (!table.XactAddRow(row, transaction, transactionMode))
-                        {
-                            rowsAdded = false;
-                        }
-                        else
-                        {
-                            _tryRows.Add(row);
-                        }
                     }
-
+                }
+            }
+            else if (transactionMode == TransactionMode.Commit && _tryRows.Count > 0)
+            {
+                table = db.GetTable(TableName);
+                foreach (var row in _tryRows)
+                {
+                    if (!table.XactAddRow(row, transaction, transactionMode))
+                    {
+                        rowsAdded = false;
+                    }
                 }
             }
 
-            throw new NotImplementedException();
+            if (rowsAdded)
+            {
+                messages.Add($"{Rows.Count.ToString()} rows were added to table {TableName}");
+            }
+            else
+            {
+                errorMessages.Add("Rows were not added");
+            }
         }
         #endregion
 

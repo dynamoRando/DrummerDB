@@ -42,6 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public int ForwardOffset { get; set; }
         public int ForwardedPageId { get; set; }
         public Participant Participant => _participant;
+        public byte[] Hash { get; set; }
         #endregion
 
         #region Constructors
@@ -94,18 +95,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #region Public Methods
         public byte[] GetRowInTransactionBinaryFormat()
         {
-            if (IsLocal)
-            {
-                return GetRowInPageBinaryFormat();
-            }
-            else
-            {
-                var arrays = new List<byte[]>(2);
-                arrays.Add(GetPreambleInBinary());
-                arrays.Add(DbBinaryConvert.GuidToBinary(ParticipantId.Value));
-
-                return DbBinaryConvert.ArrayStitch(arrays);
-            }
+            return GetRowInPageBinaryFormat();
         }
 
         /// <summary>
@@ -458,6 +448,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                 }
 
                 Values = values.ToArray();
+                GetAndSetRowHash();
             }
         }
 
@@ -578,22 +569,15 @@ namespace Drummersoft.DrummerDB.Core.Structures
             {
                 // need the participant id and the row hash
 
-                // ideally this code should be in Drummersoft.DrummerDB.Core.Cryptogrpahy
-                // but the dependencies wouldn't work (would result in a circular reference)
-                // may later change the dependency layout, but for now leaving this here
-                // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
-                var sourceData = GetRowInBinaryFormat();
-                var sha256Hash = SHA256.Create();
+                GetAndSetRowHash();
 
-                var bRowHash = sha256Hash.ComputeHash(sourceData);
-                var bRowHashLength = DbBinaryConvert.IntToBinary(bRowHash.Length);
-
+                var bRowHashLength = DbBinaryConvert.IntToBinary(Hash.Length);
                 var bParticipantId = DbBinaryConvert.GuidToBinary(Participant.Id);
 
-                var arrays = new List<byte[]>();
+                var arrays = new List<byte[]>(3);
                 arrays.Add(bParticipantId);
                 arrays.Add(bRowHashLength);
-                arrays.Add(bRowHash);
+                arrays.Add(Hash);
 
                 // format needs to be 
                 // participant id
@@ -694,6 +678,21 @@ namespace Drummersoft.DrummerDB.Core.Structures
             return DbBinaryConvert.ArrayStitch(arrays);
         }
 
+        /// <summary>
+        /// Computes the row hash data from RowValues, sets the propery of the Hash, and returns the it to the caller
+        /// </summary>
+        /// <returns>A hash of the row data's values</returns>
+        private byte[] GetAndSetRowHash()
+        {
+            // ideally this code should be in Drummersoft.DrummerDB.Core.Cryptogrpahy
+            // but the dependencies wouldn't work (would result in a circular reference)
+            // may later change the dependency layout, but for now leaving this here
+            // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
+            var sourceData = GetRowInBinaryFormat();
+            var sha256Hash = SHA256.Create();
+            Hash = sha256Hash.ComputeHash(sourceData);
+            return Hash;
+        }
         #endregion
     }
 }

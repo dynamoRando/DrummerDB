@@ -110,3 +110,8 @@ message MessageInfo {
 	uint32 messageType = 4;
 	string messageGUID = 5;
 }
+
+message TransactionInfo {
+	string TransactionBatchId = 1;
+	uint32 TransactionMode = 2;
+}

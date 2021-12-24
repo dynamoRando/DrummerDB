@@ -19,6 +19,7 @@ using Drummersoft.DrummerDB.Core.Diagnostics;
 using System.Text;
 using static Drummersoft.DrummerDB.Common.Communication.DatabaseService.DatabaseService;
 using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -62,12 +63,24 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         #endregion
 
         #region Public Methods
+        public bool RemoveRowAtParticipant(structRow row,
+            string dbName,
+            Guid dbId,
+            string tableName,
+            int tableId,
+            out string errorMessage)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool SaveRowAtParticipant(
             structRow row,
             string dbName,
             Guid dbId,
             string tableName,
             int tableId,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
             out string errorMessage)
         {
             errorMessage = string.Empty;
@@ -88,6 +101,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             // need authentication information to send
             request.Authentication = GetAuthRequest();
             request.MessageInfo = GetMessageInfo(MessageType.InsertRowRequest);
+            request.Transaction = GetTransactionInfo(transaction, transactionMode);
 
             var comTableSchema = new comTableSchema();
             comTableSchema.DatabaseId = dbId.ToString();
@@ -394,6 +408,14 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             request.Token = ByteString.CopyFrom(messageToken);
 
             return request;
+        }
+
+        private TransactionInfo GetTransactionInfo(TransactionRequest request, TransactionMode mode)
+        {
+            var xact = new TransactionInfo();
+            xact.TransactionBatchId = request.TransactionBatchId.ToString();
+            xact.TransactionMode = Convert.ToUInt32(mode);
+            return xact;
         }
 
         private MessageInfo GetMessageInfo(MessageType type)

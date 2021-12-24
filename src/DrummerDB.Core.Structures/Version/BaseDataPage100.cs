@@ -71,7 +71,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         public override byte[] Data => _data;
         public override PageAddress Address => _address;
-
         /// <summary>
         /// The page type
         /// </summary>
@@ -871,26 +870,25 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     }
                     else
                     {
-                        throw new NotImplementedException("remote row data has not been implemented");
-
                         // format needs to be 
                         // participant id
                         // length of data hash (int - 4 bytes)
                         // data hash
 
-                        // TODO - the below is obsolete code
                         var binaryParticipantId = span.Slice(runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID);
                         Guid partipantId = DbBinaryConvert.BinaryToGuid(binaryParticipantId);
                         row.ParticipantId = partipantId;
 
-                        //byte[] data = _cache.GetRemoteRowData(partipantId, new SQLAddress { DatabaseId = _address.DatabaseId, TableId = _address.TableId, PageId = PageId(), RowId = row.Id, RowOffset = 0 });
-                        //row.SetRowData(_schema, data);
+                        runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID;
 
-                        // ideally, we shouldn't have DrummerDB.Structures take a dependency on Network
-                        // maybe we should have DrummerDB.Databases take a dependency on Network?
-                        // In theory, we would have the database ask network to go get the remote bytes
+                        int dataHashLength = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                        runningTotal += Constants.SIZE_OF_INT;
 
-                        runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID + RowConstants.LengthOfPreamble();
+                        var hashData = span.Slice(runningTotal, dataHashLength).ToArray();
+                        row.Hash = hashData;
+
+                        runningTotal += dataHashLength;
+                        runningTotal += RowConstants.LengthOfPreamble();
                     }
                 }
             }
