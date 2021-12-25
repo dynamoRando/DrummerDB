@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures;
@@ -176,9 +177,20 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         if (value.ColumnId == value.ColumnId)
                         {
-                            // this may not be correct
-                            rsRow[rsi] = table.GetValueAtAddress(value, transaction);
-                            rsi++;
+                            if (value.ParticipantId is null)
+                            {
+                                // this may not be correct
+                                rsRow[rsi] = table.GetValueAtAddress(value, transaction);
+                                rsi++;
+                            }
+                            else
+                            {
+                                // this is a reference row, we need to go get the data from the participant
+                                HostDb db = _db.GetHostDatabase(rsColumn.Table.DatabaseId);
+                                var participant = db.GetParticipant(value.ParticipantId.Value);
+                                rsRow[rsi] = db.GetValueFromParticipant(value, transaction, participant);
+                                rsi++;
+                            }
                         }
                     }
 

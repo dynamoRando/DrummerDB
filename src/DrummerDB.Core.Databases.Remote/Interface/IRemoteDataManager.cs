@@ -5,6 +5,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote.Interface
 {
     interface IRemoteDataManager
     {
-        public IRow GetRowFromParticipant(Participant participant, SQLAddress address);
+        public IRow GetRowFromParticipant(Participant participant, SQLAddress address, out string errorMessage);
     }
 }

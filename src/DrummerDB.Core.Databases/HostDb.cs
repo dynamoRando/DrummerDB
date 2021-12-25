@@ -186,6 +186,49 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
+        public ResultsetValue GetValueFromParticipant(ValueAddress address, TransactionRequest transaction, Participant participant)
+        {
+            string errorMessage = string.Empty;
+            var data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), out errorMessage);
+            throw new NotImplementedException();
+        }
+
+        public Participant GetParticipant(Guid participantId)
+        {
+            Participant result = new();
+            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
+            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.ParticpantGUID, participantId.ToString());
+            int resultCount = participants.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple participants with the same id {participantId}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no participants with the id {participantId}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = participants.GetRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+                    result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
+                    result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
+                    result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
+                    result.Alias = row.GetValueInString(Participants.Columns.Alias);
+
+                    result.Url = string.Empty;
+                    result.UseHttps = false;
+                }
+            }
+
+            return result;
+        }
+
         public override DatabaseSchemaInfo GetSchemaInformation(string schemaName)
         {
             return _baseDb.GetSchemaInformation(schemaName);

@@ -85,6 +85,7 @@ message InsertRowRequest {
 	repeated Drum.RowValue values = 3;
 	Drum.MessageInfo messageInfo = 4; 
 	Drum.TransactionInfo transaction = 5;
+	uint32 rowId = 6;
 }
 
 // a message for describing the result of a InsertRowRequest
@@ -147,6 +148,7 @@ message GetRowsFromTableResult {
 message GetRowFromPartialDatabaseRequest {
 	Drum.AuthRequest authentication = 1;
 	Drum.RowParticipantAddress rowAddress = 2;
+	Drum.MessageInfo MessageInfo = 3;
 }
 
 message GetRowFromPartialDatabaseResult {

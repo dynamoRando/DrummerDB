@@ -530,7 +530,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public HostDb GetHostDatabase(Guid databaseId)
         {
-            throw new NotImplementedException();
+            return _userDatabases.GetHostDb(databaseId);
         }
 
         public HostDb GetHostDatabase(string dbName)

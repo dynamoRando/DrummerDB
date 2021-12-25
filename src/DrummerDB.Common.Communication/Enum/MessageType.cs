@@ -11,6 +11,7 @@ namespace Drummersoft.DrummerDB.Common.Communication.Enum
         Unknown,
         InsertRowRequest,
         SaveContractRequest,
-        AcceptContractRequest
+        AcceptContractRequest,
+        GetRowRequest
     }
 }

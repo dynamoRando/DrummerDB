@@ -205,6 +205,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             var partDb = _dbManager.GetPartialDb(dbName);
             var table = partDb.GetTable(tableName);
             var localRow = table.GetNewLocalRow();
+            localRow.Id = Convert.ToInt32(request.RowId);
 
             foreach (var value in request.Values)
             {

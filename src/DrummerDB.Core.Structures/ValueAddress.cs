@@ -5,7 +5,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 {
     /// <summary>
     /// A structure for identifying the location of a value in a row:
-    /// DatabaseId, TableId, ColumnName, PageId, RowId, RowOffset, ValueOffset, ParseLength, ColumnId
+    /// DatabaseId, TableId, ColumnName, PageId, RowId, RowOffset, ValueOffset, ParseLength, ColumnId, SchemaId, ParticipantId
     /// </summary>
     /// <remarks>This object is used to point directly to a value held on a page</remarks>
     internal record struct ValueAddress
@@ -57,6 +57,8 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public Guid SchemaId { get; init; }
 
+        public Guid? ParticipantId { get; set; }
+
         public PageAddress ToPageAddress()
         {
             return new PageAddress(DatabaseId, TableId, PageId, SchemaId);
@@ -70,6 +72,11 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public RowAddress ToRowAddress()
         {
             return new RowAddress(PageId, RowId, RowOffset);
+        }
+
+        public SQLAddress ToSQLAddress()
+        {
+            return new SQLAddress { DatabaseId = DatabaseId, TableId = TableId, RowId = RowId };
         }
     }
 }

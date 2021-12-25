@@ -58,21 +58,24 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                     runningTotal += remainder;
                 }
-                else // the next item is the participant id, we need to add to the running total the size of a GUID 
+                else 
                 {
-                    runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID;
-                    if (runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID > Constants.PAGE_SIZE)
-                    {
-                        break;
-                    }
-                    var participantBytes = data.Slice(runningTotal, RowConstants.SIZE_OF_PARTICIPANT_ID);
-
-                    //Guid participantId = DbBinaryConvert.BinaryToGuid(participantBytes);
-                    //throw new NotImplementedException("Have not implemented retrival of a remote row. Need to get remote row and then");
-
-                    //^^ the above would've been to get the ParticipantId, which is the only other data in the array.  Now fast forward to the next potential row
-                    // add the preamble to our total since we've already read it
+                    // this actually follows the same as above I think?
+                    // the remote values:
+                    // participant id
+                    // length of data hash
+                    // data hash
+                    // should all be included in the row size
+                    // so we should be able to just read that and fast forward to the next row
                     runningTotal += RowConstants.LengthOfPreamble();
+
+                    // get the row size, which includes the preamble, the size of data, and the size of the row size itself
+                    int rowSize = Row.GetRowSizeFromBinary(data.Slice(runningTotal, RowConstants.SIZE_OF_ROW_SIZE));
+
+                    // the remainder is the size of the row minus what we've already read
+                    int remainder = rowSize - RowConstants.LengthOfPreamble();
+
+                    runningTotal += remainder;
                 }
             }
             while (true);

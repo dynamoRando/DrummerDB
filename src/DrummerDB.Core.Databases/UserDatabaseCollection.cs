@@ -69,6 +69,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
+        public HostDb GetHostDb(Guid dbId)
+        {
+            foreach (var db in _userDatabases)
+            {
+                if (db.Id == dbId)
+                {
+                    return db as HostDb;
+                }
+            }
+
+            return null;
+        }
+
         public UserDatabase GetUserDatabase(Guid dbId)
         {
             foreach (var db in _userDatabases)

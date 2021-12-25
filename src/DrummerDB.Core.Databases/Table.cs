@@ -307,7 +307,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var participantId = row.ParticipantId;
                 var remoteAddress = new SQLAddress { DatabaseId = this.Address.DatabaseId, TableId = this.Address.TableId, RowId = row.Id };
                 var participant = new Participant { Id = participantId.Value };
-                var remoteRow = _remoteManager.GetRowFromParticipant(participant, remoteAddress);
+
+                string errorMessage = string.Empty;
+
+                var remoteRow = _remoteManager.GetRowFromParticipant(participant, remoteAddress, out errorMessage);
 
                 // not sure if this is correct, or we need to do some sort of conversion for the row that came from cache
                 // for example, does remote row identify itself as local? from the perspective of the caller, is is not.
@@ -372,7 +375,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 // need a corresponding method to mark the transaction as completed
                 TransactionEntry transactionEntry = GetTransactionSelectEntry(transaction);
 
-                return _cache.GetValueAtAddress(address, column);
+                if (address.ParticipantId is null)
+                {
+                    return _cache.GetValueAtAddress(address, column);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Remote rows should be handled at database level");
+                }
+
+                
             }
 
             throw new InvalidOperationException($"Column: {address.ColumnName} is not part of table {Name}");

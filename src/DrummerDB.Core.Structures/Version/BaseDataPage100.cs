@@ -870,25 +870,34 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     }
                     else
                     {
+                        ReadOnlySpan<byte> sizeOfRowData = span.Slice(runningTotal + RowConstants.LengthOfPreamble(), RowConstants.SIZE_OF_ROW_SIZE);
+                        int sizeOfRow = DbBinaryConvert.BinaryToInt(sizeOfRowData);
+                        int rowdataSlice = sizeOfRow - RowConstants.LengthOfPreamble() - RowConstants.SIZE_OF_ROW_SIZE;
+                        runningTotal += RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
+
                         // format needs to be 
                         // participant id
                         // length of data hash (int - 4 bytes)
                         // data hash
 
-                        var binaryParticipantId = span.Slice(runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID);
+                        var remoteData = span.Slice(runningTotal, rowdataSlice);
+                        int remoteDataTotal = runningTotal;
+
+                        runningTotal += sizeOfRow;
+
+                        var binaryParticipantId = span.Slice(remoteDataTotal, RowConstants.SIZE_OF_PARTICIPANT_ID);
                         Guid partipantId = DbBinaryConvert.BinaryToGuid(binaryParticipantId);
                         row.ParticipantId = partipantId;
 
-                        runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID;
+                        remoteDataTotal += RowConstants.SIZE_OF_PARTICIPANT_ID;
 
-                        int dataHashLength = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
-                        runningTotal += Constants.SIZE_OF_INT;
+                        int dataHashLength = DbBinaryConvert.BinaryToInt(span.Slice(remoteDataTotal, Constants.SIZE_OF_INT));
+                        remoteDataTotal += Constants.SIZE_OF_INT;
 
-                        var hashData = span.Slice(runningTotal, dataHashLength).ToArray();
+                        var hashData = span.Slice(remoteDataTotal, dataHashLength).ToArray();
                         row.Hash = hashData;
 
-                        runningTotal += dataHashLength;
-                        runningTotal += RowConstants.LengthOfPreamble();
+                        remoteDataTotal += dataHashLength;
                     }
                 }
             }

@@ -568,23 +568,33 @@ namespace Drummersoft.DrummerDB.Core.Structures
             else
             {
                 // need the participant id and the row hash
-
                 GetAndSetRowHash();
 
-                var bRowHashLength = DbBinaryConvert.IntToBinary(Hash.Length);
-                var bParticipantId = DbBinaryConvert.GuidToBinary(Participant.Id);
+                byte[] preamble = GetPreambleInBinary();
+                byte[] bRowHashLength = DbBinaryConvert.IntToBinary(Hash.Length);
+                byte[] bParticipantId = DbBinaryConvert.GuidToBinary(Participant.Id);
 
                 var arrays = new List<byte[]>(3);
                 arrays.Add(bParticipantId);
                 arrays.Add(bRowHashLength);
                 arrays.Add(Hash);
 
+                byte[] bRowData = DbBinaryConvert.ArrayStitch(arrays);
+                int sizeOfRow = preamble.Length + bRowData.Length + RowConstants.SIZE_OF_ROW_SIZE;
+                byte[] bSizeOfRow = DbBinaryConvert.IntToBinary(sizeOfRow);
+
+                var result = new byte[preamble.Length + bRowData.Length + RowConstants.SIZE_OF_ROW_SIZE];
+
                 // format needs to be 
                 // participant id
                 // length of data hash (int - 4 bytes)
                 // data hash
 
-                return DbBinaryConvert.ArrayStitch(arrays);
+                Array.Copy(preamble, result, preamble.Length);
+                Array.Copy(bSizeOfRow, 0, result, RowConstants.SizeOfRowOffset(), bSizeOfRow.Length);
+                Array.Copy(bRowData, 0, result, RowConstants.RowDataOffset(), bRowData.Length);
+
+                return result;
             }
         }
 

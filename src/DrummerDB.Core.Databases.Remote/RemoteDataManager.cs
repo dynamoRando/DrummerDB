@@ -102,14 +102,16 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             request.Authentication = GetAuthRequest();
             request.MessageInfo = GetMessageInfo(MessageType.InsertRowRequest);
             request.Transaction = GetTransactionInfo(transaction, transactionMode);
+            request.RowId = Convert.ToUInt32(row.Id);
 
             var comTableSchema = new comTableSchema();
             comTableSchema.DatabaseId = dbId.ToString();
             comTableSchema.DatabaseName = dbName;
             comTableSchema.TableId = Convert.ToUInt32(tableId);
             comTableSchema.TableName = tableName;
-
+            
             request.Table = comTableSchema;
+            
 
             // need to build row values
             foreach (var sRV in row.Values)
@@ -256,48 +258,41 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         }
 
         // should probably include username/pw or token as a method of auth'd the request
-        public IRow GetRowFromParticipant(structParticipant participant, SQLAddress address)
+        public IRow GetRowFromParticipant(structParticipant participant, SQLAddress address, out string errorMessage)
         {
-            throw new NotImplementedException();
+            errorMessage = string.Empty;
+            ParticipantSink sink;
+            sink = GetOrAddParticipantSink(participant);
+            GetRowFromPartialDatabaseResult result;
 
-            string url = $"https://{participant.IP4Address}:{participant.PortNumber.ToString()}";
+            if (!sink.IsOnline())
+            {
+                throw new InvalidOperationException("Participant is offline");
+            }
 
-            var channel = GrpcChannel.ForAddress(url);
-            var client = new DatabaseService.DatabaseServiceClient(channel);
+            throw new NotImplementedException("Still need to think through api");
 
             var request = new GetRowFromPartialDatabaseRequest();
             request.RowAddress.DatabaseId = address.DatabaseId.ToString();
             request.RowAddress.TableId = (uint)address.TableId;
             request.RowAddress.RowId = (uint)address.RowId;
+            request.Authentication = GetAuthRequest();
+            request.MessageInfo = GetMessageInfo(MessageType.GetRowRequest);
 
-            const string testMessage = "RemoteTest";
-
-            var testRequest = new TestRequest();
-            testRequest.RequestEchoMessage = testMessage;
-
-            var testResult = client.IsOnline(testRequest);
-
-            if (testResult is not null)
+            try
             {
-                if (string.Equals(testResult.ReplyEchoMessage, testMessage, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var result = client.GetRowFromPartialDatabase(request);
-
-                    if (result is not null)
-                    {
-                        if (result.AuthenticationResult.IsAuthenticated)
-                        {
-                            if (result.IsSuccessful)
-                            {
-                                var communicationRow = result.Row;
-                                // convert the result to a row, using the values
-                            }
-                        }
-                    }
-                }
+                LogMessageInfo(request.MessageInfo, sink);
+                result = sink.Client.GetRowFromPartialDatabase(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
             }
 
-            channel.ShutdownAsync();
+            if (result is not null)
+            {
+                // do something with the result
+            }
 
         }
         #endregion
