@@ -101,7 +101,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var row in ut_results)
             {
-                _userTable.TryDeleteRow(row, transaction, transactionMode);
+                _userTable.XactDeleteRow(row, transaction, transactionMode);
             }
 
             var uts_value = RowValueMaker.Create(_userTableSchema, uts.TableId, ut_results.First().GetValueInString(ut.TableId), true);
@@ -109,7 +109,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var row in uts_results)
             {
-                _userTableSchema.TryDeleteRow(row, transaction, transactionMode);
+                _userTableSchema.XactDeleteRow(row, transaction, transactionMode);
             }
 
             var uto_value = RowValueMaker.Create(_userObjects, uo.ObjectId, ut_results.First().GetValueInString(ut.UserObjectId), true);
@@ -117,7 +117,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var row in uto_results)
             {
-                _userObjects.TryDeleteRow(row, transaction, transactionMode);
+                _userObjects.XactDeleteRow(row, transaction, transactionMode);
             }
 
             var uop_value = RowValueMaker.Create(_userObjectPermissions, uop.ObjectId, ut_results.First().GetValueInString(ut.UserObjectId), true);
@@ -125,7 +125,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var row in uop_results)
             {
-                _userObjectPermissions.TryDeleteRow(row, transaction, transactionMode);
+                _userObjectPermissions.XactDeleteRow(row, transaction, transactionMode);
             }
 
         }
@@ -171,7 +171,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(dbs.SchemaGUID, Guid.NewGuid().ToString());
                 row.SetValueAsNullForColumn(dbs.ContractGUID);
 
-                return _databaseSchemas.TryAddRow(row, request, transactionMode);
+                return _databaseSchemas.XactAddRow(row, request, transactionMode);
             }
 
             return false;
@@ -186,7 +186,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 foreach (var row in rows)
                 {
-                    if (!_databaseSchemas.TryDeleteRow(row, request, transactionMode))
+                    if (!_databaseSchemas.XactDeleteRow(row, request, transactionMode))
                     {
                         return false;
                     }
@@ -281,7 +281,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             row.SetValue(u.Hash, hash);
             row.SetValue(u.IsBanned, "false");
             row.SetValue(u.Workfactor, iterations.ToString());
-            _users.TryAddRow(row);
+            _users.XactAddRow(row);
 
             return true;
 
@@ -444,8 +444,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         }
                     }
 
-                    schema = new TableSchema(storedTableId, storedTableName, _dbId, columnSchema, schemaInfo);
-                    schema.DatabaseName = dbName;
+                    schema = new TableSchema(storedTableId, storedTableName, _dbId, columnSchema, schemaInfo, dbName);
 
                 }
                 else
@@ -574,13 +573,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 if (!string.IsNullOrEmpty(tableSchemaName))
                 {
-                    tableSchema = new TableSchema(tableId, tableName, _dbId, columnSchema, new DatabaseSchemaInfo(tableSchemaName, tableSchemaId));
+                    tableSchema = new TableSchema(tableId, tableName, _dbId, columnSchema, new DatabaseSchemaInfo(tableSchemaName, tableSchemaId), dbName);
                 }
                 else
                 {
-                    tableSchema = new TableSchema(tableId, tableName, _dbId, columnSchema);
+                    tableSchema = new TableSchema(tableId, tableName, _dbId, columnSchema, dbName);
                 }
-                tableSchema.DatabaseName = dbName;
+
                 result[i] = tableSchema;
                 i++;
 
@@ -785,7 +784,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         // need to look this up.
                         row.SetValue(uop.UserGUID, string.Empty);
 
-                        _userObjectPermissions.TryAddRow(row);
+                        _userObjectPermissions.XactAddRow(row);
 
                         return true;
                     }
@@ -826,6 +825,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             _databaseContracts = new Table(DatabaseContracts.Schema(_dbId, _dbName), _cache, _storage, _xEntryManager);
         }
+
+       
 
         private void SetupUserTablePermissions()
         {
@@ -915,7 +916,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(ut.SchemaGUID, schema.Schema.SchemaGUID.ToString());
             }
 
-            _userTable.TryUpdateRow(row);
+            _userTable.XactUpdateRow(row);
         }
 
         private void UpdateUserTable100(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode)
@@ -961,7 +962,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(ut.SchemaGUID, schema.Schema.SchemaGUID.ToString());
             }
 
-            _userTable.TryUpdateRow(row, transaction, transactionMode);
+            _userTable.XactUpdateRow(row, transaction, transactionMode);
         }
 
         private Guid SetUserTableValue100(ITableSchema schema)
@@ -987,7 +988,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(ut.SchemaGUID, schema.Schema.SchemaGUID.ToString());
             }
 
-            _userTable.TryAddRow(row);
+            _userTable.XactAddRow(row);
 
 
             return tableObjectId;
@@ -1028,7 +1029,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var name = objectName.PadRight(Constants.FIXED_LENGTH_OF_OBJECT_NAME);
 
             row.SetValue(uo.ObjectName, name);
-            _userObjects.TryAddRow(row);
+            _userObjects.XactAddRow(row);
         }
 
         private void SetUserTableSchemaValues100(ITableSchema schema)
@@ -1048,7 +1049,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(uts.UserObjectId, Guid.NewGuid().ToString());
                 row.SetValueAsNullForColumn(uts.ContractGUID);
 
-                _userTableSchema.TryAddRow(row);
+                _userTableSchema.XactAddRow(row);
             }
         }
 
@@ -1084,7 +1085,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                                 value.SetValue(uts.UserObjectId, Guid.NewGuid().ToString());
                                 value.SetValueAsNullForColumn(uts.ContractGUID);
 
-                                _userTableSchema.TryUpdateRow(value);
+                                _userTableSchema.XactUpdateRow(value);
                             }
                         }
                     }
@@ -1138,7 +1139,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                                 value.SetValue(uts.UserObjectId, Guid.NewGuid().ToString());
                                 value.SetValueAsNullForColumn(uts.ContractGUID);
 
-                                _userTableSchema.TryUpdateRow(value, transaction, transactionMode);
+                                _userTableSchema.XactUpdateRow(value, transaction, transactionMode);
                             }
                         }
                     }

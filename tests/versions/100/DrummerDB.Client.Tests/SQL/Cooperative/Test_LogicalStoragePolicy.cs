@@ -11,6 +11,7 @@ using static Drummersoft.DrummerDB.Client.Tests.TestConstants.TestPortNumbers;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Databases.Version;
 
 namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
@@ -124,11 +125,13 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
         [Fact]
         public void Test_Generate_Contract()
-        { 
+        {
+            string sysDbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
             string dbName = "TestGenCont";
             string tableName = "CUSTOMERS";
             string storageFolder = "TestGenCont";
             string contractAuthorName = "RetailerCorporation";
+            string contractDescription = "IntroductionMessageGoesHere";
             var test = new TestHarness();
 
             // --- ARRANGE
@@ -194,6 +197,8 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             DRUMMER END;
             ", dbName);
 
+            Assert.False(policyForProducts.Results.First().IsError);
+
             byte[] byteProductPolicy = policyForProducts.Results.First().Rows[0].Values[0].Value.ToByteArray();
             int convertedProductPolicy = DbBinaryConvert.BinaryToInt(new Span<byte>(byteProductPolicy).Slice(1, 4));
 
@@ -205,6 +210,8 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             REVIEW LOGICAL STORAGE FOR CUSTOMERS;
             DRUMMER END;
             ", dbName);
+
+            Assert.False(policyForCustomers.Results.First().IsError);
 
             byte[] byteCustomerPolicy = policyForCustomers.Results.First().Rows[0].Values[0].Value.ToByteArray();
             int convertedCustomersPolicy = DbBinaryConvert.BinaryToInt(new Span<byte>(byteCustomerPolicy).Slice(1, 4));
@@ -218,6 +225,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             DRUMMER END;
             ", dbName);
 
+            Assert.False(policyForOrders.Results.First().IsError);
 
             byte[] byteOrdersPolicy = policyForOrders.Results.First().Rows[0].Values[0].Value.ToByteArray();
             int convertedOrdersPolicy = DbBinaryConvert.BinaryToInt(new Span<byte>(byteOrdersPolicy).Slice(1, 4));
@@ -226,29 +234,44 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // -- ACT
             // ------------ generate contract ------------
-            
+
+            var generateHostName = test.ExecuteSQL($@"
+            DRUMMER BEGIN;
+            GENERATE HOST INFO AS HOSTNAME {contractAuthorName};
+            DRUMMER END;
+            ", sysDbName);
+
+            Assert.False(generateHostName.Results.First().IsError);
+
             var generateContractResult = test.ExecuteSQL($@"
             DRUMMER BEGIN;
-            GENERATE CONTRACT AS AUTHOR {contractAuthorName} DESCRIPTION IntroductionMessageGoesHere;
+            GENERATE CONTRACT WITH DESCRIPTION {contractDescription};
             DRUMMER END;
             ", dbName);
 
+            Assert.False(generateContractResult.Results.First().IsError);
+
             // verify that there is an entry in the sys.DatabaseContracts table
             var databaseContractResults = test.ExecuteSQL($@"
-            SELECT * FROM sys.DatabaseContracts;
+            SELECT
+                Description
+            FROM 
+                sys.DatabaseContracts;
             ", dbName);
+
+            Assert.False(databaseContractResults.Results.First().IsError);
 
             var result = databaseContractResults.Results.First();
 
             // -- ASSERT
             Assert.InRange(result.Rows.Count, 1, 1);
 
-            var bAuthor = result.Rows[0].Values[2].Value.ToByteArray();
-            var sAuthor = DbBinaryConvert.BinaryToString(bAuthor);
-            
+            var bDescription = result.Rows[0].Values[0].Value.ToByteArray();
+            var sDescription = DbBinaryConvert.BinaryToString(bDescription);
+
             // -- ASSERT 
             // the name of the contract author is what is actually in the database
-            Assert.Equal(contractAuthorName, sAuthor);
+            Assert.Equal(contractDescription, sDescription);
         }
     }
 }

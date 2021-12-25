@@ -35,7 +35,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnName);
             columns.Add(columnNameAge);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockCache = new MockCacheManager();
             var mockStorage = new MockStorageManager();

@@ -28,7 +28,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (_db is DbManager)
                 {
                     var db = _db as DbManager;
-                    UserDatabase targetDb = db.GetUserDatabase(DatabaseName);
+                    UserDatabase targetDb = db.GetHostDatabase(DatabaseName);
 
                     int id = targetDb.GetMaxTableId() + 1;
 
@@ -42,18 +42,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             DatabaseSchemaInfo schemaInfo = targetDb.GetSchemaInformation(schemaName);
 
-                            TableSchema schema = new TableSchema(id, tableName, targetDb.Id, Columns, schemaInfo);
+                            TableSchema schema = new TableSchema(id, tableName, targetDb.Id, Columns, schemaInfo, DatabaseName);
 
                             if (!targetDb.HasTable(tableName) && transactionMode == TransactionMode.Try)
                             {
-                                if (targetDb.TryAddTable(schema, transaction, transactionMode, out tableId))
+                                if (targetDb.XactAddTable(schema, transaction, transactionMode, out tableId))
                                 {
                                     messages.Add($"Table {tableName} created with Id {tableId.ToString()}");
                                 }
                             }
                             else if (targetDb.HasTable(tableName) && (transactionMode == TransactionMode.Commit || transactionMode == TransactionMode.Rollback))
                             {
-                                if (targetDb.TryAddTable(schema, transaction, transactionMode, out tableId))
+                                if (targetDb.XactAddTable(schema, transaction, transactionMode, out tableId))
                                 {
                                     messages.Add($"Table {tableName} created with Id {tableId.ToString()}");
                                 }
@@ -70,18 +70,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        TableSchema schema = new TableSchema(id, TableName, targetDb.Id, Columns);
+                        TableSchema schema = new TableSchema(id, TableName, targetDb.Id, Columns, DatabaseName);
 
                         if (!targetDb.HasTable(TableName) && transactionMode == TransactionMode.Try)
                         {
-                            if (targetDb.TryAddTable(schema, transaction, transactionMode, out tableId))
+                            if (targetDb.XactAddTable(schema, transaction, transactionMode, out tableId))
                             {
                                 messages.Add($"Table {TableName} created with Id {tableId.ToString()}");
                             }
                         }
                         else if (targetDb.HasTable(TableName) && (transactionMode == TransactionMode.Commit || transactionMode == TransactionMode.Rollback))
                         {
-                            if (targetDb.TryAddTable(schema, transaction, transactionMode, out tableId))
+                            if (targetDb.XactAddTable(schema, transaction, transactionMode, out tableId))
                             {
                                 messages.Add($"Table {TableName} created with Id {tableId.ToString()}");
                             }
@@ -92,6 +92,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         }
                     }
                 }
+            }
+            else
+            {
+                throw new InvalidOperationException($"Database {DatabaseName} was not found!");
             }
         }
 

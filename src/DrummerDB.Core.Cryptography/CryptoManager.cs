@@ -40,7 +40,7 @@ namespace Drummersoft.DrummerDB.Core.Cryptography
         public int GetRandomNumber()
         {
             const int maxValue = 5000;
-            return new Random().Next(maxValue);
+            return new Random().Next(1, maxValue);
         }
 
         public int GetByteLength()
@@ -59,6 +59,7 @@ namespace Drummersoft.DrummerDB.Core.Cryptography
             // http://www.programmerguide.net/2015/02/generating-unique-token-in-c-generating.html
             return Convert.FromBase64String(GenerateTokenString());
         }
+
         #endregion
 
         #region Private Methods

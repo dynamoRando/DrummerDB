@@ -33,7 +33,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             _db.SetStoragePolicyForTable(_table.Name, _policy, transaction, transactionMode);
-            _table.SetLogicalStoragePolicy(_policy, transaction, transactionMode);
+            _table.XactSetLogicalStoragePolicy(_policy, transaction, transactionMode);
             messages.Add($"Successfully set policy {_policy.ToString()} for table {_table.Name} in database {_db.Name}");
         }
     }

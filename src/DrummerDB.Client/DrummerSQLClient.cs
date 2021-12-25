@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Common.Communication;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Common.Communication;
 using Drummersoft.DrummerDB.Common.Communication.SQLService;
 using Grpc.Net.Client;
 using System;
@@ -68,6 +69,25 @@ namespace Drummersoft.DrummerDB.Client
             request.Authentication = auth;
             request.SqlStatement = sqlStatement;
             request.UserSessionId = userSession.ToString();
+
+            // default to host database
+            request.DatabaseType = Convert.ToUInt32(DatabaseType.Host);
+
+            return _client.ExecuteSQLQuery(request);
+        }
+
+        public SQLQueryReply ExecuteSQL(string sqlStatement, string databaseName, string userName, string pw, Guid userSession, DatabaseType type)
+        {
+            var auth = new AuthRequest();
+            auth.UserName = userName;
+            auth.Pw = pw;
+
+            var request = new SQLQueryRequest();
+            request.DatabaseName = databaseName;
+            request.Authentication = auth;
+            request.SqlStatement = sqlStatement;
+            request.UserSessionId = userSession.ToString();
+            request.DatabaseType = Convert.ToUInt32(type);
 
             return _client.ExecuteSQLQuery(request);
         }

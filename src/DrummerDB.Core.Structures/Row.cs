@@ -5,11 +5,14 @@ using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
     internal class Row : IRow
     {
+        private Participant _participant;
+
         /*
          * Row Byte Array Layout:
          * RowId IsLocal IsDeleted IsForwarded ForwardOffset ForwardedPageId {{SizeOfRow | ParticipantId} | RowData}
@@ -38,6 +41,8 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public bool IsForwarded { get; set; }
         public int ForwardOffset { get; set; }
         public int ForwardedPageId { get; set; }
+        public Participant Participant => _participant;
+        public byte[] Hash { get; set; }
         #endregion
 
         #region Constructors
@@ -55,6 +60,18 @@ namespace Drummersoft.DrummerDB.Core.Structures
             IsForwarded = false;
             ForwardOffset = 0;
             ForwardedPageId = 0;
+        }
+
+        public Row(int id, bool isLocal, Participant participant)
+        {
+            Id = id;
+            IsLocal = isLocal;
+            IsDeleted = false;
+            IsForwarded = false;
+            ForwardOffset = 0;
+            ForwardedPageId = 0;
+            _participant = participant;
+            ParticipantId = participant.Id;
         }
 
         /// <summary>
@@ -78,18 +95,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #region Public Methods
         public byte[] GetRowInTransactionBinaryFormat()
         {
-            if (IsLocal)
-            {
-                return GetRowInPageBinaryFormat();
-            }
-            else
-            {
-                var arrays = new List<byte[]>(2);
-                arrays.Add(GetPreambleInBinary());
-                arrays.Add(DbBinaryConvert.GuidToBinary(ParticipantId.Value));
-
-                return DbBinaryConvert.ArrayStitch(arrays);
-            }
+            return GetRowInPageBinaryFormat();
         }
 
         /// <summary>
@@ -412,6 +418,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                 {
                                     // for binary types, if we're not already NULL (we read this earlier) then we have the size prefix and the byte array
                                     // so go ahead and fast forward by the IsNull value
+
                                     runningTotal += Constants.SIZE_OF_BOOL;
                                     parseLength += Constants.SIZE_OF_BOOL;
 
@@ -420,7 +427,13 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                     runningTotal += Constants.SIZE_OF_INT;
                                     parseLength += Constants.SIZE_OF_INT;
 
-                                    rowValue.SetValue(span.Slice(runningTotal, length).ToArray());
+                                    // troubleshoot issue with varbinary not having leadning IsNull value (which is false, but for parsing
+                                    // purposes we need it included
+                                    int tempSliceIncludeLeadingNull = runningTotal - Constants.SIZE_OF_BOOL;
+                                    int tempLength = length + Constants.SIZE_OF_BOOL;
+
+                                    //rowValue.SetValue(span.Slice(runningTotal, length).ToArray());
+                                    rowValue.SetValue(span.Slice(tempSliceIncludeLeadingNull, tempLength).ToArray());
 
                                     runningTotal += length;
                                     parseLength += length;
@@ -435,6 +448,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                 }
 
                 Values = values.ToArray();
+                GetAndSetRowHash();
             }
         }
 
@@ -520,11 +534,22 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// </summary>
         /// <param name="columnName">The column to set the value</param>
         /// <param name="value">The value in byte array format</param>
+        /// <remarks>WARNING: If setting the byte value directly, if column is NULLABLE, this will bypass setting the nullable not null prefix.
+        /// Make sure if you want the binary array to include the leading NOT NULL bool value prefix, to include it.</remarks>
         public void SetValue(string columnName, byte[] value)
         {
             var rowValue = GetRowValueWithColumnName(columnName);
             if (rowValue is not null)
             {
+                // warning check
+                if (rowValue.Column.IsNullable)
+                {
+                    if (rowValue.Column.Length == value.Length)
+                    {
+                        throw new InvalidOperationException("You have forgotten to set the leading FALSE IsNull byte");
+                    }
+                }
+
                 rowValue.SetValue(value);
             }
         }
@@ -536,22 +561,41 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <remarks>A local row consists of: preamble + sizeOfRow + rowData (ordered by fixed binary columns first, then by variable binary columns, each with an INT size prefix before the actual data for variable size columns.)</remarks>
         public byte[] GetRowInPageBinaryFormat()
         {
-            // TODO: need to change this in the future to handle remote rows
-            byte[] preamble = GetPreambleInBinary();
+            if (IsLocal)
+            {
+                return GetRowInBinaryFormat();
+            }
+            else
+            {
+                // need the participant id and the row hash
+                GetAndSetRowHash();
 
-            // TODO: in the future, for remote rows, this should only return the particiapnt id, and not the actual values 
-            byte[] data = GetRowDataInBinary();
-            int sizeOfRow = preamble.Length + data.Length + RowConstants.SIZE_OF_ROW_SIZE;
+                byte[] preamble = GetPreambleInBinary();
+                byte[] bRowHashLength = DbBinaryConvert.IntToBinary(Hash.Length);
+                byte[] bParticipantId = DbBinaryConvert.GuidToBinary(Participant.Id);
 
-            byte[] sizeOfRowArray = DbBinaryConvert.IntToBinary(sizeOfRow);
+                var arrays = new List<byte[]>(3);
+                arrays.Add(bParticipantId);
+                arrays.Add(bRowHashLength);
+                arrays.Add(Hash);
 
-            var result = new byte[preamble.Length + sizeOfRowArray.Length + data.Length];
+                byte[] bRowData = DbBinaryConvert.ArrayStitch(arrays);
+                int sizeOfRow = preamble.Length + bRowData.Length + RowConstants.SIZE_OF_ROW_SIZE;
+                byte[] bSizeOfRow = DbBinaryConvert.IntToBinary(sizeOfRow);
 
-            Array.Copy(preamble, result, preamble.Length);
-            Array.Copy(sizeOfRowArray, 0, result, RowConstants.SizeOfRowOffset(), sizeOfRowArray.Length);
-            Array.Copy(data, 0, result, RowConstants.RowDataOffset(), data.Length);
+                var result = new byte[preamble.Length + bRowData.Length + RowConstants.SIZE_OF_ROW_SIZE];
 
-            return result;
+                // format needs to be 
+                // participant id
+                // length of data hash (int - 4 bytes)
+                // data hash
+
+                Array.Copy(preamble, result, preamble.Length);
+                Array.Copy(bSizeOfRow, 0, result, RowConstants.SizeOfRowOffset(), bSizeOfRow.Length);
+                Array.Copy(bRowData, 0, result, RowConstants.RowDataOffset(), bRowData.Length);
+
+                return result;
+            }
         }
 
         /// <summary>
@@ -584,6 +628,26 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Private Methods
+        private byte[] GetRowInBinaryFormat()
+        {
+            // TODO: need to change this in the future to handle remote rows
+            byte[] preamble = GetPreambleInBinary();
+
+            // TODO: in the future, for remote rows, this should only return the particiapnt id, and not the actual values 
+            byte[] data = GetRowDataInBinary();
+            int sizeOfRow = preamble.Length + data.Length + RowConstants.SIZE_OF_ROW_SIZE;
+
+            byte[] sizeOfRowArray = DbBinaryConvert.IntToBinary(sizeOfRow);
+
+            var result = new byte[preamble.Length + sizeOfRowArray.Length + data.Length];
+
+            Array.Copy(preamble, result, preamble.Length);
+            Array.Copy(sizeOfRowArray, 0, result, RowConstants.SizeOfRowOffset(), sizeOfRowArray.Length);
+            Array.Copy(data, 0, result, RowConstants.RowDataOffset(), data.Length);
+
+            return result;
+        }
+
         private IRowValue GetRowValueWithColumnName(string columnName)
         {
             foreach (var value in Values)
@@ -624,6 +688,21 @@ namespace Drummersoft.DrummerDB.Core.Structures
             return DbBinaryConvert.ArrayStitch(arrays);
         }
 
+        /// <summary>
+        /// Computes the row hash data from RowValues, sets the propery of the Hash, and returns the it to the caller
+        /// </summary>
+        /// <returns>A hash of the row data's values</returns>
+        private byte[] GetAndSetRowHash()
+        {
+            // ideally this code should be in Drummersoft.DrummerDB.Core.Cryptogrpahy
+            // but the dependencies wouldn't work (would result in a circular reference)
+            // may later change the dependency layout, but for now leaving this here
+            // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
+            var sourceData = GetRowInBinaryFormat();
+            var sha256Hash = SHA256.Create();
+            Hash = sha256Hash.ComputeHash(sourceData);
+            return Hash;
+        }
         #endregion
     }
 }

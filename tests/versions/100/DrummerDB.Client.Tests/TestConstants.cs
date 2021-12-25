@@ -43,6 +43,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
             public const int SET_STORAGE_POLICY = 5090;
             public const int TEST_COOP_ACTIONS = 5091;
             public const int TEST_GEN_CONTRACT = 5092;
+            public const int TEST_PARTICIPANT_ACCEPT_CONTRACT = 5093;
 
             // 6000
             public const int SQL_ONLINE = 6000;
@@ -55,6 +56,18 @@ namespace Drummersoft.DrummerDB.Client.Tests
 
             // 6030
             public const int CREATE_TABLE_DROP = 6030;
+
+            // 7000
+            public const int COOP_SQL_MULTI_TEST = 7000;
+
+            // 7050
+            public const int COOP_DB_MULTI_TEST = 7050;
+
+            // 9050
+            public const int COOP_DB_SQL_CRUD_TEST = 9050;
+
+            // 9060
+            public const int COOP_DB_DB_CRUD_TEST = 9060;
         }
     }
 }

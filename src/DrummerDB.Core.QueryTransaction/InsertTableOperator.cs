@@ -4,6 +4,8 @@ using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
 using System;
+using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -12,6 +14,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #region Private Fields
         private IDbManager _db;
         private List<Row> _tryRows;
+        private ICoopActionPlanOption[] _options;
         #endregion
 
         #region Public Properties
@@ -32,6 +35,16 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             Rows = new List<InsertRow>();
             _tryRows = new List<Row>();
             Columns = new List<StatementColumn>();
+
+            if (_options is null)
+            {
+                _options = new ICoopActionPlanOption[0];
+            }
+        }
+
+        public InsertTableOperator(IDbManager db, ICoopActionPlanOption[] options) : this(db)
+        {
+            _options = options;
         }
         #endregion
 
@@ -40,7 +53,21 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             bool rowsAdded = true;
 
-            var db = _db.GetUserDatabase(DatabaseName);
+            // default host type
+            var db = _db.GetDatabase(DatabaseName, DatabaseType.Host);
+
+            if (_options.Length > 0)
+            {
+                foreach (var option in _options)
+                {
+                    if (option is CoopActionOptionParticipant)
+                    {
+                        var participantOption = (CoopActionOptionParticipant)option;
+                        ExecuteForRemoteInsert(participantOption, transaction, transactionMode, ref messages, ref errorMessages);
+                        return;
+                    }
+                }
+            }
 
             if (string.IsNullOrEmpty(TableSchemaName))
             {
@@ -55,10 +82,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             var row = table.GetNewLocalRow();
                             foreach (var insertValue in insertRow.Values)
                             {
-                                row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                if (insertValue.IsNull)
+                                {
+                                    row.SetValueAsNullForColumn(insertValue.ColumnName);
+                                }
+                                else
+                                {
+                                    row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                }
+
                             }
 
-                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            if (!table.XactAddRow(row, transaction, transactionMode))
                             {
                                 rowsAdded = false;
                             }
@@ -72,7 +107,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         foreach (var row in _tryRows)
                         {
-                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            if (!table.XactAddRow(row, transaction, transactionMode))
                             {
                                 rowsAdded = false;
                             }
@@ -106,10 +141,17 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             var row = table.GetNewLocalRow();
                             foreach (var insertValue in insertRow.Values)
                             {
-                                row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                if (insertValue.IsNull)
+                                {
+                                    row.SetValueAsNullForColumn(insertValue.ColumnName);
+                                }
+                                else
+                                {
+                                    row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                }
                             }
 
-                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            if (!table.XactAddRow(row, transaction, transactionMode))
                             {
                                 rowsAdded = false;
                             }
@@ -123,7 +165,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         foreach (var row in _tryRows)
                         {
-                            if (!table.TryAddRow(row, transaction, transactionMode))
+                            if (!table.XactAddRow(row, transaction, transactionMode))
                             {
                                 rowsAdded = false;
                             }
@@ -145,11 +187,82 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 }
             }
         }
-        
+
 
         #endregion
 
         #region Private Methods
+        private void ExecuteForRemoteInsert(CoopActionOptionParticipant participantOption, TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
+        {
+            bool rowsAdded = true;
+            HostDb db = null;
+            Table table = null;
+
+            db = _db.GetHostDatabase(DatabaseName);
+
+            if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
+            {
+                Participant participant = new Participant();
+                db = _db.GetHostDatabase(DatabaseName);
+
+                if (db.HasParticipantAlias(participantOption.ParticipantAlias))
+                {
+                    participant = db.GetParticipant(participantOption.ParticipantAlias);
+                }
+
+                if (string.IsNullOrEmpty(TableSchemaName))
+                {
+                    if (db.HasTable(TableName))
+                    {
+                        table = db.GetTable(TableName);
+                        foreach (var insertRow in Rows)
+                        {
+                            var row = table.GetNewRemoteRow(participant);
+                            foreach (var insertValue in insertRow.Values)
+                            {
+                                if (insertValue.IsNull)
+                                {
+                                    row.SetValueAsNullForColumn(insertValue.ColumnName);
+                                }
+                                else
+                                {
+                                    row.SetValue(insertValue.ColumnName, insertValue.Value);
+                                }
+                            }
+
+                            if (!table.XactAddRow(row, transaction, transactionMode))
+                            {
+                                rowsAdded = false;
+                            }
+                            else
+                            {
+                                _tryRows.Add(row);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (transactionMode == TransactionMode.Commit && _tryRows.Count > 0)
+            {
+                table = db.GetTable(TableName);
+                foreach (var row in _tryRows)
+                {
+                    if (!table.XactAddRow(row, transaction, transactionMode))
+                    {
+                        rowsAdded = false;
+                    }
+                }
+            }
+
+            if (rowsAdded)
+            {
+                messages.Add($"{Rows.Count.ToString()} rows were added to table {TableName}");
+            }
+            else
+            {
+                errorMessages.Add("Rows were not added");
+            }
+        }
         #endregion
 
 

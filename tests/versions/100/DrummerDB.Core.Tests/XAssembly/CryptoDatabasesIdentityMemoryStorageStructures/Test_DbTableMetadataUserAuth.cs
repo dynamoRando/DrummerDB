@@ -1,11 +1,14 @@
-﻿using Drummersoft.DrummerDB.Core.Cryptography;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Cryptography;
 using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Tests.Integration;
 using System;
@@ -48,9 +51,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestAuthLogin");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".dumpartlog";
             string systemDbExtension = ".drumsys";
             string userDbName = "TestAuthUser";
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
 
             string fileName = Path.Combine(storageFolder, userDbName + hostDbExtension);
 
@@ -77,21 +83,23 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, crypto, xManager);
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, crypto, xManager, logService, notifications);
             var auth = new AuthenticationManager(manager);
 
-            manager.LoadSystemDatabases(cache, storage, crypto);
+            manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
 
-            manager.TryCreateNewHostDatabase(userDbName, out _);
+            manager.XactCreateNewHostDatabase(userDbName, out _);
 
-            var db = manager.GetUserDatabase(userDbName);
+            var db = manager.GetUserDatabase(userDbName, DatabaseType.Host);
 
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, userDbName);
 
             var addTableResult = db.AddTable(tableSchema, out _);
 
@@ -136,9 +144,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestPermissions");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
             string userDbName = "TestAuthUserPerm";
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
 
             string fileName = Path.Combine(storageFolder, userDbName + hostDbExtension);
 
@@ -166,18 +177,20 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, crypto, xManager);
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, crypto, xManager, logService, notifications);
             var auth = new AuthenticationManager(manager);
 
-            manager.LoadSystemDatabases(cache, storage, crypto);
+            manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             auth.SetInitalSystemAdmin(sysLogin, sysLoginPw);
-            manager.TryCreateNewHostDatabase(userDbName, out _);
-            var db = manager.GetUserDatabase(userDbName);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            manager.XactCreateNewHostDatabase(userDbName, out _);
+            var db = manager.GetUserDatabase(userDbName, DatabaseType.Host);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, userDbName);
             var addTableResult = db.AddTable(tableSchema, out tableObjectId);
 
             // --- ACT

@@ -199,51 +199,74 @@ namespace Drummersoft.DrummerDB.Core.Memory
                             IRow physicalRow = page.GetRow(row);
                             if (physicalRow.IsDeleted == false)
                             {
-                                physicalRow.SortBinaryOrder();
-                                var bytes = physicalRow.GetRowInPageBinaryFormat();
-                                schema.SortBinaryOrder();
-
-                                int valueOffset = RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
-                                //int valueOffset = RowConstants.LengthOfPreamble() + row.RowOffset;
-
-                                foreach (var value in physicalRow.Values)
+                                if (physicalRow.IsLocal)
                                 {
-                                    if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        var valueAddress =
-                                            new ValueAddress
-                                            {
-                                                PageId = pageAddress.PageId,
-                                                RowId = row.RowId,
-                                                RowOffset = row.RowOffset,
-                                                ValueOffset = valueOffset,
-                                                ParseLength = value.ParseValueLength,
-                                                DatabaseId = address.DatabaseId,
-                                                TableId = address.TableId,
-                                                ColumnName = columnName,
-                                                ColumnId = GetColumnId(schema, columnName),
-                                                SchemaId = address.SchemaId
-                                            };
-                                        result.Add(valueAddress);
-                                    }
-                                    else
-                                    {
-                                        // this should return for fixed length values the fixed length of the data type
-                                        // or if a fixed nullable length, the fixed length value + 1 byte (bool) for is null or not
-                                        // if the value is variable length, this will NOT include the 4 byte leading prefix, it will just return the value
-                                        // or if nullable variable length, the value + bool (or just bool if actually null)
+                                    physicalRow.SortBinaryOrder();
+                                    var bytes = physicalRow.GetRowInPageBinaryFormat();
+                                    schema.SortBinaryOrder();
 
-                                        // basically, this offset needs to reflect the layout of the byte array on the page
-                                        if (value.Column.IsFixedBinaryLength)
+                                    int valueOffset = RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
+                                    //int valueOffset = RowConstants.LengthOfPreamble() + row.RowOffset;
+
+                                    foreach (var value in physicalRow.Values)
+                                    {
+                                        if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
                                         {
-                                            valueOffset += value.BinarySize();
+                                            var valueAddress =
+                                                new ValueAddress
+                                                {
+                                                    PageId = pageAddress.PageId,
+                                                    RowId = row.RowId,
+                                                    RowOffset = row.RowOffset,
+                                                    ValueOffset = valueOffset,
+                                                    ParseLength = value.ParseValueLength,
+                                                    DatabaseId = address.DatabaseId,
+                                                    TableId = address.TableId,
+                                                    ColumnName = columnName,
+                                                    ColumnId = GetColumnId(schema, columnName),
+                                                    SchemaId = address.SchemaId
+                                                };
+                                            result.Add(valueAddress);
                                         }
                                         else
                                         {
-                                            // need to include the leading 4 byte prefix that tells us the size of the item
-                                            valueOffset += value.BinarySize() + Constants.SIZE_OF_INT;
+                                            // this should return for fixed length values the fixed length of the data type
+                                            // or if a fixed nullable length, the fixed length value + 1 byte (bool) for is null or not
+                                            // if the value is variable length, this will NOT include the 4 byte leading prefix, it will just return the value
+                                            // or if nullable variable length, the value + bool (or just bool if actually null)
+
+                                            // basically, this offset needs to reflect the layout of the byte array on the page
+                                            if (value.Column.IsFixedBinaryLength)
+                                            {
+                                                valueOffset += value.BinarySize();
+                                            }
+                                            else
+                                            {
+                                                // need to include the leading 4 byte prefix that tells us the size of the item
+                                                valueOffset += value.BinarySize() + Constants.SIZE_OF_INT;
+                                            }
                                         }
                                     }
+                                }
+                                else
+                                {
+                                    var valueAddress =
+                                                new ValueAddress
+                                                {
+                                                    PageId = pageAddress.PageId,
+                                                    RowId = row.RowId,
+                                                    RowOffset = row.RowOffset,
+                                                    ValueOffset = 0,
+                                                    ParseLength = 0,
+                                                    DatabaseId = address.DatabaseId,
+                                                    TableId = address.TableId,
+                                                    ColumnName = columnName,
+                                                    ColumnId = GetColumnId(schema, columnName),
+                                                    SchemaId = address.SchemaId,
+                                                    ParticipantId = physicalRow.ParticipantId.Value
+                                                };
+                                    result.Add(valueAddress);
+
                                 }
                             }
                         }
@@ -629,6 +652,14 @@ namespace Drummersoft.DrummerDB.Core.Memory
                         {
                             addresses.AddRange(page.GetRowsWithValue(value));
                         }
+                        else
+                        {
+                            // we want all values in the array to be found
+                            // as soon as one of them are not found, we should bail
+                            // in other words, this should behave as an AND operation for all values.
+                            // all values must be TRUE
+                            return 0;
+                        }
                     }
                 }
             }
@@ -638,37 +669,28 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
         public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
-            int count = CountOfRowsWithAllValues(address, ref values);
-            var result = new IRow[count];
-            int index = 0;
+            var result = new List<IRow>();
 
             TreeContainer container;
             _dataCache.TryGetValue(address, out container);
 
             if (container is not null)
             {
-                foreach (var value in values)
+                foreach (var id in container.Pages())
                 {
-                    foreach (var id in container.Pages())
+                    var page = container.GetPage(id);
+                    if (page.HasAllValues(values))
                     {
-                        var page = container.GetPage(id);
-                        if (page.HasValue(value))
+                        var addresses = page.GetRowAddressesWithAllValues(values);
+                        foreach (var addy in addresses)
                         {
-                            var rowsWithValue = page.GetRowAddressesWithValue(value);
-                            if (rowsWithValue.Length > 0)
-                            {
-                                foreach (var row in rowsWithValue)
-                                {
-                                    result[index] = page.GetRow(row);
-                                }
-                            }
-
+                            result.Add(page.GetRow(addy));
                         }
                     }
                 }
             }
 
-            return result;
+            return result.Distinct().ToArray();
         }
 
         public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)

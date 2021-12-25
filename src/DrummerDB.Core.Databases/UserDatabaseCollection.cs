@@ -1,4 +1,6 @@
-﻿using Drummersoft.DrummerDB.Core.Databases.Abstract;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases.Abstract;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -51,13 +53,29 @@ namespace Drummersoft.DrummerDB.Core.Databases
             set { _userDatabases[index] = value; }
         }
 
-        public UserDatabase GetUserDatabase(string dbName)
+        public UserDatabase GetUserDatabase(string dbName, DatabaseType type)
         {
             foreach (var db in _userDatabases)
             {
                 if (string.Equals(db.Name, dbName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return db;
+                    if (db.DatabaseType == type)
+                    {
+                        return db;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public HostDb GetHostDb(Guid dbId)
+        {
+            foreach (var db in _userDatabases)
+            {
+                if (db.Id == dbId)
+                {
+                    return db as HostDb;
                 }
             }
 
@@ -95,6 +113,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _userDatabases.Clear();
         }
 
+        public bool Contains(string dbName)
+        {
+            foreach (var db in _userDatabases)
+            {
+                if (string.Equals(db.Name, dbName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public bool Contains(UserDatabase item)
         {
             foreach (var db in _userDatabases)
@@ -107,13 +137,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
-        public bool Contains(string dbName)
+        public bool Contains(string dbName, DatabaseType type)
         {
             foreach (var db in _userDatabases)
             {
                 if (string.Equals(db.Name, dbName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return true;
+                    if (db.DatabaseType == type)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;

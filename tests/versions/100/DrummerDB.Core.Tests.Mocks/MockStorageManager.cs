@@ -182,7 +182,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public bool DeleteUserDatabase(string dbName)
+        public bool DeleteHostDatabase(string dbName)
         {
             throw new NotImplementedException();
         }
@@ -304,6 +304,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
                     file.Pages.Add(x);
                 }
             }
+        }
+
+        public bool SaveContractToDisk(Contract contract)
+        {
+            throw new NotImplementedException();
         }
     }
 }

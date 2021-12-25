@@ -293,7 +293,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                         if (Column.DataType is SQLBinary || Column.DataType is SQLVarbinary)
                         {
                             int length = DbBinaryConvert.BinaryToInt(span.Slice(Constants.SIZE_OF_BOOL, Constants.SIZE_OF_INT));
-                            SetValue(span.Slice(Constants.SIZE_OF_INT + Constants.SIZE_OF_BOOL, length));
+                            _value = span.Slice(Constants.SIZE_OF_INT + Constants.SIZE_OF_BOOL, length).ToArray();
                         }
                     }
                 }

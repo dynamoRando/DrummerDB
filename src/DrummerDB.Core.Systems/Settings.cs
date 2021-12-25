@@ -41,6 +41,8 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public bool LogPerformanceMetrics { get; set; }
         public bool EnableLogging { get; set; }
         public string LogFileName { get; set; }
+        public string ContractFolderName { get; set; }
+        public string ContractFileExtension { get; set; }
 
         /// <summary>
         /// The location for the database files. If blank, will return the app path + database folder name
@@ -60,7 +62,8 @@ namespace Drummersoft.DrummerDB.Core.Systems
         /// <summary>
         /// The file extension for a database's log file
         /// </summary>
-        public string DatabaseLogExtension { get; set; }
+        public string HostDatabaseLogExtension { get; set; }
+        public string PartDatabaseLogExtension { get; set; }
 
         public bool UseHttpsForConnections { get; set; }
         #endregion

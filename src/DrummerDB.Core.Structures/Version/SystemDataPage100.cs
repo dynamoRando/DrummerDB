@@ -49,6 +49,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Public Methods
+        public override bool HasAllValues(IRowValue[] values)
+        {
+            return _basePage.HasAllValues(values);
+        }
+
+        public override RowAddress[] GetRowAddressesWithAllValues(IRowValue[] values)
+        {
+            return _basePage.GetRowAddressesWithAllValues(values);
+        }
         public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false)
         {
             return _basePage.GetRowOffsets(rowId, stopAtFirstForward, includeDeletedRows);

@@ -3,6 +3,8 @@ using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
+using Drummersoft.DrummerDB.Core.Storage.Interface;
+using Drummersoft.DrummerDB.Core.Structures;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -20,6 +22,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private InfoServiceServer _infoServiceServer;
         private DatabaseServiceServer _databaseServiceServer;
         private LogService _logService;
+        private SystemNotifications _notifications;
 
         // internal objects
         private SQLServiceHandler _sqlServiceHandler;
@@ -28,13 +31,15 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private PortSettings _sqlServicePort;
         private PortSettings _databaseServicePort;
         private PortSettings _infoServicePort;
+        private HostInfo _hostInfo;
+        private bool _overrideDbPort = false;
         #endregion
 
         #region Public Properties
         #endregion
 
         #region Constructors
-        public NetworkManager(PortSettings databaseServiceSettings, PortSettings sqlServiceSettings, PortSettings infoServiceSettings, IQueryManager queryManager, IDbManager dbManager, LogService logService)
+        public NetworkManager(PortSettings databaseServiceSettings, PortSettings sqlServiceSettings, PortSettings infoServiceSettings, IQueryManager queryManager, IDbManager dbManager, LogService logService, HostInfo hostInfo, SystemNotifications notifications)
         {
             _queryManager = queryManager;
             _dbManager = dbManager;
@@ -43,10 +48,17 @@ namespace Drummersoft.DrummerDB.Core.Communication
             _databaseServicePort = databaseServiceSettings;
             _infoServicePort = infoServiceSettings;
             _logService = logService;
+            _hostInfo = hostInfo;   
+            _notifications = notifications;
         }
         #endregion
 
         #region Public Methods
+        public void SetHostInfo(HostInfo info)
+        {
+            _hostInfo = info;
+        }
+
         public void StartServerForSQLService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber, IQueryManager queryManager)
         {
             _sqlServicePort.PortNumber = portNumber;
@@ -154,7 +166,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         /// <param name="cache">An instance of a cache manager</param>
         /// <param name="crypt">An instance of a crypt manager</param>
         /// <remarks>The managers passed in are normally used in the creation of a new database</remarks>
-        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager)
+        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, IStorageManager storage)
         {
             string clientUrl;
 
@@ -187,7 +199,12 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 _databaseServiceHandler = new DatabaseServiceHandler();
                 _databaseServiceHandler.SetAuth(authenticationManager);
                 _databaseServiceHandler.SetDatabase(dbManager);
-            }
+                _databaseServiceHandler.SetStorage(storage);
+                _databaseServiceHandler.SetHostInfo(_hostInfo, _overrideDbPort);
+                _databaseServiceHandler.SetQueryManager(_queryManager);
+                _databaseServiceHandler.SetLogger(_logService); 
+                _databaseServiceHandler.SetNotifications(_notifications);
+                }
 
             if (useHttps)
             {
@@ -228,10 +245,12 @@ namespace Drummersoft.DrummerDB.Core.Communication
         /// <param name="cache">An instance of a cache manager</param>
         /// <param name="crypt">An instance of a crypt manager</param>
         /// <param name="portNumber">The port number the server should listen on. This value overrides what is in the settings file.</param>
-        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber)
+        /// <param name="storage">The storage manager (used to save pending contract information)</param>
+        public void StartServerForDatabaseService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber, IStorageManager storage)
         {
             _databaseServicePort.PortNumber = portNumber;
-            StartServerForDatabaseService(useHttps, authenticationManager, dbManager);
+            _hostInfo.DatabasePortNumber = portNumber;
+            StartServerForDatabaseService(useHttps, authenticationManager, dbManager, storage);
         }
 
         #endregion

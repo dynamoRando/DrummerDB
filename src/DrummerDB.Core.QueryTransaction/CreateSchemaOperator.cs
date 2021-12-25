@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
@@ -16,25 +17,27 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public IQueryPlanPartOperator NextOperation { get; set; }
         public string SchemaName { get; set; }
         public string DatabaseName { get; set; }
+        public DatabaseType DatabaseType { get; set; }
 
-        public CreateSchemaOperator(string schemaName, string dbName, IDbManager dbManager)
+        public CreateSchemaOperator(string schemaName, string dbName, IDbManager dbManager, DatabaseType type)
         {
             SchemaName = schemaName;
             DatabaseName = dbName;
             _db = dbManager;
+            DatabaseType = type;
         }
 
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
-            if (_db.HasUserDatabase(DatabaseName))
+            if (_db.HasUserDatabase(DatabaseName, DatabaseType))
             {
                 if (_db is DbManager)
                 {
                     var dbMan = _db as DbManager;
-                    UserDatabase db = dbMan.GetUserDatabase(DatabaseName);
+                    UserDatabase db = dbMan.GetUserDatabase(DatabaseName, DatabaseType);
                     if (!db.HasSchema(SchemaName))
                     {
-                        if (db.TryCreateSchema(SchemaName, transaction, transactionMode))
+                        if (db.XactCreateSchema(SchemaName, transaction, transactionMode))
                         {
                             messages.Add($"Successfully created {SchemaName} in Database {DatabaseName}");
                         }

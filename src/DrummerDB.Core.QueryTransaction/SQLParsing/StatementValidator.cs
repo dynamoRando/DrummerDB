@@ -26,6 +26,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public IDatabase Database;
         public StatementReport StatementReport;
         public StatementType Type;
+        public List<ICoopActionPlanOption> Options { get; set; }
         #endregion
 
         #region Constructors
@@ -35,6 +36,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 StatementReport.Errors = new List<string>();
             }
+
+            Options = new List<ICoopActionPlanOption>();
         }
         #endregion
 

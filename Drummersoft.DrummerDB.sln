@@ -111,6 +111,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Network", "Network", "{681A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Query", "Query", "{E116919D-4EEB-4BE9-A0D3-611EB008E17F}"
 	ProjectSection(SolutionItems) = preProject
+		doc\versions\100\guide\Query\Drummer_Syntax.md = doc\versions\100\guide\Query\Drummer_Syntax.md
 		doc\versions\100\guide\Query\IQueryManager.md = doc\versions\100\guide\Query\IQueryManager.md
 	EndProjectSection
 EndProject
@@ -135,7 +136,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrummerDB.Core.Service", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrummerDB.Browser", "src\DrummerDB.Browser\DrummerDB.Browser.csproj", "{E857AB5C-3087-4582-80B7-3E6CFB5728C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrummerDB.Templates", "src\DrummerDB.Templates\DrummerDB.Templates.csproj", "{EB7FD925-A4BD-40AA-A217-19536D12F428}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrummerDB.Templates", "src\DrummerDB.Templates\DrummerDB.Templates.csproj", "{EB7FD925-A4BD-40AA-A217-19536D12F428}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrummerDB.Embedded", "src\DrummerDB.Embedded\DrummerDB.Embedded.csproj", "{9AD5411C-9D1A-45A3-BE3B-F1146CC526D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -239,6 +242,10 @@ Global
 		{EB7FD925-A4BD-40AA-A217-19536D12F428}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB7FD925-A4BD-40AA-A217-19536D12F428}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB7FD925-A4BD-40AA-A217-19536D12F428}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AD5411C-9D1A-45A3-BE3B-F1146CC526D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AD5411C-9D1A-45A3-BE3B-F1146CC526D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AD5411C-9D1A-45A3-BE3B-F1146CC526D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AD5411C-9D1A-45A3-BE3B-F1146CC526D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -285,6 +292,7 @@ Global
 		{E451EF6B-96DD-47D4-9ABF-8B7D58040450} = {E7256684-2EEC-45E0-ACFC-C0750FE15495}
 		{E857AB5C-3087-4582-80B7-3E6CFB5728C3} = {E7256684-2EEC-45E0-ACFC-C0750FE15495}
 		{EB7FD925-A4BD-40AA-A217-19536D12F428} = {E7256684-2EEC-45E0-ACFC-C0750FE15495}
+		{9AD5411C-9D1A-45A3-BE3B-F1146CC526D2} = {E7256684-2EEC-45E0-ACFC-C0750FE15495}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E70A9432-E60D-4AD2-8260-76219598D69F}

@@ -27,6 +27,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return _statementHandler.ParseStatementForQueryPlan(statement, database, type);
         }
 
+        public QueryPlan GetQueryPlan(string statement, IDatabase database, IDbManager dbManager, ICoopActionPlanOption[] options)
+        {
+            //statement = statement.ToUpper();
+            var type = QueryParser.DetermineStatementType(statement);
+            return _statementHandler.ParseStatementForQueryPlan(statement, database, type, options);
+        }
+
         #endregion
 
         #region Private Methods

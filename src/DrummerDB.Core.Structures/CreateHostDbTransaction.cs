@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
-    internal class CreateDbTransaction : TransactionActionSchema
+    internal class CreateHostDbTransaction : TransactionActionSchema
     {
         private string _dbName;
-        public override TransactionSchemaOperation Operation => TransactionSchemaOperation.CreateDatabase;
+        public override TransactionSchemaOperation Operation => TransactionSchemaOperation.CreateHostDatabase;
 
-        public CreateDbTransaction(string dbName)
+        public CreateHostDbTransaction(string dbName)
         {
             _dbName = dbName;
         }

@@ -17,6 +17,7 @@ message SQLQueryRequest {
   string databaseName = 2;
   string sqlStatement = 3;
   string userSessionId = 4;
+  uint32 databaseType = 5;
 }
 
 // a message representing the results of a SQL query

@@ -37,7 +37,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     if (_db is HostDb)
                     {
                         var db = _db as HostDb;
-                        if (db.TryDropTable(_tableName, transaction, transactionMode))
+                        if (db.XactDropTable(_tableName, transaction, transactionMode))
                         {
                             messages.Add($"Table {_tableName} was dropped successfully");
                         }

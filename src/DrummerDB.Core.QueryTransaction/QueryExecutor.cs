@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases.Abstract;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
@@ -54,6 +55,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Public Methods
+        public bool ExecuteDatabaseServiceAction(IDatabaseServiceAction action, out string errorMessage)
+        {
+            bool isSuccessful = false;
+            Guid transactionBatchId = _transactionManager.GetPendingBatchTransactionId();
+            TransactionRequest transaction = _transactionManager.EnqueueBatchTransaction(transactionBatchId, Constants.DATABASE_SERVICE, action.Id);
+            isSuccessful = action.Execute(transaction, TransactionMode.None, out errorMessage);
+            _transactionManager.DequeueBatchTransaction(transactionBatchId);
+
+            return isSuccessful;
+        }
+
+
         public bool CancelPlan(Guid planId)
         {
             if (_activePlans.Contains(planId))
@@ -325,7 +338,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     break;
                 case CreateHostDbOperator b:
-                    if (_auth.UserHasSystemPermission(un, SystemPermission.CreateDatabase))
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.CreateHostDatabase))
                     {
                         return true;
                     }
@@ -345,7 +358,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(ctOp.DatabaseName);
+                    db = _db.GetUserDatabase(ctOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -365,7 +378,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(itOp.DatabaseName);
+                    db = _db.GetUserDatabase(itOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -384,7 +397,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(upOp.DatabaseName);
+                    db = _db.GetUserDatabase(upOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -403,7 +416,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(delOp.DatabaseName);
+                    db = _db.GetUserDatabase(delOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -423,7 +436,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(csOp.DatabaseName);
+                    db = _db.GetUserDatabase(csOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -444,7 +457,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(lspOp.DatabaseName);
+                    db = _db.GetUserDatabase(lspOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -465,7 +478,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(rlspOp.DatabaseName);
+                    db = _db.GetUserDatabase(rlspOp.DatabaseName, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -485,7 +498,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         return true;
                     }
 
-                    db = _db.GetUserDatabase(dtOp.Database.Name);
+                    db = _db.GetUserDatabase(dtOp.Database.Name, DatabaseType.Host);
                     if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
                     {
                         return true;
@@ -497,8 +510,62 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
 
                     break;
+                case RemoteSaveContractOperator j:
+                    var remote = operation as RemoteSaveContractOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    db = _db.GetUserDatabase(remote.DatabaseName, DatabaseType.Host);
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.FullAccess, db.Id))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasDbPermission(un, pw, db.Name, DbPermission.Request_Participant_Save_Contract, db.Id))
+                    {
+                        return true;
+                    }
+                    break;
+                case GenerateHostInfoOperator k:
+                    var genHostInfoOp = operation as GenerateHostInfoOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case CreatePartDbOperator l:
+                    var createPartDbOp = operation as CreatePartDbOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.CreatePartDatabase))
+                    {
+                        return true;
+                    }
+                    break;
+                case RemoteHostNotifyAcceptContractOperator m:
+                    var remoteHostNotifyAcceptContractOp = operation as RemoteHostNotifyAcceptContractOperator;
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.FullAccess))
+                    {
+                        return true;
+                    }
+
+                    if (_auth.UserHasSystemPermission(un, SystemPermission.RemoteHostNotifyAcceptContract))
+                    {
+                        return true;
+                    }
+                    break;
                 default:
-                    throw new InvalidOperationException("Unknown operator type");
+                    throw new InvalidOperationException($"Unknown operator type {operation.GetType()}");
             }
 
             return false;

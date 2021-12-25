@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
@@ -21,7 +22,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (plan is not null)
             {
                 var insert = new InsertQueryPlanPart();
-                var insertTable = new InsertTableOperator(dbManager);
+                InsertTableOperator insertTable = null;
+                if (plan.HasCooperativeOptions)
+                {
+                    insertTable = new InsertTableOperator(dbManager, plan.Options);
+                }
+                else
+                {
+                    insertTable = new InsertTableOperator(dbManager);
+                }
                 insertTable.Rows = statement.Rows;
                 insertTable.TableName = statement.TableName;
                 insertTable.Columns = statement.Columns;
@@ -56,11 +65,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
         }
 
-        static public void EvaluateQueryPlanForCreateDatabase(CreateDbStatement statement, QueryPlan plan, IDbManager dbManager)
+        static public void EvaluateQueryPlanForCreateDatabase(CreateHostDbStatement statement, QueryPlan plan, IDbManager dbManager)
         {
             if (plan is not null)
             {
-                var cdb = new CreateDbQueryPlanPart();
+                var cdb = new CreateHostDbQueryPlanPart();
                 var chdb = new CreateHostDbOperator(statement.DatabaseName, dbManager);
                 cdb.Operations.Add(chdb);
                 plan.Parts.Add(cdb);
@@ -83,7 +92,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (plan is not null)
             {
                 var createSchemaPlan = new CreateSchemaPlanPart();
-                var createSchema = new CreateSchemaOperator(statement.Name, databaseName, dbManager);
+
+                // default create in host database; may need to change later
+                var createSchema = new CreateSchemaOperator(statement.Name, databaseName, dbManager, DatabaseType.Host);
                 createSchemaPlan.Operations.Add(createSchema);
                 plan.Parts.Add(createSchemaPlan);
             }

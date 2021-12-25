@@ -26,8 +26,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)),dbName);
                     return schema;
                 }
 
@@ -115,8 +114,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -237,8 +235,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -291,8 +288,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -357,8 +353,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -412,8 +407,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -461,8 +455,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -514,8 +507,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -527,7 +519,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string IP6Address = "IP6Address";
                     public const string PortNumber = "PortNumber";
                     public const string LastCommunicationUTC = "LastCommunicationUTC";
-                    public const string HasAcceptedContract = "HasAcceptedContract";
+                    public const string Status = "Status";
                     public const string AcceptedContractVersion = "AcceptedContractVersion";
                     public const string AcceptedContractDateTimeUTC = "AcceptedContractDateTimeUTC";
                     public const string Token = "Token";
@@ -541,6 +533,16 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     }
 
                     return _columns;
+                }
+
+                public static ColumnSchema GetColumn(string columName)
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns.Get(columName);
                 }
 
                 private static void GenerateColumns()
@@ -567,8 +569,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                         var lastComm = new ColumnSchema(Columns.LastCommunicationUTC, new SQLDateTime(), 6, true);
                         _columns.Add(lastComm);
 
-                        var acceptedContract = new ColumnSchema(Columns.HasAcceptedContract, new SQLBit(), 7, true);
-                        _columns.Add(acceptedContract);
+                        var contractStatus = new ColumnSchema(Columns.Status, new SQLInt(), 7, true);
+                        _columns.Add(contractStatus);
 
                         var acceptedContractVersion = new ColumnSchema(Columns.AcceptedContractVersion, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 8, true);
                         _columns.Add(acceptedContractVersion);
@@ -591,8 +593,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -645,8 +646,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static TableSchema Schema(Guid dbId, string dbName)
                 {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)));
-                    schema.DatabaseName = dbName;
+                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
                     return schema;
                 }
 
@@ -654,9 +654,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     public const string ContractGUID = "ContractGUID";
                     public const string GeneratedDate = "GeneratedDate";
-                    public const string Author = "Author";
-                    public const string Token = "Token";
                     public const string Description = "Description";
+                    public const string RetiredDate = "RetiredDate";
+                    public const string Version = "Version";
                 }
 
                 public static ColumnSchema GetColumn(string columName)
@@ -685,23 +685,24 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     {
                         _columns = new ColumnSchemaCollection(5);
 
-                        var participantId = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                        _columns.Add(participantId);
+                        var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(contractGuid);
 
                         var alias = new ColumnSchema(Columns.GeneratedDate, new SQLDateTime(), 2);
                         _columns.Add(alias);
 
-                        var author = new ColumnSchema(Columns.Author, new SQLVarChar(50), 3);
-                        _columns.Add(author);
-
-                        var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 4, true);
-                        _columns.Add(token);
-
-                        var description = new ColumnSchema(Columns.Description, new SQLVarChar(128), 5, true);
+                        var description = new ColumnSchema(Columns.Description, new SQLVarChar(128), 3);
                         _columns.Add(description);
+
+                        var retireDate = new ColumnSchema(Columns.RetiredDate, new SQLDateTime(), 4);
+                        _columns.Add(retireDate);
+
+                        var version = new ColumnSchema(Columns.Version, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 5);
+                        _columns.Add(version);
                     }
                 }
             }
+
         }
 
         internal partial class Maps

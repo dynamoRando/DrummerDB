@@ -1,6 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
-using Drummersoft.DrummerDB.Core.Databases.Remote.Interface;
+using Drummersoft.DrummerDB.Core.Databases.Remote;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Interface;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
@@ -39,7 +39,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public readonly ICacheManager CacheManager;
         public readonly IDbManager DbManager;
         public readonly IStorageManager StorageManager;
-        public readonly IRemoteDataManager RemoteDataManager;
+
+        // is this ever set?
+        public readonly RemoteDataManager RemoteDataManager;
 
         public ITransactionEntryManager TransactionEntryManager => _xEntryManager;
 
@@ -56,7 +58,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <summary>
         /// The participants of the database
         /// </summary>
-        internal IParticipant[] Participants { get; set; }
+        internal Participant[] Participants { get; set; }
 
         /// <summary>
         /// The database contract
@@ -75,7 +77,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Constructors
-        public DatabaseMetadata(ISystemPage page, ICacheManager cache, ICryptoManager crypt, IDbManager dbManager, IStorageManager storage, ITransactionEntryManager xEntryManager)
+        public DatabaseMetadata(
+            ISystemPage page, 
+            ICacheManager cache, 
+            ICryptoManager crypt, 
+            IDbManager dbManager, 
+            IStorageManager storage, 
+            ITransactionEntryManager xEntryManager,
+            RemoteDataManager remote)
         {
             _xEntryManager = xEntryManager;
 
@@ -87,6 +96,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             _version = page.DatabaseVersion;
             _dbName = page.DatabaseName;
             _dbId = page.DatabaseId;
+            RemoteDataManager = remote;
 
             _systemDataPages = new DbMetaSystemDataPages(cache, _dbId, _version, crypt, storage, _xEntryManager, _dbName);
             _systemPage = new DbMetaSystemPage(cache, _dbId, _version);
@@ -107,11 +117,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        public DatabaseMetadata(ICacheManager cache, Guid dbId, int version, ICryptoManager crypt, IStorageManager storage, string dbName)
+        public DatabaseMetadata(ICacheManager cache, 
+            Guid dbId, 
+            int version, 
+            ICryptoManager crypt, 
+            IStorageManager storage, 
+            string dbName,
+            RemoteDataManager remote)
         {
             CryptoManager = crypt;
             CacheManager = cache;
             StorageManager = storage;
+            RemoteDataManager = remote;
 
             _systemDataPages = new DbMetaSystemDataPages(cache, dbId, version, crypt, storage, _xEntryManager, dbName);
             _systemPage = new DbMetaSystemPage(cache, dbId, version);
@@ -182,17 +199,37 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #endregion
 
         #region Public Methods
+        public List<ITableSchema> GetCopyOfUserTables()
+        {
+            int totalUserTables = 0;
+            foreach (var table in _tables)
+            {
+                if (string.Equals(table.Schema.SchemaName, Constants.SYS_SCHEMA, StringComparison.OrdinalIgnoreCase))
+                {
+                    totalUserTables++;
+                }
+            }
+
+            var result = new List<ITableSchema>(totalUserTables);
+
+            foreach (var table in _tables)
+            {
+                if (!string.Equals(table.Schema.SchemaName, Constants.SYS_SCHEMA, StringComparison.OrdinalIgnoreCase))
+                {
+                    result.Add(table);
+                }
+            }
+
+            return result;
+        }
+
+
         public TableSchema GetTableSchema(string tableName)
         {
             foreach (var item in _tables)
             {
                 if (string.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (string.IsNullOrEmpty(item.DatabaseName))
-                    {
-                        item.DatabaseName = GetDatabaseName();
-                    }
-
                     return item;
                 }
             }

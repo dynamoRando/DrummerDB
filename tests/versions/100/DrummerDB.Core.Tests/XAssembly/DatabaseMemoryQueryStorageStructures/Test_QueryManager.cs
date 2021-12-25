@@ -3,11 +3,13 @@ using Drummersoft.DrummerDB.Core.Cryptography;
 using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Abstract;
 using Drummersoft.DrummerDB.Core.Databases.Version;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using System;
 using System.Collections.Generic;
@@ -50,9 +52,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestQueryManager");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string hostLogDbExtension = ".drumlog";
+            string partLogDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
             string systemDbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
 
             string fileName = Path.Combine(storageFolder, userDbName + hostDbExtension);
 
@@ -61,7 +66,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 File.Delete(fileName);
             }
 
-            fileName = Path.Combine(storageFolder, userDbName + logDbExtension);
+            fileName = Path.Combine(storageFolder, userDbName + hostLogDbExtension);
 
             if (File.Exists(fileName))
             {
@@ -75,27 +80,29 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 File.Delete(fileName);
             }
 
-            fileName = Path.Combine(storageFolder, systemDbName + logDbExtension);
+            fileName = Path.Combine(storageFolder, systemDbName + hostLogDbExtension);
 
             if (File.Exists(fileName))
             {
                 File.Delete(fileName);
             }
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, crypto, xManager);
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, crypto, xManager, logService, notifications);
             var auth = new AuthenticationManager(manager);
 
             _dbManager = manager;
 
-            manager.LoadSystemDatabases(cache, storage, crypto);
+            manager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
             Guid dbId;
-            manager.TryCreateNewHostDatabase(userDbName, out dbId);
+            manager.XactCreateNewHostDatabase(userDbName, out dbId);
 
-            var db = manager.GetUserDatabase(userDbName);
+            var db = manager.GetUserDatabase(userDbName, DatabaseType.Host);
             manager.CreateAdminLogin(userName, password, Guid.NewGuid());
 
             int tableId = 990;
@@ -123,7 +130,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(nicName);
             columns.Add(columnRank);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, userDbName);
 
             Guid tableGuidId;
             bool tableCreated = db.AddTable(tableSchema, out tableGuidId);
@@ -142,7 +149,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row.SetValue("NickName", "Randster");
                 row.SetValue("Rank", "1");
 
-                table.TryAddRow(row);
+                table.XactAddRow(row);
 
                 var row2 = table.GetNewLocalRow();
                 row2.SortBinaryOrder();
@@ -156,7 +163,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row2.SetValue("NickName", "Way");
                 row2.SetValue("Rank", "1");
 
-                table.TryAddRow(row2);
+                table.XactAddRow(row2);
 
                 var row3 = table.GetNewLocalRow();
                 row3.SortBinaryOrder();
@@ -170,7 +177,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row3.SetValue("NickName", "Marky");
                 row3.SetValue("Rank", "6");
 
-                table.TryAddRow(row3);
+                table.XactAddRow(row3);
 
                 var row4 = table.GetNewLocalRow();
                 row4.SortBinaryOrder();
@@ -184,7 +191,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row4.SetValue("NickName", "Jen");
                 row4.SetValue("Rank", "55");
 
-                table.TryAddRow(row4);
+                table.XactAddRow(row4);
 
                 var row5 = table.GetNewLocalRow();
                 row5.SortBinaryOrder();
@@ -198,7 +205,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 row5.SetValue("NickName", "Jack");
                 row5.SetValue("Rank", "44");
 
-                table.TryAddRow(row5);
+                table.XactAddRow(row5);
             }
 
             var queryManager = new QueryManager(manager, auth, xManager);
@@ -328,7 +335,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var results = queryManager.ExecuteValidatedStatement(sqlStatement, userDbName, userName, password, userSessionId);
 
             // --- ASSERT
-            Assert.True(_dbManager.HasUserDatabase(createdDbName));
+            Assert.True(_dbManager.HasUserDatabase(createdDbName, DatabaseType.Host));
         }
 
         [Fact]
@@ -349,12 +356,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string errorCreateMessage = string.Empty;
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateStatement, userDbName, out errorCreateMessage);
             var createResult = queryManager.ExecuteValidatedStatement(sqlCreateStatement, userDbName, userName, password, userSessionId);
-            var dbWasCreated = _dbManager.HasUserDatabase(createdDbName);
+            var dbWasCreated = _dbManager.HasUserDatabase(createdDbName, DatabaseType.Host);
 
             string errorDropMessage = string.Empty;
             var isDropStatementValid = queryManager.IsStatementValid(sqlDropStatement, userDbName, out errorDropMessage);
             var dropResult = queryManager.ExecuteValidatedStatement(sqlDropStatement, userDbName, userName, password, userSessionId);
-            var dbWasDropped = _dbManager.HasUserDatabase(createdDbName);
+            var dbWasDropped = _dbManager.HasUserDatabase(createdDbName, DatabaseType.Host);
 
             // --- ASSERT
             Assert.True(dbWasCreated);
@@ -383,14 +390,14 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string sqlSelectFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName}";
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
 
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
             string errorCreateMessage = string.Empty;
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
-            var db = _dbManager.GetUserDatabase(userDbName);
+            var db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableWasCreated = db.HasTable(createdTableName);
 
             string errorSelectMessage = string.Empty;
@@ -451,14 +458,14 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string sqlSelectBrandonFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName} WHERE EMPLOYEENAME = 'Brandon'";
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
             string errorCreateMessage = string.Empty;
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
-            var db = _dbManager.GetUserDatabase(userDbName);
+            var db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableWasCreated = db.HasTable(createdTableName);
 
             string errorInsertMessage = string.Empty;
@@ -547,14 +554,14 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string sqlSelectEmployees = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName}";
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
             string errorCreateMessage = string.Empty;
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
-            var db = _dbManager.GetUserDatabase(userDbName);
+            var db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableWasCreated = db.HasTable(createdTableName);
 
             string errorInsertMessage = string.Empty;
@@ -648,14 +655,14 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string sqlSelectBobbyFromTable = $"SELECT ID, EMPLOYEENAME, HIREDATE, TERMDATE FROM {createdTableName} WHERE EMPLOYEENAME = 'Bobby'";
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
             string errorCreateMessage = string.Empty;
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
-            var db = _dbManager.GetUserDatabase(userDbName);
+            var db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableWasCreated = db.HasTable(createdTableName);
 
             string errorInsertMessage = string.Empty;
@@ -705,7 +712,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var brandonHireDateString = brandonHireDate.Date.ToString();
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
 
@@ -724,7 +731,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
-            var db = _dbManager.GetUserDatabase(userDbName);
+            var db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableWasCreated = db.HasTable(createdTableName);
 
             // Insert Employees Into Table
@@ -803,7 +810,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var brandonHireDateString = brandonHireDate.Date.ToString();
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
 
@@ -822,7 +829,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
-            var db = _dbManager.GetUserDatabase(userDbName);
+            var db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableWasCreated = db.HasTable(createdTableName);
 
             // Insert Employees Into Table
@@ -893,7 +900,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             DateTime now = DateTime.Now;
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
 
@@ -991,7 +998,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             DateTime now = DateTime.Now;
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
             string sqlCreateSchemaStatement = $"CREATE SCHEMA {createdSchemaName}";
@@ -1015,7 +1022,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
-            UserDatabase db = _dbManager.GetUserDatabase(userDbName);
+            Assert.True(createTableResult.ExecutionErrors.Count == 0);
+
+            UserDatabase db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             Assert.True(db.HasSchema(createdSchemaName));
             Assert.True(db.HasTable(createdTableName, createdSchemaName));
         }
@@ -1032,8 +1041,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestLoadDbs");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
             string systemDbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
 
             string fileName = Path.Combine(storageFolder, userDbName + hostDbExtension);
@@ -1043,7 +1055,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 File.Delete(fileName);
             }
 
-            fileName = Path.Combine(storageFolder, userDbName + logDbExtension);
+            fileName = Path.Combine(storageFolder, userDbName + logHostDbExtension);
 
             if (File.Exists(fileName))
             {
@@ -1057,28 +1069,30 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 File.Delete(fileName);
             }
 
-            fileName = Path.Combine(storageFolder, systemDbName + logDbExtension);
+            fileName = Path.Combine(storageFolder, systemDbName + logHostDbExtension);
 
             if (File.Exists(fileName))
             {
                 File.Delete(fileName);
             }
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var logService = new LogService();
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var crypto = new CryptoManager();
             var xManager = new TransactionEntryManager();
-            var dbManager = new DbManager(storage, cache, crypto, xManager);
+            var notifications = new SystemNotifications();
+            var dbManager = new DbManager(storage, cache, crypto, xManager, logService, notifications);
             var auth = new AuthenticationManager(dbManager);
+            
+            dbManager.LoadSystemDatabases(cache, storage, crypto, new HostInfo());
 
-            dbManager.LoadSystemDatabases(cache, storage, crypto);
+            dbManager.XactCreateNewHostDatabase(userDbName, out _);
+            dbManager.XactCreateNewHostDatabase("TestDb2", out _);
+            dbManager.XactCreateNewHostDatabase("TestDb3", out _);
+            dbManager.XactCreateNewHostDatabase("TestDb4", out _);
 
-            dbManager.TryCreateNewHostDatabase(userDbName, out _);
-            dbManager.TryCreateNewHostDatabase("TestDb2", out _);
-            dbManager.TryCreateNewHostDatabase("TestDb3", out _);
-            dbManager.TryCreateNewHostDatabase("TestDb4", out _);
-
-            var db = dbManager.GetUserDatabase(userDbName);
+            var db = dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             dbManager.CreateAdminLogin(userName, password, Guid.NewGuid());
 
             var queryManager = new QueryManager(dbManager, auth, xManager);
@@ -1094,7 +1108,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             foreach (var row in selectDatabasesResult.Rows)
             {
-                string result = DbBinaryConvert.BinaryToString(row[0].Value);
+                string result = DbBinaryConvert.BinaryToString(row[1].Value);
                 Debug.WriteLine(result);
             }
 
@@ -1128,14 +1142,14 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var queryManager = Arrange_Query_Manager(userDbName, userName, password, userSessionId);
 
-            var dbExists = _dbManager.HasUserDatabase(userDbName);
+            var dbExists = _dbManager.HasUserDatabase(userDbName, DatabaseType.Host);
 
             // --- ACT
             string errorCreateMessage = string.Empty;
             var isCreateStatementValid = queryManager.IsStatementValid(sqlCreateTableStatement, userDbName, out errorCreateMessage);
             var createTableResult = queryManager.ExecuteValidatedStatement(sqlCreateTableStatement, userDbName, userName, password, userSessionId);
 
-            var db = _dbManager.GetUserDatabase(userDbName);
+            var db = _dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
             var tableWasCreated = db.HasTable(createdTableName);
 
             string errorSelectMessage = string.Empty;

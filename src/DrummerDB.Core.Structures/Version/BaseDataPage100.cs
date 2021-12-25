@@ -71,7 +71,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         public override byte[] Data => _data;
         public override PageAddress Address => _address;
-
         /// <summary>
         /// The page type
         /// </summary>
@@ -150,6 +149,72 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Public Methods
+        public override bool HasAllValues(IRowValue[] values)
+        {
+            List<RowAddress> rows = GetRowIdsOnPage();
+            foreach (var row in rows)
+            {
+                bool rowHasAllValues = true;
+                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+
+                foreach (var value in values)
+                {
+                    byte[] a;
+                    byte[] b;
+
+                    a = rowData.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                    if (!DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        rowHasAllValues = false;
+                        break;
+                    }
+                }
+
+                if (rowHasAllValues)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public override RowAddress[] GetRowAddressesWithAllValues(IRowValue[] values)
+        {
+            List<RowAddress> result = new List<RowAddress>();
+
+            List<RowAddress> rows = GetRowIdsOnPage();
+            foreach (var row in rows)
+            {
+                bool rowHasAllValues = true;
+                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+
+                foreach (var value in values)
+                {
+                    byte[] a;
+                    byte[] b;
+
+                    a = rowData.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                    if (!DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        rowHasAllValues = false;
+                        break;
+                    }
+                }
+
+                if (rowHasAllValues)
+                {
+                    result.Add(row);
+                }
+            }
+
+            return result.Distinct().ToArray();
+        }
+
         public override bool IsDeleted()
         {
             var dataSpan = new ReadOnlySpan<byte>(_data);
@@ -544,15 +609,18 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             {
                 var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
-                byte[] a;
-                byte[] b;
-
-                a = rowData.GetValueInByte(value.Column.Name);
-                b = value.GetValueInBinary(false, value.Column.IsNullable);
-
-                if (DbBinaryConvert.BinaryEqual(a, b))
+                if (!rowData.IsForwarded && !rowData.IsDeleted)
                 {
-                    count++;
+                    byte[] a;
+                    byte[] b;
+
+                    a = rowData.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                    if (DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        count++;
+                    }
                 }
             }
 
@@ -571,12 +639,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 byte[] a;
                 byte[] b;
 
-                a = rowData.GetValueInByte(value.Column.Name);
-                b = value.GetValueInBinary(false, value.Column.IsNullable);
-
-                if (DbBinaryConvert.BinaryEqual(a, b))
+                if (!rowData.IsForwarded && !rowData.IsDeleted)
                 {
-                    result.Add(row);
+                    a = rowData.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                    if (DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        result.Add(row);
+                    }
                 }
             }
 
@@ -799,20 +870,34 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     }
                     else
                     {
-                        throw new NotImplementedException("remote row data has not been implemented");
-                        // TODO - haven't tested this yet, this is prototyping
-                        var binaryParticipantId = span.Slice(runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID);
+                        ReadOnlySpan<byte> sizeOfRowData = span.Slice(runningTotal + RowConstants.LengthOfPreamble(), RowConstants.SIZE_OF_ROW_SIZE);
+                        int sizeOfRow = DbBinaryConvert.BinaryToInt(sizeOfRowData);
+                        int rowdataSlice = sizeOfRow - RowConstants.LengthOfPreamble() - RowConstants.SIZE_OF_ROW_SIZE;
+                        runningTotal += RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
+
+                        // format needs to be 
+                        // participant id
+                        // length of data hash (int - 4 bytes)
+                        // data hash
+
+                        var remoteData = span.Slice(runningTotal, rowdataSlice);
+                        int remoteDataTotal = runningTotal;
+
+                        runningTotal += sizeOfRow;
+
+                        var binaryParticipantId = span.Slice(remoteDataTotal, RowConstants.SIZE_OF_PARTICIPANT_ID);
                         Guid partipantId = DbBinaryConvert.BinaryToGuid(binaryParticipantId);
                         row.ParticipantId = partipantId;
 
-                        //byte[] data = _cache.GetRemoteRowData(partipantId, new SQLAddress { DatabaseId = _address.DatabaseId, TableId = _address.TableId, PageId = PageId(), RowId = row.Id, RowOffset = 0 });
-                        //row.SetRowData(_schema, data);
+                        remoteDataTotal += RowConstants.SIZE_OF_PARTICIPANT_ID;
 
-                        // ideally, we shouldn't have DrummerDB.Structures take a dependency on Network
-                        // maybe we should have DrummerDB.Databases take a dependency on Network?
-                        // In theory, we would have the database ask network to go get the remote bytes
+                        int dataHashLength = DbBinaryConvert.BinaryToInt(span.Slice(remoteDataTotal, Constants.SIZE_OF_INT));
+                        remoteDataTotal += Constants.SIZE_OF_INT;
 
-                        runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID + RowConstants.LengthOfPreamble();
+                        var hashData = span.Slice(remoteDataTotal, dataHashLength).ToArray();
+                        row.Hash = hashData;
+
+                        remoteDataTotal += dataHashLength;
                     }
                 }
             }
@@ -935,6 +1020,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 throw new InvalidOperationException("Unknown Page Type");
             }
         }
+
+
 
         #endregion
     }

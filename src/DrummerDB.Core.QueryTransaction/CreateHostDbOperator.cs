@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Databases.Interface;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
@@ -24,13 +25,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
-            if (!_db.HasUserDatabase(DatabaseName))
+            if (!_db.HasUserDatabase(DatabaseName, DatabaseType.Host))
             {
                 if (_db is DbManager)
                 {
                     var db = _db as DbManager;
                     Guid dbId;
-                    if (db.TryCreateNewHostDatabase(DatabaseName, transaction, transactionMode, out dbId))
+                    if (db.XactCreateNewHostDatabase(DatabaseName, transaction, transactionMode, out dbId))
                     {
                         messages.Add($"Database {DatabaseName} created with Id {dbId.ToString()}");
                     }

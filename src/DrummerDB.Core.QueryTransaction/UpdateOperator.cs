@@ -74,7 +74,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                         if (table.HasColumn(updateValue.Column.ColumnName))
                                         {
                                             row.SetValue(updateValue.Column.ColumnName, updateValue.Value);
-                                            if (!table.TryUpdateRow(row, transaction, transactionMode))
+                                            if (!table.XactUpdateRow(row, transaction, transactionMode))
                                             {
                                                 rowsUpdated = false;
                                             }

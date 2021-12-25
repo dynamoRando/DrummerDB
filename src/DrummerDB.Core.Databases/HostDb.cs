@@ -4,9 +4,14 @@ using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
+using Drummersoft.DrummerDB.Core.Databases.Remote;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100;
+using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100.Tables;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -16,55 +21,284 @@ namespace Drummersoft.DrummerDB.Core.Databases
     internal class HostDb : UserDatabase
     {
         #region Private Fields
-        // NOTE: Use _cache here only for actions related to User Data, for any meta data actions, use the corresponding MetaData object
-        // NOTE: May need to seperate out User Data actions (i.e. things that pertain to tables) into a different sub-object?
-        private DatabaseMetadata _metaData;
-        private ITransactionEntryManager _xEntryManager;
-        private TableCollection _inMemoryTables;
-        private LogService _log;
-
-        private ProcessUserDatabaseSettings _settings;
+        private BaseUserDatabase _baseDb;
+        private RemoteDataManager _remote;
         #endregion
 
         #region Public Properties
-        public override string Name => _metaData.Name;
-        public override int Version => _metaData.Version;
-        public override Guid Id => _metaData.Id;
         public override DatabaseType DatabaseType => DatabaseType.Host;
+        public override Guid Id => _baseDb.Id;
+        public override string Name => _baseDb.Name;
+        public override int Version => _baseDb.Version;
         #endregion
 
         #region Constructors
         // TODO - this entire class needs a bit more thoughtfulness.
         internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager) : base(metadata)
         {
-            _metaData = metadata;
-            _xEntryManager = xEntryManager;
-            _inMemoryTables = new TableCollection();
-
-            LoadTablesIntoMemory();
+            _baseDb = new BaseUserDatabase(metadata, xEntryManager);
+            _remote = metadata.RemoteDataManager;
         }
 
         internal HostDb(DatabaseMetadata metadata, ITransactionEntryManager xEntryManager, LogService log) : base(metadata)
         {
-            _metaData = metadata;
-            _xEntryManager = xEntryManager;
-            _inMemoryTables = new TableCollection();
-            _log = log;
-
-            LoadTablesIntoMemory();
+            _baseDb = new BaseUserDatabase(metadata, xEntryManager, log);
+            _remote = metadata.RemoteDataManager;
         }
 
-        internal HostDb(DatabaseMetadata metadata, ProcessUserDatabaseSettings settings, ITransactionEntryManager xEntryManager) :
-            this(metadata, xEntryManager)
-        {
-            _settings = settings;
-        }
         #endregion
 
         #region Public Methods
-        public override bool IsReadyForCooperation()
+        public void UpdateHostInfo(Guid hostGuid, string hostName, byte[] token)
         {
-            foreach (var table in _inMemoryTables)
+            _remote.UpdateHostInfo(hostGuid, hostName, token);
+        }
+
+        public void UpdateHostInfo(HostInfo hostInfo)
+        {
+            _remote.UpdateHostInfo(hostInfo);
+        }
+
+        public override bool AddTable(TableSchema schema, out Guid tableObjectId)
+        {
+            return _baseDb.AddTable(schema, out tableObjectId);
+        }
+
+        public override bool AuthorizeUser(string userName, string pwInput, DbPermission permission, Guid objectId)
+        {
+            return _baseDb.AuthorizeUser(userName, pwInput, permission, objectId);
+        }
+
+        public override bool CreateUser(string userName, string pwInput)
+        {
+            return _baseDb.CreateUser(userName, pwInput);
+        }
+
+        public Contract GetContract(Guid contractGUID)
+        {
+            string guid = contractGUID.ToString();
+
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+
+            var contractValue = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, guid);
+            var rows = contracts.GetRowsWithValue(contractValue);
+
+            if (rows.Count != 1)
+            {
+                throw new InvalidOperationException("Contract not found");
+            }
+
+            var contractData = rows.First();
+
+            var contract = new Contract();
+            contract.Host = _remote.HostInfo;
+
+            contract.ContractGUID = Guid.Parse(contractData.GetValueInString(DatabaseContracts.Columns.ContractGUID));
+            contract.Description = contractData.GetValueInString(DatabaseContracts.Columns.Description);
+            contract.GeneratedDate = DateTime.Parse(contractData.GetValueInString(DatabaseContracts.Columns.GeneratedDate));
+            contract.Version = Guid.Parse(contractData.GetValueInString(DatabaseContracts.Columns.Version));
+
+            // now we need to send the entire database schema over as part of the contract
+            // note: we exclude the sys schema since it is reserved and should not participate in logical storage policies
+            // also, we should neevr allow the user to create tables in the sys schema to "hide" data
+            contract.DatabaseName = Name;
+            contract.DatabaseId = Id;
+            contract.Tables = _baseDb.MetaData.GetCopyOfUserTables();
+
+            return contract;
+        }
+
+        public Guid GetCurrentContractGUID()
+        {
+            // need to find the max contract in the sys.DatabaseContracts table
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+            DateTime maxDate = DateTime.MinValue;
+
+            var rows = contracts.GetRows();
+            foreach (var row in rows)
+            {
+                var data = contracts.GetRow(row);
+                var stringDate = data.GetValueInString(Tables.DatabaseContracts.Columns.GeneratedDate);
+
+                var date = DateTime.Parse(stringDate);
+                if (date > maxDate)
+                {
+                    maxDate = date;
+                }
+            }
+
+            var maxDateValue = RowValueMaker.Create(contracts, DatabaseContracts.Columns.GeneratedDate, maxDate.ToString());
+            var maxContractRow = contracts.GetRowsWithValue(maxDateValue);
+
+            if (maxContractRow.Count != 1)
+            {
+                throw new InvalidOperationException("Max contract not found");
+            }
+
+            string stringContractGuid = maxContractRow.First().GetValueInString(DatabaseContracts.Columns.ContractGUID);
+
+            return Guid.Parse(stringContractGuid);
+        }
+
+        public override int GetMaxTableId()
+        {
+            return _baseDb.GetMaxTableId();
+        }
+
+        public override List<TransactionEntry> GetOpenTransactions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Participant GetParticipant(string aliasName)
+        {
+            Participant result = new();
+            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
+            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
+            int resultCount = participants.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple participants with the same alias {aliasName}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no participants with the alias {aliasName}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = participants.GetRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+                    result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
+                    result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
+                    result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
+                    result.Alias = row.GetValueInString(Participants.Columns.Alias);
+
+                    result.Url = string.Empty;
+                    result.UseHttps = false;
+                }
+            }
+
+            return result;
+        }
+
+        public ResultsetValue GetValueFromParticipant(ValueAddress address, TransactionRequest transaction, Participant participant)
+        {
+            string errorMessage = string.Empty;
+            var data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), out errorMessage);
+            throw new NotImplementedException();
+        }
+
+        public Participant GetParticipant(Guid participantId)
+        {
+            Participant result = new();
+            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
+            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.ParticpantGUID, participantId.ToString());
+            int resultCount = participants.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple participants with the same id {participantId}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no participants with the id {participantId}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = participants.GetRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+                    result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
+                    result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
+                    result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
+                    result.Alias = row.GetValueInString(Participants.Columns.Alias);
+
+                    result.Url = string.Empty;
+                    result.UseHttps = false;
+                }
+            }
+
+            return result;
+        }
+
+        public override DatabaseSchemaInfo GetSchemaInformation(string schemaName)
+        {
+            return _baseDb.GetSchemaInformation(schemaName);
+        }
+
+        public override Table GetTable(int tableId)
+        {
+            return _baseDb.GetTable(tableId);
+        }
+
+        public override Table GetTable(string tableName, string schemaName)
+        {
+            return _baseDb.GetTable(tableName, schemaName);
+        }
+
+        public override Table GetTable(string tableName)
+        {
+            return _baseDb.GetTable(tableName);
+        }
+
+        public override Guid GetTableObjectId(string tableName)
+        {
+            return _baseDb.GetTableObjectId(tableName);
+        }
+
+        public override bool GrantUserPermission(string userName, DbPermission permission, Guid objectId)
+        {
+            return _baseDb.GrantUserPermission(userName, permission, objectId);
+        }
+
+        public bool HasParticipantAlias(string aliasName)
+        {
+            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
+            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
+            return participants.HasValue(searchItem);
+        }
+
+        public override bool HasSchema(string schemaName)
+        {
+            return _baseDb.HasSchema(schemaName);
+        }
+
+        public override bool HasTable(int tableId)
+        {
+            return _baseDb.HasTable(tableId);
+        }
+
+        public override bool HasTable(string tableName, string schemaName)
+        {
+            return _baseDb.HasTable(tableName, schemaName);
+        }
+
+        public override bool HasTable(string tableName)
+        {
+            return _baseDb.HasTable(tableName);
+        }
+
+        public override bool HasUser(string userName, Guid userId)
+        {
+            return _baseDb.HasUser(userName, userId);
+        }
+
+        public override bool HasUser(string userName)
+        {
+            return _baseDb.HasUser(userName);
+        }
+
+        public bool IsReadyForCooperation()
+        {
+            foreach (var table in _baseDb.InMemoryTables)
             {
                 string schemaName = table.Schema().Schema.SchemaName;
                 // need to ignore sys tables
@@ -83,531 +317,169 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return true;
         }
 
-        public override bool TryDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
-        {
-            var storage = _metaData.StorageManager;
-            TransactionEntry xact = null;
-            var cache = _metaData.CacheManager;
-            Table table;
-            TableSchema schema;
-            List<IPage> pages;
-
-            switch (transactionMode)
-            {
-                case TransactionMode.None:
-
-                    if (HasTable(tableName))
-                    {
-                        _inMemoryTables.Remove(tableName);
-                        _metaData.DropTable(tableName, transaction, transactionMode);
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                case TransactionMode.Try:
-
-                    if (HasTable(tableName))
-                    {
-                        table = _inMemoryTables.Get(tableName);
-                        schema = _metaData.GetTableSchema(tableName);
-                        var addresses = _metaData.CacheManager.GetPageAddressesForTree(table.Address);
-                        pages = new List<IPage>();
-
-                        // get the pages for the tree (table) from memory before we mark them as deleted
-                        // and save them to disk
-                        foreach (var address in addresses)
-                        {
-                            var page = _metaData.CacheManager.UserDataGetPage(address);
-                            pages.Add(page as IPage);
-                        }
-
-                        // record the data in the transaction entry
-                        xact = GetTransactionEntryForDropTable(GetDropTableTransaction(schema, table, pages), transaction);
-                        _xEntryManager.AddEntry(xact);
-
-                        // save the transaction to disk
-                        storage.LogOpenTransaction(_metaData.Id, xact);
-
-                        // -- remove the actual table
-                        // remove from our in memory collection
-                        _inMemoryTables.Remove(tableName);
-                        // remove all the table infastructure (schema, data pages in cache, data pages on disk)
-                        _metaData.DropTable(tableName, transaction, transactionMode);
-
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                case TransactionMode.Rollback:
-
-                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
-
-                    // need to get the data back to revert the changes
-                    // need to load the pages back into cache
-                    // and need to make sure the pages are not deleted on disk
-                    var xactData = xact.GetActionAsDropTable();
-
-                    table = xactData.Table as Table;
-                    schema = xactData.Schema;
-                    pages = xactData.Pages;
-
-                    _inMemoryTables.Add(table as Table);
-                    _metaData.AddTable(schema, out _);
-
-                    foreach (var page in pages)
-                    {
-                        if (page is IBaseDataPage)
-                        {
-                            // note - we might be duplicating pages; because we just mark the pages as deleted
-                            // and here we are trying to save the pages back to disk as undeleted
-                            // we might be better off just marking the pages as undeleted directly on disk
-                            var dataPage = page as IBaseDataPage;
-                            storage.SavePageDataToDisk(new PageAddress
-                            {
-                                PageId = dataPage.PageId(),
-                                DatabaseId = table.Address.DatabaseId,
-                                TableId = table.Address.TableId,
-                                SchemaId = table.Address.SchemaId
-                            }, dataPage.Data, dataPage.Type, dataPage.DataPageType(), page.IsDeleted());
-                        }
-                    }
-
-                    // load Cache back with data from disk
-                    table.BringTreeOnline();
-
-                    // once done restoring data, need to clean up transaction
-                    xact.MarkDeleted();
-                    storage.RemoveOpenTransaction(_metaData.Id, xact);
-                    _xEntryManager.RemoveEntry(xact);
-
-                    return true;
-
-                case TransactionMode.Commit:
-
-                    xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
-                    xact.MarkComplete();
-                    storage.LogCloseTransaction(_metaData.Id, xact);
-                    _xEntryManager.RemoveEntry(xact);
-
-                    break;
-                case TransactionMode.Unknown:
-                    throw new InvalidOperationException("Unknown transaction type");
-                default:
-                    throw new InvalidOperationException("Unknown transaction type");
-            }
-
-            throw new NotImplementedException();
-        }
-
-        public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy)
-        {
-            if (HasTable(tableName))
-            {
-                var table = GetTable(tableName);
-                table.SetLogicalStoragePolicy(policy);
-
-                var schema = _metaData.GetSchema(tableName, Name) as TableSchema;
-                schema.SetStoragePolicy(policy);
-                _metaData.UpdateTableSchema(schema);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
-        {
-            if (HasTable(tableName))
-            {
-                var table = GetTable(tableName);
-                table.SetLogicalStoragePolicy(policy, transaction, transactionMode);
-
-                var schema = _metaData.GetSchema(tableName, Name) as TableSchema;
-                schema.SetStoragePolicy(policy);
-                _metaData.UpdateTableSchema(schema);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public override DatabaseSchemaInfo GetSchemaInformation(string schemaName)
-        {
-            if (_metaData.HasSchema(schemaName))
-            {
-                return _metaData.GetSchemaInfo(schemaName);
-            }
-
-            return null;
-        }
-
-        public override bool TryCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
-        {
-            if (!_metaData.HasSchema(schemaName))
-            {
-                return _metaData.CreateSchema(schemaName, request, transactionMode);
-            }
-
-            return false;
-        }
-
-        public override bool HasSchema(string schemaName)
-        {
-            return _metaData.HasSchema(schemaName);
-        }
-
-        public override Table GetTable(int tableId)
-        {
-            Table result = null;
-
-            if (HasTable(tableId))
-            {
-                if (_inMemoryTables.Any(table => table.Schema().Id == tableId))
-                {
-                    return _inMemoryTables.Where(table => table.Schema().Id == tableId).FirstOrDefault();
-                }
-                else
-                {
-                    var item = GetTableSchema(tableId);
-                    if (_log is not null)
-                    {
-                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
-                    }
-                    else
-                    {
-                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
-                    }
-
-                    _inMemoryTables.Add(result);
-                }
-            }
-
-            return result;
-        }
-
-        public override int GetMaxTableId()
-        {
-            return _metaData.GetMaxTableId();
-        }
-
-        public override bool HasTable(int tableId)
-        {
-            return _metaData.HasTable(tableId);
-        }
-
-        public override bool HasTable(string tableName, string schemaName)
-        {
-            return _metaData.HasTable(tableName, schemaName);
-        }
-
-        public override Table GetTable(string tableName, string schemaName)
-        {
-            Table result = null;
-
-            if (HasTable(tableName, schemaName))
-            {
-                if (
-                    _inMemoryTables.Any(table => string.Equals(table.Schema().Name, tableName, StringComparison.OrdinalIgnoreCase))
-                && _inMemoryTables.Any(table => string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
-                )
-                {
-                    foreach (var table in _inMemoryTables)
-                    {
-                        if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase) && string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            return table;
-                        }
-                    }
-                }
-                else
-                {
-                    var item = GetTableSchema(tableName);
-                    if (_log is not null)
-                    {
-                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
-                    }
-                    else
-                    {
-                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
-                    }
-
-                    _inMemoryTables.Add(result);
-                }
-
-            }
-
-            return result;
-        }
-
-        public override Table GetTable(string tableName)
-        {
-            Table result = null;
-
-            if (HasTable(tableName))
-            {
-                if (_inMemoryTables.Any(table => string.Equals(table.Schema().Name, tableName, StringComparison.OrdinalIgnoreCase)))
-                {
-                    return _inMemoryTables.Where(table => string.Equals(table.Schema().Name, tableName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                }
-                else
-                {
-                    var item = GetTableSchema(tableName);
-                    if (_log is not null)
-                    {
-                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
-                    }
-                    else
-                    {
-                        result = new Table(item, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
-                    }
-
-                    _inMemoryTables.Add(result);
-                }
-
-            }
-
-            return result;
-        }
-
-        public override bool HasUser(string userName, Guid userId)
-        {
-            return _metaData.HasUser(userName, userId);
-        }
-
-        public override bool CreateUser(string userName, string pwInput)
-        {
-            return _metaData.CreateUser(userName, pwInput);
-        }
-
-        public override bool HasUser(string userName)
-        {
-            return _metaData.HasUser(userName);
-        }
-
-        public override bool AddTable(TableSchema schema, out Guid tableObjectId)
-        {
-            var result = _metaData.AddTable(schema, out tableObjectId);
-            if (!_inMemoryTables.Contains(schema.Name))
-            {
-                Table physicalTable = null;
-
-                if (_log is not null)
-                {
-                    physicalTable = MakeTable(schema, _log);
-                }
-                else
-                {
-                    physicalTable = MakeTable(schema);
-                }
-
-                _inMemoryTables.Add(physicalTable);
-            }
-
-            return result;
-        }
-
-        public override bool TryAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
-        {
-            var storage = _metaData.StorageManager;
-
-            TransactionEntry xact = null;
-
-            tableObjectId = Guid.Empty;
-
-            switch (transactionMode)
-            {
-                case TransactionMode.None:
-                    _metaData.AddTable(schema, out tableObjectId);
-                    return true;
-
-                case TransactionMode.Try:
-
-                    if (!HasTable(schema.Name))
-                    {
-                        xact = GetTransactionEntryForCreateTable(GetCreateTableTransaction(schema as TableSchema), transaction);
-                        _xEntryManager.AddEntry(xact);
-                        storage.LogOpenTransaction(_metaData.Id, xact);
-                        _metaData.AddTable(schema, out tableObjectId);
-
-                        Table newTable = null;
-
-                        if (_log is not null)
-                        {
-                            newTable = MakeTable(schema, _log);
-                        }
-                        else
-                        {
-                            newTable = MakeTable(schema);
-                        }
-
-                        if (!_inMemoryTables.Contains(schema.Name))
-                        {
-                            _inMemoryTables.Add(newTable);
-                        }
-
-                        //storage.SavePageDataToDisk(null, null, PageType.Data);
-                        return true;
-                    }
-
-                    return false;
-
-                case TransactionMode.Rollback:
-
-                    if (HasTable(schema.Name))
-                    {
-                        xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
-                        xact.MarkDeleted();
-                        _metaData.DropTable(schema.Name, transaction, transactionMode);
-                        storage.RemoveOpenTransaction(_metaData.Id, xact);
-                        _xEntryManager.RemoveEntry(xact);
-
-                        return true;
-                    }
-
-                    return false;
-                case TransactionMode.Commit:
-
-                    if (HasTable(schema.Name))
-                    {
-                        xact = _xEntryManager.GetBatch(transaction.TransactionBatchId).First();
-                        xact.MarkComplete();
-                        storage.LogCloseTransaction(_metaData.Id, xact);
-                        _xEntryManager.RemoveEntry(xact);
-
-                        return true;
-                    }
-
-                    return false;
-                default:
-                    throw new InvalidOperationException("Unknown transaction mode");
-            }
-        }
-
-        public override bool HasTable(string tableName)
-        {
-            if (_inMemoryTables is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            if (_inMemoryTables.Contains(tableName))
-            {
-                return true;
-            }
-            else
-            {
-                return _metaData.HasTable(tableName);
-            }
-        }
-
-        public override bool ValidateUser(string userName, string pwInput)
-        {
-            return _metaData.ValidateUser(userName, pwInput);
-        }
-
-        public override bool AuthorizeUser(string userName, string pwInput, DbPermission permission, Guid objectId)
-        {
-            return _metaData.AuthorizeUser(userName, pwInput, permission, objectId);
-        }
-
-        public override List<TransactionEntry> GetOpenTransactions()
-        {
-            throw new NotImplementedException();
-        }
-
         public override bool LogFileHasOpenTransaction(TransactionEntryKey key)
         {
             throw new NotImplementedException();
         }
 
-        public override bool GrantUserPermission(string userName, DbPermission permission, Guid objectId)
+        public bool XactRequestParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, out string errorMessage)
         {
-            return _metaData.GrantUserPermission(userName, permission, objectId);
+            var contractId = GetCurrentContractGUID();
+            var contract = GetContract(contractId);
+            _baseDb.XactLogParticipantSaveLatestContract(transaction, transactionMode, participant, contract);
+            var isSaved = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
+
+            var participantTable = GetTable(Participants.TABLE_NAME);
+            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.ParticpantGUID, participant.Id.ToString());
+            int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
+
+            if (totalParticipants > 1)
+            {
+                throw new InvalidOperationException($"More than 1 participant found for alias {participant.Alias}");
+            }
+
+            if (totalParticipants == 0)
+            {
+                throw new InvalidOperationException($"Participant with alias {participant.Alias} not found. " +
+                    $"Participant must be added first using DRUMMER keyword ADD PARTICIPANT");
+            }
+            else
+            {
+                var rowsForParticipant = participantTable.GetRowsWithValue(participantSearch);
+
+                if (rowsForParticipant.Count != 1)
+                {
+                    throw new InvalidOperationException($"More that 1 or no participant found for alias {participant.Alias}");
+                }
+
+                foreach (var row in rowsForParticipant)
+                {
+                    row.SetValue(Participants.Columns.Status, Convert.ToInt32(ContractStatus.Pending).ToString());
+                    row.SetValue(Participants.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
+                    participantTable.XactUpdateRow(row, transaction, transactionMode);
+                }
+            }
+
+            if (!isSaved)
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        public override Guid GetTableObjectId(string tableName)
+        public bool XactUpdateParticipantAcceptsContract(Participant participant, Guid contractGuid, TransactionRequest transaction, TransactionMode transactionMode, out string errorMessage)
         {
-            return _metaData.GetTableObjectId(tableName);
+            // ?? this bypasses the query transaction layer
+            //_baseDb.XactLogParticipantAcceptsContract(null, null, participant, null);
+
+            var contract = GetContract(contractGuid);
+            _baseDb.XactLogParticipantAcceptsContract(transaction, transactionMode, participant, contract);
+
+            // need to update the appropriate tables to show that the contract is accepted.
+
+            var participantTable = GetTable(Participants.TABLE_NAME);
+
+            // should we be doing this by participant GUID or participant Alias? We don't generally save off the particicpant id we're adding,
+            // only the alias. probably need syntax for this.
+
+            // we wind up in a situation where the participant id's don't match. when we add participant with alias ABCD 
+            // we generate the participant id locally
+            // and when the participant executes their own GENERATE HOSTINFO AS HOSTNAME ZYXW they generate their own id
+            // and so these don't match when searching by participant GUID
+            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.Alias, participant.Alias);
+            int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
+
+            if (totalParticipants != 1)
+            {
+                throw new InvalidOperationException($"More than 1 or no participant found for alias {participant.Alias}");
+            }
+
+            var rowsForParticipant = participantTable.GetRowsWithValue(participantSearch);
+
+            if (rowsForParticipant.Count != 1)
+            {
+                throw new InvalidOperationException($"More that 1 or no participant found for alias {participant.Alias}");
+            }
+
+            foreach (var row in rowsForParticipant)
+            {
+                row.SetValue(Participants.Columns.Status, (Convert.ToInt32(ContractStatus.Accepted)).ToString());
+                row.SetValue(Participants.Columns.AcceptedContractVersion, contractGuid.ToString());
+                row.SetValue(Participants.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
+                row.SetValue(Participants.Columns.AcceptedContractDateTimeUTC, DateTime.UtcNow.ToString());
+                participantTable.XactUpdateRow(row, transaction, transactionMode);
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        public bool SendContractToParticipant(string aliasName, Guid contractGUID, out string errorMessage)
+        {
+            var participant = GetParticipant(aliasName);
+            Guid currentId = GetCurrentContractGUID();
+            var contract = GetContract(currentId);
+
+            return _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
+        }
+        public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy)
+        {
+            if (_baseDb.HasTable(tableName))
+            {
+                var table = _baseDb.GetTable(tableName);
+                table.SetLogicalStoragePolicy(policy);
+
+                var schema = _baseDb.MetaData.GetSchema(tableName, Name) as TableSchema;
+                schema.SetStoragePolicy(policy);
+                _baseDb.MetaData.UpdateTableSchema(schema);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        // need to refactor to leverage the underlying base db rather than internal objects
+        public bool SetStoragePolicyForTable(string tableName, LogicalStoragePolicy policy, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            if (_baseDb.HasTable(tableName))
+            {
+                var table = _baseDb.GetTable(tableName);
+                table.XactSetLogicalStoragePolicy(policy, transaction, transactionMode);
+
+                var schema = _baseDb.MetaData.GetSchema(tableName, Name) as TableSchema;
+                schema.SetStoragePolicy(policy);
+                _baseDb.MetaData.UpdateTableSchema(schema);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public override bool ValidateUser(string userName, string pwInput)
+        {
+            return _baseDb.ValidateUser(userName, pwInput);
+        }
+
+        public override bool XactAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId)
+        {
+            return _baseDb.XactAddTable(schema, transaction, transactionMode, out tableObjectId);
+        }
+
+        public override bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
+        {
+            return _baseDb.XactCreateSchema(schemaName, request, transactionMode);
+        }
+
+        public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
+        {
+            return _baseDb.XactDropTable(tableName, transaction, transactionMode);
         }
         #endregion
 
         #region Private Methods
-        private TableSchema GetTableSchema(string tableName)
-        {
-            return _metaData.GetTableSchema(tableName);
-        }
-
-        private Table MakeTable(TableSchema schema)
-        {
-            return new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager);
-        }
-
-        private Table MakeTable(TableSchema schema, LogService log)
-        {
-            return new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, log);
-        }
-
-        private TableSchema GetTableSchema(int tableId)
-        {
-            return _metaData.GetTableSchema(tableId);
-        }
-
-        private CreateTableTransaction GetCreateTableTransaction(TableSchema schema)
-        {
-            return new CreateTableTransaction(schema);
-        }
-
-        private DropTableTransaction GetDropTableTransaction(TableSchema schema, Table table, List<IPage> pages)
-        {
-            return new DropTableTransaction(schema, table, pages);
-        }
-
-        private TransactionEntry GetTransactionEntryForCreateTable(CreateTableTransaction transaction, TransactionRequest request)
-        {
-            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
-
-            var entry = new TransactionEntry
-                (request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
-                transaction, request.UserName, false, sequenceId
-                );
-
-            return entry;
-        }
-
-        private TransactionEntry GetTransactionEntryForDropTable(DropTableTransaction transaction, TransactionRequest request)
-        {
-            var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(request.TransactionBatchId);
-            var entry = new TransactionEntry(request.TransactionBatchId, _metaData.Id, TransactionActionType.Schema, Constants.DatabaseVersions.V100,
-                transaction, request.UserName, false, sequenceId);
-
-            return entry;
-        }
-
-        private void LoadTablesIntoMemory()
-        {
-            foreach (var table in _metaData.Schemas())
-            {
-                Table newTable = null;
-                if (_log is not null)
-                {
-                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, _log);
-                }
-                else
-                {
-                    newTable = new Table(table, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager); ;
-                }
-
-                _inMemoryTables.Add(newTable);
-            }
-        }
         #endregion
 
     }

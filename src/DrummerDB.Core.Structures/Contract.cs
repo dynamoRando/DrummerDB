@@ -1,28 +1,23 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.Interface;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
-    // this is scaffolding, this may be deleted
-    internal class Contract
+    // note: contracts are issued per database
+    // a host may issue multiple contracts to the same participant if it's for a different database
+    // this may mean we need to refactor how this object works
+    internal record struct Contract
     {
+        public HostInfo Host { get; set; }
         // The GUID of the contract, found in all the schema tables
-        // in the HostDb metadata
+        // in the HostDb metadata. this is unique to the contract but does not change between schema changes
         public Guid ContractGUID { get; set; }
-        // All the tables in the database. Note that we need
-        // the StoragePolicy property needs to be populated for each
-        // table
-        public List<ITableSchema> Tables { get; set; }
-        // The name of the database host, usually the corporation
-        // or author of the database.
-        public string DatabaseHost { get; set; }
-        // a hash to uniquely identify the host for authentication
-        // purposes
-        public byte[] HostIdentifier { get; set; }
-        // a unique id to identify the host
-        public Guid HostId { get; set; }
-        // a general message about the contract
+        // the date the contract was generated
+        public DateTime GeneratedDate { get; set; }
+        // a description of the contract agreement
         public string Description { get; set; }
         // the name of the database, this should be the same as the 
         // actual name of the host database
@@ -30,6 +25,92 @@ namespace Drummersoft.DrummerDB.Core.Structures
         // the acutal id of the database, this should be the value
         // from the host database
         public Guid DatabaseId { get; set; }
+        // All the tables in the database. Note that we need
+        // the StoragePolicy property needs to be populated for each
+        // table
+        public List<ITableSchema> Tables { get; set; }
+        // the version of the contract. this value changes if the schema changes in the database
+        // and a new contract needs to be issued to participants. in that case, the contractGUID is the same,
+        // but the version changes
+        public Guid Version { get; set; }
+        // the current state of the contract
+        public ContractStatus Status { get; set; }
+
+        public Contract()
+        {
+            Tables = new List<ITableSchema>();
+            Host = new HostInfo();
+            ContractGUID = Guid.Empty;
+            GeneratedDate = DateTime.MinValue;
+            Description = string.Empty;
+            DatabaseName = string.Empty;
+            DatabaseId = Guid.Empty;
+            Version = Guid.Empty;
+            Status = ContractStatus.Unknown;
+        }
+
+        public byte[] ToBinaryFormat()
+        {
+            var arrays = new List<byte[]>();
+
+            var hostInfo = Host.ToBinaryFormat();
+            arrays.Add(hostInfo);
+
+            // contractGuid
+            var bContractGuid = DbBinaryConvert.GuidToBinary(ContractGUID);
+            arrays.Add(bContractGuid);
+
+            // generated date 
+            var bGeneratedDate = DbBinaryConvert.DateTimeToBinary(GeneratedDate.ToString());
+            arrays.Add(bGeneratedDate);
+
+            // description
+            var bDescription = DbBinaryConvert.StringToBinary(Description);
+            var descriptionLength = bDescription.Length;
+            var bDescriptionLength = DbBinaryConvert.IntToBinary(descriptionLength);
+            arrays.Add(bDescriptionLength);
+            arrays.Add(bDescription);
+
+            // databaseName
+            var bDatabaseName = DbBinaryConvert.StringToBinary(DatabaseName);
+            var databaseNameLength = bDatabaseName.Length;
+            var bDatabaseNameLength = DbBinaryConvert.IntToBinary(databaseNameLength);
+            arrays.Add(bDatabaseNameLength);
+            arrays.Add(bDatabaseName);
+
+            // databaseId
+            var bDatabaseId = DbBinaryConvert.GuidToBinary(DatabaseId);
+            arrays.Add(bDatabaseId);
+
+            // tables
+            var tableArrays = new List<byte[]>();
+
+            foreach (var table in Tables)
+            {
+                var ts = table as TableSchema;
+                tableArrays.Add(ts.ToBinaryFormat());
+            }
+
+            var bTableArrays = DbBinaryConvert.ArrayStitch(tableArrays);
+            var tableArraysLength = bTableArrays.Length;
+            arrays.Add(DbBinaryConvert.IntToBinary(tableArraysLength));
+            arrays.Add(bTableArrays);
+
+            // version
+            var bVersion = DbBinaryConvert.GuidToBinary(Version);
+            arrays.Add(bVersion);
+
+            // status
+            var bStatus = DbBinaryConvert.IntToBinary(Convert.ToInt32(Status));
+            arrays.Add(bStatus);
+
+            return DbBinaryConvert.ArrayStitch(arrays);
+        }
+
+        public void SetFromBinaryArray(byte[] data)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     // the actual object sent to the Participant 

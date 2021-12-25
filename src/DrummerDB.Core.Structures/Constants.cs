@@ -24,6 +24,12 @@
         public const string SYS_SCHEMA_GUID = "eb0610b3-f0a2-4c9e-a94b-64c8d74a939e";
         public const string DBO_SCHEMA = "dbo";
         public const string DBO_SCHEMA_GUID = "6cc4df44-95bc-4f0e-a10d-130e6c0b0acf";
+        public const string COOP_SCHEMA = "coop";
+        public const string COOP_SCHEMA_GUID = "86c05a00-d08f-4c03-803b-7adccaa60995";
+
+
+        // default user name for database service actions
+        public const string DATABASE_SERVICE = "DB_SERVICE";
 
         // all system defined tables, see SystemSchemaConstants100.cs and SystemDatabaseConstants100.cs
         public static class SYS_TABLE_ID_LIST
@@ -44,6 +50,10 @@
             public const int TENANTS = 14;
             public const int DATABASE_CONTRACTS = 15;
             public const int HOSTS = 16;
+            public const int HOST_INFO = 17;
+            public const int COOPERATIVE_CONTRACTS = 18;
+            public const int COOPERATIVE_TABLES = 19;
+            public const int COOPERATIVE_TABLE_SCHEMAS = 20;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Core.Storage.Abstract;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -67,11 +68,11 @@ namespace Drummersoft.DrummerDB.Core.Storage
             return null;
         }
 
-        public UserDbFileHandler Get(string name)
+        public UserDbFileHandler Get(string name, DataFileType type)
         {
             foreach (var db in _dbs)
             {
-                if (string.Equals(db.DatabaseName, name, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(db.DatabaseName, name, StringComparison.OrdinalIgnoreCase) && db.DataFileType == type)
                 {
                     return db;
                 }
@@ -90,11 +91,11 @@ namespace Drummersoft.DrummerDB.Core.Storage
             return false;
         }
 
-        public bool Contains(string item)
+        public bool Contains(string item, DataFileType type)
         {
             foreach (var db in _dbs)
             {
-                if (string.Equals(db.DatabaseName, item, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(db.DatabaseName, item, StringComparison.OrdinalIgnoreCase) && db.DataFileType == type)
                 { return true; }
             }
             return false;
@@ -120,7 +121,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
             return new UserDbFileHandlerEnumerator(this);
         }
 
-        public bool Remove(string dbName)
+        public bool Remove(string dbName, DataFileType type)
         {
             bool result = false;
 
@@ -130,7 +131,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
             {
                 UserDbFileHandler curDb = (UserDbFileHandler)_dbs[i];
 
-                if (string.Equals(curDb.DatabaseName, dbName, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(curDb.DatabaseName, dbName, StringComparison.OrdinalIgnoreCase) && curDb.DataFileType == type)
                 {
                     _dbs.RemoveAt(i);
                     result = true;

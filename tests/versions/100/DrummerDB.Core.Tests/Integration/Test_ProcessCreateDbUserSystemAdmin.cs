@@ -1,6 +1,8 @@
-﻿using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Systems;
 using Drummersoft.DrummerDB.Core.Tests.XAssembly;
@@ -65,7 +67,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Integration
             // --- ACT
             authManager.SetInitalSystemAdmin(sysLogin, sysLoginPw);
             Guid dbId;
-            dbManager.TryCreateNewHostDatabase(userDbName, out dbId);
+            dbManager.XactCreateNewHostDatabase(userDbName, out dbId);
 
             var tbName = "TableTestUsers";
             var tbId = 1;
@@ -76,8 +78,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.Integration
 
             cols.Add(col1);
 
-            var db = dbManager.GetUserDatabase(userDbName);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var db = dbManager.GetUserDatabase(userDbName, DatabaseType.Host);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
             db.AddTable(tableSchema, out tableObjectId);
 
             // --- ASSERT

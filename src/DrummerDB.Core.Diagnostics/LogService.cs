@@ -1,6 +1,8 @@
 ﻿using NLog;
 using System;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.Diagnostics
 {
@@ -15,7 +17,7 @@ namespace Drummersoft.DrummerDB.Core.Diagnostics
         private const string METHOD_NAME = "METHOD_NAME";
         private const string TOTAL_MILLISECONDS = "TOTAL_MILLISECONDS";
         private const string ASSEMBLY_NAME = "ASSEMBLY_NAME";
-
+        
         public const string PERFORMANCE = "PERFORMANCE";
 
         #endregion
@@ -26,6 +28,19 @@ namespace Drummersoft.DrummerDB.Core.Diagnostics
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Default constructor. Used mainly for tests.
+        /// </summary>
+        public LogService()
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of a log service.
+        /// </summary>
+        /// <param name="logger">A reference to the underlying NLog object</param>
+        /// <param name="enableLogging"><c>TRUE</c> if you want to log to disk, otherwise <c>FALSE</c></param>
+        /// <param name="enablePerformanceLogging"><c>TRUE</c> if you want to log performance data, otherwise <c>FALSE</c></param>
         public LogService(Logger logger, bool enableLogging, bool enablePerformanceLogging)
         {
             _logger = logger;
@@ -35,11 +50,11 @@ namespace Drummersoft.DrummerDB.Core.Diagnostics
         #endregion
 
         #region Public Methods
-        public void Info(string message)
+        public void Info(string message, [CallerMemberName] string callerName = "")
         {
             if (_enableLogging)
             {
-                _logger.Info(message);
+                _logger.Info($"{Assembly.GetCallingAssembly().GetName().Name} : {callerName} :: {message}");
             }
         }
 

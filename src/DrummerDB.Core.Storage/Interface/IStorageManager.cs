@@ -30,7 +30,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         /// <param name="version">The version number of the database</param>
         void CreateUserDatabase(string dbName, List<IPage> pages, DataFileType type, int version = Constants.MAX_DATABASE_VERSION);
 
-        bool DeleteUserDatabase(string dbName);
+        bool DeleteHostDatabase(string dbName);
 
         public List<UserDataPage> GetAllUserDataPages(TreeAddress address, ITableSchema schema);
 
@@ -119,5 +119,6 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType, bool isDeleted);
         int TotalSystemDatabasesOnDisk();
         int TotalUserDatabasesOnDisk();
+        bool SaveContractToDisk(Contract contract);
     }
 }

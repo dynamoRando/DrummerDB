@@ -44,5 +44,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
             return max;
         }
+
+        public void AddValue(InsertValue value)
+        {
+            Values.Add(value);
+        }
     }
 }

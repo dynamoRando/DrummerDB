@@ -3,11 +3,20 @@
     enum TransactionSchemaOperation
     {
         CreateTable,
-        CreateDatabase,
+        CreateHostDatabase,
+        CreatePartDatabase,
+        CreateEmbeddedDatabase,
+        CreateTenantDatabase,
         AlterTable,
         AlterColumn,
         DropTable,
-        DropDatabase,
-        Unknown
+        DropHostDatabase,
+        DropPartDatabase,
+        DropEmbeddedDatabase,
+        DropTenantDatabase,
+        Unknown,
+        ParticipantSaveContract,
+        NotifyAcceptContract,
+        ReceivedContractAcceptance
     }
 }

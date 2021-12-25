@@ -1,7 +1,10 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Tests.Mocks;
 using System;
@@ -35,8 +38,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestAddTable");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
 
             var dbName = "TestAddTable";
 
@@ -66,21 +72,23 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
 
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
 
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             // --- ACT
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
 
-            var db = manager.GetUserDatabase(dbName);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
 
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
 
             // --- ASSERT
             var result = db.AddTable(tableSchema, out _);
@@ -113,9 +121,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestObjectId");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string hostLogDbExtension = ".drumlog";
+            string partLogDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
             Guid tableId;
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
 
             var dbName = "TestAddTable2";
 
@@ -146,21 +157,22 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
 
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            var logService = new LogService();
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             // --- ACT
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
 
-            var db = manager.GetUserDatabase(dbName);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
 
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
 
             var result = db.AddTable(tableSchema, out tableId);
 

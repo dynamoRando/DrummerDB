@@ -47,7 +47,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             columns.Add(columnName);
             columns.Add(columnNameAge);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockStorage = new MockStorageManager(tableSchema);
             var xManager = new TransactionEntryManager();
@@ -65,7 +65,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             row.SetValue("Id", "222");
             row.SetValue("Age", "35");
 
-            table.TryAddRow(row);
+            table.XactAddRow(row);
 
             var memoryRow = cacheManager.GetRow(rowId, table.Address);
 
@@ -107,7 +107,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var columnId = new ColumnSchema("Id", sqlInt, 1);
             columns.Add(columnId);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockStorage = new MockStorageManager(tableSchema);
             var xManager = new TransactionEntryManager();
@@ -129,7 +129,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
                 row.SortBinaryOrder();
                 row.SetValue("Id", currentRowInterval.ToString());
-                table.TryAddRow(row);
+                table.XactAddRow(row);
                 currentRowInterval++;
             }
 
@@ -169,7 +169,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var columnId = new ColumnSchema("Id", nvarchar, 1); ;
             columns.Add(columnId);
 
-            var tableSchema = new TableSchema(tableId, tableName, dbId, columns);
+            var tableSchema = new TableSchema(tableId, tableName, dbId, columns, string.Empty);
 
             var mockStorage = new MockStorageManager(tableSchema);
             var mockXManager = new TransactionEntryManager();
@@ -184,7 +184,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 var row = table.GetNewLocalRow();
                 row.SortBinaryOrder();
                 row.SetValue("Id", currentRowInterval.ToString());
-                table.TryAddRow(row);
+                table.XactAddRow(row);
                 currentRowInterval++;
             }
 

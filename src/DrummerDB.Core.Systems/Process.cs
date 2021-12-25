@@ -15,10 +15,13 @@ using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using NLog;
+using NLog.Config;
+using NLog.Targets;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 
 namespace Drummersoft.DrummerDB.Core.Systems
@@ -39,12 +42,14 @@ namespace Drummersoft.DrummerDB.Core.Systems
         private ICryptoManager _crypt;
         private ITransactionEntryManager _xEntryManager;
         private LogService _logService;
-
+        private SystemNotifications _notifications;
 
         // test variables
         private string _storageFolder;
         private bool _loadSystemDatabases = true;
         private bool _loadUserDatabases = true;
+
+        private HostInfo _hostInfo;
         #endregion
 
         #region Public Properties
@@ -59,7 +64,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         internal CryptoManager CryptoManager => _crypt as CryptoManager;
         internal StorageManager StorageManager => _storage as StorageManager;
         internal CacheManager CacheManager => _cache as CacheManager;
-        internal AuthenticationManager AuthenticationManager => _auth as AuthenticationManager;
+        internal IdentityAccess.AuthenticationManager AuthenticationManager => _auth as IdentityAccess.AuthenticationManager;
         #endregion
 
         #region Constructors
@@ -75,6 +80,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public Process(string storageFolderPath)
         {
             _storageFolder = storageFolderPath;
+            _notifications = new SystemNotifications();
         }
 
         /// <summary>
@@ -97,6 +103,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         {
             _loadSystemDatabases = loadSystemDatabases;
             _loadUserDatabases = loadUserDatabases;
+            _notifications = new SystemNotifications();
         }
 
         /// <summary>
@@ -109,6 +116,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public Process(string storageFolderPath, bool loadSystemDatabases, bool loadUserDatabases) : this(loadSystemDatabases, loadUserDatabases)
         {
             _storageFolder = storageFolderPath;
+            _notifications = new SystemNotifications();
         }
         #endregion
 
@@ -120,6 +128,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         {
             LoadConfiguration();
 
+
             if (Settings.EnableLogging)
             {
                 ConfigureLogService();
@@ -130,14 +139,12 @@ namespace Drummersoft.DrummerDB.Core.Systems
             SetupMemory();
             SetupTransactionEntryManager();
             SetupDatabases();
-            SetupNetwork();
             SetupAuth();
             SetupQueries();
+            SetupNetwork();
             LoadDatabases();
             CheckForAdminSetup();
-
-
-
+            RegisterForHostInfoChanges();
         }
 
         public void Stop()
@@ -177,7 +184,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         /// </summary>
         public void StartDbServer()
         {
-            _network.StartServerForDatabaseService(Settings.UseHttpsForConnections, _auth, _dbManager);
+            _network.StartServerForDatabaseService(Settings.UseHttpsForConnections, _auth, _dbManager, _storage);
         }
 
         /// <summary>
@@ -187,7 +194,9 @@ namespace Drummersoft.DrummerDB.Core.Systems
         /// <param name="overrideSettingsUseHttps">Overrides the settings file to default true/false for using HTTPS. Used for testing purposes.</param>
         public void StartDbServer(int overrideSettingsPortNumber, bool overrideSettingsUseHttps)
         {
-            _network.StartServerForDatabaseService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber);
+            _network.StartServerForDatabaseService(overrideSettingsUseHttps, _auth, _dbManager, overrideSettingsPortNumber, _storage);
+            _hostInfo.DatabasePortNumber = overrideSettingsPortNumber;
+            _dbManager.UpdateHostInfoInDatabases(_hostInfo);
         }
 
         /// <summary>
@@ -227,31 +236,48 @@ namespace Drummersoft.DrummerDB.Core.Systems
         {
             if (string.IsNullOrEmpty(_storageFolder))
             {
-                _storage = new StorageManager(Settings.DatabaseFolder, Settings.HostDbExtension, Settings.PartialDbExtension, Settings.DatabaseLogExtension,
-                Settings.SystemDbExtension);
+                _storage = new StorageManager(
+                    Settings.DatabaseFolder,
+                    Settings.HostDbExtension,
+                    Settings.PartialDbExtension,
+                    Settings.HostDatabaseLogExtension,
+                    Settings.PartDatabaseLogExtension,
+                    Settings.SystemDbExtension,
+                    Settings.ContractFolderName,
+                    Settings.ContractFileExtension
+                );
             }
             else
             {
-                _storage = new StorageManager(_storageFolder, Settings.HostDbExtension, Settings.PartialDbExtension, Settings.DatabaseLogExtension,
-                Settings.SystemDbExtension);
+                _storage = new StorageManager(
+                    _storageFolder,
+                    Settings.HostDbExtension,
+                    Settings.PartialDbExtension,
+                    Settings.HostDatabaseLogExtension,
+                    Settings.PartDatabaseLogExtension,
+                    Settings.SystemDbExtension,
+                    Settings.ContractFolderName,
+                    Settings.ContractFileExtension
+                );
             }
         }
 
         private void SetupDatabases()
         {
-            _dbManager = new DbManager(_xEntryManager);
+            _dbManager = new DbManager(_xEntryManager, _logService, _notifications);
         }
 
         private void LoadDatabases()
         {
             if (_loadSystemDatabases)
             {
-                _dbManager.LoadSystemDatabases(_cache, _storage, _crypt);
+                _dbManager.LoadSystemDatabases(_cache, _storage, _crypt, _hostInfo);
+                ConfigureHostInfo();
             }
 
             if (_loadUserDatabases)
             {
-                _dbManager.LoadUserDatabases(_cache, _storage, _crypt);
+                _dbManager.LoadUserDatabases(_cache, _storage, _crypt, _hostInfo);
             }
 
             if (_loadUserDatabases && _loadSystemDatabases)
@@ -296,17 +322,31 @@ namespace Drummersoft.DrummerDB.Core.Systems
             var sqlPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.SQLServicePort };
             var databasePort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.DatabaseServicePort };
             var infoPort = new PortSettings { IPAddress = Settings.IP4Adress, PortNumber = Settings.InfoServicePort };
-            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager, _logService);
+            _network = new NetworkManager(databasePort, sqlPort, infoPort, _queries, _dbManager, _logService, _hostInfo, _notifications);
         }
 
         private void SetupAuth()
         {
-            _auth = new AuthenticationManager(_dbManager);
+            _auth = new IdentityAccess.AuthenticationManager(_dbManager);
         }
 
         private void SetupCrypt()
         {
             _crypt = new CryptoManager();
+        }
+
+        private void RegisterForHostInfoChanges()
+        {
+            _notifications.HostInfoUpdated += HandleUpdatedHostInfo;
+        }
+
+        private void HandleUpdatedHostInfo(object sender, EventArgs e)
+        {
+            if (e is HostUpdatedEventArgs)
+            {
+                var args = e as HostUpdatedEventArgs;
+                _hostInfo = args.HostInfo;
+            }
         }
 
         private void CheckForAdminSetup()
@@ -328,8 +368,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         }
 
         private void ConfigureLogService()
-        {
-            var config = new NLog.Config.LoggingConfiguration();
+        {            
             string fullPath = string.Empty;
 
             if (!string.IsNullOrEmpty(_storageFolder))
@@ -341,17 +380,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
                 fullPath = Path.Combine(Settings.DatabaseFolder, Settings.LogFileName);
             }
 
-
-            // Targets where to log to: File and Console
-            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = fullPath };
-
-            // Rules for mapping loggers to targets            
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, logfile);
-
-            // Apply config           
-            NLog.LogManager.Configuration = config;
-
-            var logger = NLog.LogManager.GetCurrentClassLogger();
+            var logger = CreateCustomLogger(Guid.NewGuid().ToString(), fullPath);
 
             _logService = new LogService(logger, Settings.EnableLogging, Settings.LogPerformanceMetrics);
             _logService.Info("DrummerDB started");
@@ -364,6 +393,96 @@ namespace Drummersoft.DrummerDB.Core.Systems
 
             _logService.Info(currentMessage);
             _logService.Info(offsetMessage);
+
+            if (!string.IsNullOrEmpty(_storageFolder))
+            {
+                _logService.Info($"Database Folder: {_storageFolder}");
+            }
+            else
+            {
+                _logService.Info($"Database Folder: {Settings.DatabaseFolder}");
+            }
+        }
+
+        private void ConfigureHostInfo()
+        {
+            var sysDb = _dbManager.GetSystemDatabase();
+            _hostInfo.HostGUID = sysDb.HostGUID();
+            _hostInfo.HostName = sysDb.HostName();
+            _hostInfo.Token = sysDb.HostToken();
+            _hostInfo.DatabasePortNumber = Settings.DatabaseServicePort;
+
+            IPAddress address;
+
+            if (IPAddress.TryParse(Settings.IP4Adress, out address))
+            {
+                _hostInfo.IP4Address = address.MapToIPv4().ToString();
+                _hostInfo.IP6Address = address.MapToIPv6().ToString();
+            }
+            else
+            {
+                _hostInfo.IP4Address = Settings.IP4Adress;
+                _hostInfo.IP6Address = string.Empty;
+            }
+        }
+
+        // kept here as an example only
+        // https://stackoverflow.com/questions/20352325/logging-in-multiple-files-using-nlog
+        /// <summary>
+        /// Create Custom Logger using parameters passed.
+        /// </summary>
+        /// <param name="name">Name of file.</param>
+        /// <param name="LogEntryLayout">Give "" if you want just message. If omited will switch to full log paramaters.</param>
+        /// <param name="logFileLayout">Filename only. No extension or file paths accepted.</param>
+        /// <param name="absoluteFilePath">If you want to save the log file to different path thatn application default log path, specify the path here.</param>
+        /// <returns>New instance of NLog logger completly isolated from default instance if any</returns>
+        public static Logger CreateCustomLogger(string name = "CustomLog",
+            string LogEntryLayout = "${ date:format=dd.MM.yyyy HH\\:mm\\:ss.fff} thread[${threadid}] ${logger} (${level:uppercase=true}): ${message}. ${exception:format=ToString}",
+            string logFileLayout = "logs/{0}.${{shortdate}}.log",
+            string absoluteFilePath = "")
+        {
+            var factory = new LogFactory();
+            var target = new FileTarget();
+            target.Name = name;
+            if (absoluteFilePath == "")
+                target.FileName = string.Format(logFileLayout, name);
+            else
+                target.FileName = string.Format(absoluteFilePath + "//" + logFileLayout, name);
+            if (LogEntryLayout == "") //if user specifes "" then use default layout.
+                target.Layout = "${message}. ${exception:format=ToString}";
+            else
+                target.Layout = LogEntryLayout;
+            var defaultconfig = LogManager.Configuration;
+            var config = new LoggingConfiguration();
+            config.AddTarget(name, target);
+
+            var ruleInfo = new LoggingRule("*", NLog.LogLevel.Trace, target);
+
+            config.LoggingRules.Add(ruleInfo);
+
+            factory.Configuration = config;
+
+            return factory.GetCurrentClassLogger();
+        }
+
+        public Logger CreateCustomLogger(string loggerName, string filePath)
+        {
+            var factory = new LogFactory();
+            var target = new FileTarget();
+            target.FileName = filePath;
+            target.Layout = "${date:format=yyyy-MM-dd HH\\:mm\\:ss.fff} - ${message} ${exception:format=ToString}";
+
+            var defaultconfig = LogManager.Configuration;
+            var config = new LoggingConfiguration();
+            config.AddTarget(loggerName, target);
+
+            var ruleInfo = new LoggingRule("*", NLog.LogLevel.Trace, target);
+
+            config.LoggingRules.Add(ruleInfo);
+
+            factory.Configuration = config;
+
+            return factory.GetCurrentClassLogger();
         }
 
         #endregion

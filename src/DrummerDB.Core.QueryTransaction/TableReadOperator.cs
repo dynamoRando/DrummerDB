@@ -162,7 +162,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 }
                 else
                 {
-                    var results = table.GetAllValuesForColumn(column, transaction, transactionMode);
+                    var results = table.XactGetAllValuesForColumn(column, transaction, transactionMode);
                     result.AddRange(results);
                 }
             }

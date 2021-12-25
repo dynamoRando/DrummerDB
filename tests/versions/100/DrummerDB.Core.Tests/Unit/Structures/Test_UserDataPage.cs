@@ -38,7 +38,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Unit.Structures
             columns.Add(columnId);
             columns.Add(columnName);
 
-            var tableSchema = new TableSchema(tableId, "Test", dbId, columns);
+            var tableSchema = new TableSchema(tableId, "Test", dbId, columns, string.Empty);
 
             // ---  ACT
             var page = UserDataPageFactory.GetUserDataPage100(address, tableSchema);
@@ -68,7 +68,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Unit.Structures
             columns.Add(columnId);
             columns.Add(columnName);
 
-            var tableSchema = new TableSchema(tableId, "Test", dbId, columns);
+            var tableSchema = new TableSchema(tableId, "Test", dbId, columns, string.Empty);
 
             // ---  ACT
             var page = UserDataPageFactory.GetUserDataPage100(address, tableSchema);

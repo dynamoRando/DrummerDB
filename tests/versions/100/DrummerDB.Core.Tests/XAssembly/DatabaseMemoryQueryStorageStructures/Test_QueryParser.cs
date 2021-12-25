@@ -1,8 +1,11 @@
-﻿using Drummersoft.DrummerDB.Core.Databases;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.Storage;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Tests.Mocks;
 using System;
@@ -40,8 +43,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestInvalidSyntax");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string hostLogDbExtension = ".drumlog";
+            string partLogDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
 
             var dbName = "TestInvalidSQL";
 
@@ -69,17 +75,19 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("col1", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var logService = new LogService();
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, hostLogDbExtension, partLogDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
 
             string errorMessage;
 
@@ -114,8 +122,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestBadTableName");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
 
             var dbName = "TestInvalidSQL";
 
@@ -143,17 +154,19 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COLUMN1", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var logService = new LogService();
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
+            manager.XactCreateNewHostDatabase(dbName, out _);
 
             string errorMessage;
 
@@ -188,8 +201,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestValidTableName");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
 
             var dbName = "TestInvalidSQL";
 
@@ -217,19 +233,21 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var logService = new LogService();
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
-            var db = manager.GetUserDatabase(dbName);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            manager.XactCreateNewHostDatabase(dbName, out _);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
             var createTableResult = db.AddTable(tableSchema, out _);
 
             string errorMessage;
@@ -265,9 +283,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestInvalidColName");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumpartlog";
             string systemDbExtension = ".drumsys";
-
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
             var dbName = "TestInvalidSQL";
 
             var directory = new DirectoryInfo(storageFolder);
@@ -294,20 +314,22 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var logService = new LogService();
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
-            var db = manager.GetUserDatabase(dbName);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            manager.XactCreateNewHostDatabase(dbName, out _);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
             var createTableResult = db.AddTable(tableSchema, out _);
 
             string errorMessage;
@@ -320,17 +342,19 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             Assert.False(result);
         }
 
-        [Fact(Skip ="If Exists Operator Not Written")]
+        [Fact(Skip = "If Exists Operator Not Written")]
         public void Test_Valid_IfTableExists()
         {
             // -- ARRANGE
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestDropTableExist");
             string hostDbExtension = ".drum";
             string partDbExtension = ".drumpart";
-            string logDbExtension = ".drumlog";
+            string logHostDbExtension = ".drumlog";
+            string logPartDbExtension = ".drumPartlog";
             string systemDbExtension = ".drumsys";
             var dbName = "TestDropTable";
-
+            string contracts = "contracts";
+            string contractFileExtension = ".drumContract";
             var directory = new DirectoryInfo(storageFolder);
 
             if (directory.Exists)
@@ -355,19 +379,21 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
             cols.Add(col1);
 
-            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logDbExtension, systemDbExtension);
+            var logService = new LogService();
+            var storage = new StorageManager(storageFolder, hostDbExtension, partDbExtension, logHostDbExtension, logPartDbExtension, systemDbExtension, contracts, contractFileExtension);
             var cache = new CacheManager();
             var mockCrypto = new MockCryptoManager();
             var xManager = new TransactionEntryManager();
-            var manager = new DbManager(storage, cache, mockCrypto, xManager);
-            manager.LoadSystemDatabases(cache, storage, mockCrypto);
+            var notifications = new SystemNotifications();
+            var manager = new DbManager(storage, cache, mockCrypto, xManager, logService, notifications);
+            manager.LoadSystemDatabases(cache, storage, mockCrypto, new HostInfo());
 
             var statementHandler = new StatementHandler(manager);
             var parser = new QueryParser(statementHandler);
 
-            manager.TryCreateNewHostDatabase(dbName, out _);
-            var db = manager.GetUserDatabase(dbName);
-            var tableSchema = new TableSchema(tbId, tbName, dbId, cols);
+            manager.XactCreateNewHostDatabase(dbName, out _);
+            var db = manager.GetUserDatabase(dbName, DatabaseType.Host);
+            var tableSchema = new TableSchema(tbId, tbName, dbId, cols, string.Empty);
             var createTableResult = db.AddTable(tableSchema, out _);
 
             string sqlDropTableStatement = $@"
@@ -376,7 +402,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             // -- ACT
             string errorDropMessage = string.Empty;
-            var isDropStatementValid = parser.IsStatementValid(sqlDropTableStatement, manager, out errorDropMessage);
+            var isDropStatementValid = parser.IsStatementValid(sqlDropTableStatement, manager, DatabaseType.Host, out errorDropMessage);
 
             /// -- ASSERT
             Assert.True(isDropStatementValid);

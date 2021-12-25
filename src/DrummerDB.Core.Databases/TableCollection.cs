@@ -28,9 +28,37 @@ namespace Drummersoft.DrummerDB.Core.Databases
         #region Public Methods
         public Table Get(string tableName)
         {
-            foreach(var table in _tables)
+            foreach (var table in _tables)
             {
                 if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return table;
+                }
+            }
+
+            return null;
+        }
+
+        public Table Get(string tableName, string schemaName)
+        {
+            foreach (var table in _tables)
+            {
+                if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase)
+                    )
+                {
+                    return table;
+                }
+            }
+
+            return null;
+        }
+
+        public Table Get(int tableId)
+        {
+            foreach (var table in _tables)
+            {
+                if (table.Address.TableId == tableId)
                 {
                     return table;
                 }
@@ -69,6 +97,30 @@ namespace Drummersoft.DrummerDB.Core.Databases
             foreach (var table in _tables)
             {
                 if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool Contains(int tableId)
+        {
+            foreach (var table in _tables)
+            {
+                if (table.Address.TableId == tableId)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool Contains(string tableName, string schemaName)
+        {
+            foreach (var table in _tables)
+            {
+                if (string.Equals(table.Name, tableName, StringComparison.OrdinalIgnoreCase) && string.Equals(table.Schema().Schema.SchemaName, schemaName, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }

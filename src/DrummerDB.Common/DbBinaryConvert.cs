@@ -37,9 +37,23 @@ namespace Drummersoft.DrummerDB.Common
         /// </summary>
         /// <param name="value">The string value to convert to bytes</param>
         /// <returns>A byte array representation of the string</returns>
-        public static byte[] StringToBinary(string value)
+        public static byte[] StringToBinary(string value, bool includeLengthPrefix = false)
         {
-            return Encoding.UTF8.GetBytes(value);
+            if (!includeLengthPrefix)
+            {
+                return Encoding.UTF8.GetBytes(value);
+            }
+            else
+            {
+                var bValue = Encoding.UTF8.GetBytes(value);
+                int length = bValue.Length;
+                var bLength = BitConverter.GetBytes(length);
+
+                var array = new byte[bLength.Length + bValue.Length];
+                Array.Copy(bLength, 0, array, 0, bLength.Length);
+                Array.Copy(bValue, 0, array, bLength.Length, bValue.Length);
+                return array;
+            }
         }
 
         public static byte[] DateTimeToBinary(string value)

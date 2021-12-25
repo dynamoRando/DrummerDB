@@ -25,6 +25,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         IRowValue[] Values { get; set; }
 
         /// <summary>
+        /// A hash of the row's data, populated only if the row is not local
+        /// </summary>
+        byte[] Hash { get; set; }
+
+        /// <summary>
         /// Returns the entire row in binary format, ordered by binary save format (usually to save data to a Page or to send to a Participant over the wire)
         /// </summary>
         /// <returns>A binary representation of the row</returns>

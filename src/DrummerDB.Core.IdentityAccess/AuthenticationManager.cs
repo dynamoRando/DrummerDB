@@ -1,7 +1,10 @@
-﻿using Drummersoft.DrummerDB.Core.Databases.Interface;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Databases.Interface;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Interface;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures;
 using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
 
@@ -14,6 +17,7 @@ namespace Drummersoft.DrummerDB.Core.IdentityAccess
         private readonly IDbManager _dbs;
 
         // internal objects
+        private LogService _logger;
         #endregion
 
         #region Public Properties
@@ -25,11 +29,23 @@ namespace Drummersoft.DrummerDB.Core.IdentityAccess
             _dbs = dbs;
         }
 
+        public AuthenticationManager(IDbManager dbs, LogService logger)
+        {
+            _logger = logger;
+        }
+
         #endregion
 
         #region Public Methods
+        public bool SystemHasHost(string hostName, byte[] token)
+        {
+            // note: we should be logging these attempts
+            return _dbs.GetSystemDatabase().ValidateHost(hostName,token);
+        }
+
         public bool SystemHasLogin(string userName, string pw)
         {
+            // note: we should be logging these attempts
             return _dbs.GetSystemDatabase().ValidateLogin(userName, pw);
         }
 
@@ -76,7 +92,7 @@ namespace Drummersoft.DrummerDB.Core.IdentityAccess
                 }
                 else
                 {
-                    var db = _dbs.GetUserDatabase(dbName);
+                    var db = _dbs.GetUserDatabase(dbName, DatabaseType.Host);
                     if (db.HasUser(userName))
                     {
                         return db.AuthorizeUser(userName, pw, permission, objectId);

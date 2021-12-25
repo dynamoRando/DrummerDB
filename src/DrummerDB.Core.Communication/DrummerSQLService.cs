@@ -1,4 +1,5 @@
-﻿using Drummersoft.DrummerDB.Common.Communication;
+﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Common.Communication;
 using Drummersoft.DrummerDB.Common.Communication.SQLService;
 using Drummersoft.DrummerDB.Core.Structures;
 using Google.Protobuf;
@@ -28,6 +29,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             string databaseName = request.DatabaseName;
             string pw = request.Authentication.Pw;
             string statement = request.SqlStatement;
+            DatabaseType type = (DatabaseType)request.DatabaseType;
 
             var reply = new SQLQueryReply();
             var resultSet = new SQLResultset();
@@ -46,21 +48,21 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 userIsAuthorized = true;
                 if (string.IsNullOrEmpty(databaseName))
                 {
-                    if (_handler.IsValidQuery(statement, userName, pw, out errorMessage))
+                    if (_handler.IsValidQuery(statement, userName, pw, type, out errorMessage))
                     {
                         if (hasSessionId)
                         {
-                            result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId);
+                            result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId, type);
                         }
                     }
                 }
                 else
                 {
-                    if (_handler.IsValidQuery(statement, userName, pw, databaseName, out errorMessage))
+                    if (_handler.IsValidQuery(statement, userName, pw, databaseName, type, out errorMessage))
                     {
                         if (hasSessionId)
                         {
-                            result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId);
+                            result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId, type);
                         }
                     }
                 }
