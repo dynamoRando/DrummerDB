@@ -188,9 +188,34 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public ResultsetValue GetValueFromParticipant(ValueAddress address, TransactionRequest transaction, Participant participant)
         {
+            var result = new ResultsetValue();
             string errorMessage = string.Empty;
-            var data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), out errorMessage);
-            throw new NotImplementedException();
+            var table = GetTable(address.TableId);
+
+            // this is inefficent
+            // we only need a single value, but we've requested the entire row from the participant
+            // this is because the api for com's was partially started before the api for queries
+            // will need to revisit so that the com api exposes a way to get a single value from a participant
+
+            var data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), Name, table.Name, out errorMessage);
+
+            // filter out by the value we're interested in
+            foreach (var value in data.Values)
+            {
+                if (string.Equals(value.Column.Name, address.ColumnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (value.IsNull())
+                    {
+                        result.IsNullValue = true;
+                    }
+                    else
+                    {
+                        result.Value = value.GetValueInBinary(false, value.Column.IsNullable);
+                    }
+                }
+            }
+
+            return result;
         }
 
         public Participant GetParticipant(Guid participantId)

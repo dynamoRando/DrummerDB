@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Drummersoft.DrummerDB.Core.Structures;
 
 namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 {
@@ -242,6 +243,15 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             Assert.False(selectCustomerNameAtHost.Results.First().IsError);
             Assert.InRange(selectCustomerNameAtHost.Results.First().Rows.Count, 1, 1);
 
+            // test to make sure we got customer name back
+            var bSelectedValue = selectCustomerNameAtHost.Results.First().Rows[0].Values[1].Value.ToByteArray();
+            var spanSelectedValue = new ReadOnlySpan<byte>(bSelectedValue);
+            
+            // remove leading 4 byte int;
+            var actualCustomerName = spanSelectedValue.Slice(Constants.SIZE_OF_INT, spanSelectedValue.Length - Constants.SIZE_OF_INT);
+            var selectedCustomerName = DbBinaryConvert.BinaryToString(actualCustomerName);
+            Assert.Equal(customer.Alias, selectedCustomerName);
+
             // check to see if we can read the customer name at the participant
             var selectCustomerNameAtParticipant = harness.ExecuteSQL(customer,
             $@"
@@ -250,6 +260,15 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             Assert.False(selectCustomerNameAtParticipant.Results.First().IsError);
             Assert.InRange(selectCustomerNameAtParticipant.Results.First().Rows.Count, 1, 1);
+
+            // test to make sure we got customer name back
+            var bSelectedParticipantValue = selectCustomerNameAtParticipant.Results.First().Rows[0].Values[1].Value.ToByteArray();
+            var spanSelectedParticipantValue = new ReadOnlySpan<byte>(bSelectedParticipantValue);
+
+            // remove leading 4 byte int;
+            var actualCustomerParticipantName = spanSelectedParticipantValue.Slice(Constants.SIZE_OF_INT, spanSelectedParticipantValue.Length - Constants.SIZE_OF_INT);
+            var selectedCustomerNameParticipant = DbBinaryConvert.BinaryToString(actualCustomerParticipantName);
+            Assert.Equal(customer.Alias, selectedCustomerNameParticipant);
         }
     }
 }

@@ -284,6 +284,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return row;
         }
 
+        public IRow GetRow(int rowId)
+        {
+            return _cache.GetRow(rowId, Address);
+        }
+
         /// <summary>
         /// Gets the row.
         /// </summary>
@@ -303,18 +308,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
             else
             {
                 throw new NotImplementedException("Remote row handling not implemented yet");
-
-                var participantId = row.ParticipantId;
-                var remoteAddress = new SQLAddress { DatabaseId = this.Address.DatabaseId, TableId = this.Address.TableId, RowId = row.Id };
-                var participant = new Participant { Id = participantId.Value };
-
-                string errorMessage = string.Empty;
-
-                var remoteRow = _remoteManager.GetRowFromParticipant(participant, remoteAddress, out errorMessage);
-
-                // not sure if this is correct, or we need to do some sort of conversion for the row that came from cache
-                // for example, does remote row identify itself as local? from the perspective of the caller, is is not.
-                return remoteRow;
             }
         }
 

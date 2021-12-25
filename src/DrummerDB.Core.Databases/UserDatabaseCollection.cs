@@ -69,11 +69,24 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
+        public PartialDb GetPartDb(Guid dbId)
+        {
+            foreach (var db in _userDatabases)
+            {
+                if (db.Id == dbId && db.DatabaseType == DatabaseType.Partial)
+                {
+                    return db as PartialDb;
+                }
+            }
+
+            return null;
+        }
+
         public HostDb GetHostDb(Guid dbId)
         {
             foreach (var db in _userDatabases)
             {
-                if (db.Id == dbId)
+                if (db.Id == dbId && db.DatabaseType == DatabaseType.Host)
                 {
                     return db as HostDb;
                 }

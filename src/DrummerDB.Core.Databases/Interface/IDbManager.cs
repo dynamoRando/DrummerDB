@@ -37,5 +37,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Interface
         bool IsHostDatabase(string dbName);
 
         bool IsPartialDatabase(string dbName);
+        PartialDb GetPartialDb(Guid dbId);
     }
 }

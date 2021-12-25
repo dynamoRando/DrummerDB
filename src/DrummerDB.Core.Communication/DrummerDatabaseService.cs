@@ -10,12 +10,18 @@ using drumContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 using drumTableSchema = Drummersoft.DrummerDB.Core.Structures.TableSchema;
 using drumColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using drumParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
+using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
+using structColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
+using comColumn = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
+using comRow = Drummersoft.DrummerDB.Common.Communication.Row;
+using comRowValue = Drummersoft.DrummerDB.Common.Communication.RowValue;
 using System.Collections.Generic;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Common.Communication.Enum;
+using Google.Protobuf;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -193,6 +199,29 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             return Task.FromResult(comResult);
         }
+
+        public override Task<GetRowFromPartialDatabaseResult> GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest request, ServerCallContext context)
+        {
+            Guid dbId = Guid.Empty;
+            int tableId = 0;
+            int rowId = 0;
+
+            dbId = Guid.Parse(request.RowAddress.DatabaseId);
+            tableId = Convert.ToInt32(request.RowAddress.TableId);
+            rowId = Convert.ToInt32(request.RowAddress.RowId);
+
+            var row = _handler.GetRowFromPartDb(dbId, tableId, rowId, request.RowAddress.DatabaseName, request.RowAddress.TableName);
+            var comRow = ConvertStructRowToComRow(row as structRow);
+
+            comRow.DatabaseId = request.RowAddress.DatabaseId;
+            comRow.TableId = request.RowAddress.TableId;
+
+            var result = new GetRowFromPartialDatabaseResult();
+            result.Row = comRow;
+
+            return Task.FromResult(result);
+
+        }
         #endregion
 
         #region Private Methods
@@ -257,6 +286,29 @@ namespace Drummersoft.DrummerDB.Core.Communication
             MessageType type = (MessageType)info.MessageType;
 
             _handler.LogMessageInfo(info.IsLittleEndian, addresses, DateTime.Parse(info.MessageGeneratedTimeUTC), type, Guid.Parse(info.MessageGUID));
+        }
+
+        private comRow ConvertStructRowToComRow(structRow row)
+        {
+            var result = new comRow();
+            result.RowId = Convert.ToUInt32(row.Id);
+
+            foreach (var value in row.Values)
+            {
+                var comColumn = new comColumn();
+                var colType = SQLColumnTypeConverter.Convert(value.Column.DataType, Constants.DatabaseVersions.V100);
+                comColumn.ColumnType = Convert.ToUInt32(colType);
+                comColumn.ColumnName = value.Column.Name;
+                comColumn.ColumnLength = Convert.ToUInt32(value.Column.Length);
+
+                var comRV = new comRowValue();
+                comRV.Column = comColumn;
+                comRV.Value = ByteString.CopyFrom(value.GetValueInBinary());
+                
+                result.Values.Add(comRV);
+            }
+
+            return result;
         }
 
         #endregion

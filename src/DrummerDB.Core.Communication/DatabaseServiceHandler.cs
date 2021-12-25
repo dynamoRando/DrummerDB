@@ -10,6 +10,7 @@ using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -175,6 +176,29 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             stringBuilder.Append($"Message recieved at participant: {_hostInfo} ");
             _logger.Info(stringBuilder.ToString());
+        }
+
+        public IRow GetRowFromPartDb(Guid databaseId, int tableId, int rowId, string dbName, string tableName)
+        {
+            PartialDb db = null;
+            db = _dbManager.GetPartialDb(databaseId);
+
+            if (db is null)
+            {
+                db = _dbManager.GetPartialDb(dbName);
+            }
+
+            Table table = null;
+            table = db.GetTable(tableId);
+
+            if (table is null)
+            {
+                table = db.GetTable(tableName);
+            }
+
+            var row = table.GetRow(rowId);
+
+            return row;
         }
 
         #endregion

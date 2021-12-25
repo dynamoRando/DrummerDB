@@ -560,6 +560,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
+        public PartialDb GetPartialDb(Guid dbId)
+        {
+            PartialDb db = _userDatabases.GetPartDb(dbId);
+            if (db is not null)
+            {
+                return db;
+            }
+
+            return null;
+        }
+
         public SystemDatabase GetSystemDatabase()
         {
             return GetGuSystemDatabase();
