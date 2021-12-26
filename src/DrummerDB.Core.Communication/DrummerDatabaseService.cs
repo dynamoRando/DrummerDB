@@ -200,24 +200,62 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return Task.FromResult(comResult);
         }
 
+        public override Task<UpdateRowInTableResult> UpdateRowInTable(UpdateRowInTableRequest request, ServerCallContext context)
+        {
+            var result = new UpdateRowInTableResult();
+            if (request.MessageInfo is not null)
+            {
+                LogMessageInfo(request.MessageInfo);
+            }
+
+            var hasLogin = IsLoginValid(request.Authentication, context);
+            if (hasLogin.Result.IsAuthenticated)
+            {
+                // we should be checking to see if the host has authorizations to update the row in the database
+                throw new NotImplementedException();
+            }
+
+            result.AuthenticationResult = hasLogin.Result;
+
+            return Task.FromResult(result);
+        }
+
         public override Task<GetRowFromPartialDatabaseResult> GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest request, ServerCallContext context)
         {
+            var result = new GetRowFromPartialDatabaseResult();
             Guid dbId = Guid.Empty;
             int tableId = 0;
             int rowId = 0;
 
-            dbId = Guid.Parse(request.RowAddress.DatabaseId);
-            tableId = Convert.ToInt32(request.RowAddress.TableId);
-            rowId = Convert.ToInt32(request.RowAddress.RowId);
+            if (request.MessageInfo is not null)
+            {
+                LogMessageInfo(request.MessageInfo);
+            }
 
-            var row = _handler.GetRowFromPartDb(dbId, tableId, rowId, request.RowAddress.DatabaseName, request.RowAddress.TableName);
-            var comRow = ConvertStructRowToComRow(row as structRow);
+            var hasLogin = IsLoginValid(request.Authentication, context);
+            if (hasLogin.Result.IsAuthenticated)
+            {
+                dbId = Guid.Parse(request.RowAddress.DatabaseId);
+                tableId = Convert.ToInt32(request.RowAddress.TableId);
+                rowId = Convert.ToInt32(request.RowAddress.RowId);
 
-            comRow.DatabaseId = request.RowAddress.DatabaseId;
-            comRow.TableId = request.RowAddress.TableId;
+                var row = _handler.GetRowFromPartDb
+                    (
+                        dbId,
+                        tableId,
+                        rowId,
+                        request.RowAddress.DatabaseName,
+                        request.RowAddress.TableName
+                    );
+                var comRow = ConvertStructRowToComRow(row as structRow);
 
-            var result = new GetRowFromPartialDatabaseResult();
-            result.Row = comRow;
+                comRow.DatabaseId = request.RowAddress.DatabaseId;
+                comRow.TableId = request.RowAddress.TableId;
+
+                result.Row = comRow;
+            }
+
+            result.AuthenticationResult = hasLogin.Result;
 
             return Task.FromResult(result);
 
@@ -304,7 +342,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 var comRV = new comRowValue();
                 comRV.Column = comColumn;
                 comRV.Value = ByteString.CopyFrom(value.GetValueInBinary());
-                
+
                 result.Values.Add(comRV);
             }
 

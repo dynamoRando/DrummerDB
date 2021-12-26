@@ -186,7 +186,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public ResultsetValue GetValueFromParticipant(ValueAddress address, TransactionRequest transaction, Participant participant)
+        public ResultsetValue XactRequestValueFromParticipant(ValueAddress address, TransactionRequest transaction, Participant participant)
         {
             var result = new ResultsetValue();
             string errorMessage = string.Empty;
@@ -345,6 +345,36 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public override bool LogFileHasOpenTransaction(TransactionEntryKey key)
         {
             throw new NotImplementedException();
+        }
+
+        public bool XactRequestParticipantUpdateRow(
+            Participant participant,
+            string tableName,
+            int tableId,
+            string databaseName,
+            Guid dbId,
+            int rowId,
+            RemoteValueUpdate updateValue,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
+            out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            var result = _remote.UpdateRemoteRow(
+                participant,
+                tableName,
+                tableId,
+                databaseName,
+                dbId,
+                rowId,
+                updateValue,
+                transaction,
+                transactionMode,
+                out errorMessage
+                );
+
+            return result;
         }
 
         public bool XactRequestParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, out string errorMessage)

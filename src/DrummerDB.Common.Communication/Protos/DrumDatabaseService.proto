@@ -102,13 +102,14 @@ message InsertRowResult {
 
 message UpdateRowInTableRequest{
 	Drum.AuthRequest authentication = 1;
-	string databaseName = 2;
-	string databaseId = 3;
-	string tableName = 4;
-	string tableId = 5;
-	uint32 whereRowId = 6;
-	Drum.RowValue whereValues = 7; // WHERE columnName = value
-	Drum.RowValue updateValues = 8; // SET columnName = value
+	Drum.MessageInfo messageInfo = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	string tableName = 5;
+	uint32 tableId = 6;
+	uint32 whereRowId = 7;
+	string updateColumn = 8;
+	string updateValue = 9; 
 }
 
 message UpdateRowInTableResult {

@@ -103,7 +103,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             // need authentication information to send
             request.Authentication = GetAuthRequest();
-            request.MessageInfo = GetMessageInfo(MessageType.InsertRowRequest);
+            request.MessageInfo = GetMessageInfo(MessageType.InsertRow);
             request.Transaction = GetTransactionInfo(transaction, transactionMode);
             request.RowId = Convert.ToUInt32(row.Id);
 
@@ -177,7 +177,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             var request = new ParticipantAcceptsContractRequest();
             request.ContractGUID = contract.ContractGUID.ToString();
             request.DatabaseName = contract.DatabaseName;
-            request.MessageInfo = GetMessageInfo(MessageType.AcceptContractRequest);
+            request.MessageInfo = GetMessageInfo(MessageType.AcceptContract);
 
             var comParticipant = new Common.Communication.Participant();
             comParticipant.Alias = _hostInfo.HostName;
@@ -238,7 +238,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             var request = new SaveContractRequest();
             request.Contract = ContractConverter.ConvertContractForCommunication(contract, _hostInfo);
-            request.MessageInfo = GetMessageInfo(MessageType.SaveContractRequest);
+            request.MessageInfo = GetMessageInfo(MessageType.SaveContract);
 
             try
             {
@@ -258,6 +258,53 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             {
                 return result.IsSaved;
             }
+        }
+
+        public bool UpdateRemoteRow(
+            structParticipant participant,
+            string tableName,
+            int tableId,
+            string databaseName,
+            Guid dbId,
+            int rowId,
+            RemoteValueUpdate updateValue,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
+            out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            ParticipantSink sink;
+            sink = GetOrAddParticipantSink(participant);
+            var result = new UpdateRowInTableResult();
+
+            var request = new UpdateRowInTableRequest();
+            request.Authentication = GetAuthRequest();
+            request.MessageInfo = GetMessageInfo(MessageType.UpdateRow);
+            request.DatabaseName = databaseName;
+            request.DatabaseId = dbId.ToString();
+            request.TableId = Convert.ToUInt32(tableId);
+            request.TableName = tableName;
+            request.WhereRowId = Convert.ToUInt32(rowId);
+            request.UpdateColumn = updateValue.ColumnName;
+            request.UpdateValue = updateValue.Value;
+
+            try
+            {
+                LogMessageInfo(request.MessageInfo, sink);
+                result = sink.Client.UpdateRowInTable(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+
+            if (result is not null)
+            {
+                return result.IsSuccessful;
+            }
+
+            return false;
         }
 
         // should probably include username/pw or token as a method of auth'd the request
@@ -282,7 +329,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             request.RowAddress.DatabaseName = databaseName;
             request.RowAddress.TableName = tableName;
             request.Authentication = GetAuthRequest();
-            request.MessageInfo = GetMessageInfo(MessageType.GetRowRequest);
+            request.MessageInfo = GetMessageInfo(MessageType.GetRow);
 
             try
             {

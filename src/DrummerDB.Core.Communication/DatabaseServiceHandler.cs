@@ -133,6 +133,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
             var table = partDb.GetTable(tableName);
             var insertAction = new InsertRowToPartialDbAction(row, partDb, table);
 
+            // we should be checking the database contract if the host has permissions for this
+            // or not
+
             return _queryManager.ExecuteDatabaseServiceAction(insertAction, out errorMessage);
         }
 
@@ -180,6 +183,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public IRow GetRowFromPartDb(Guid databaseId, int tableId, int rowId, string dbName, string tableName)
         {
+
+            // we should be checking against the database contract to make sure that the host has
+            // authorization for this
+            // we should also likely be logging this in the transaction log
+
             PartialDb db = null;
             db = _dbManager.GetPartialDb(databaseId);
 

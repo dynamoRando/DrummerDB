@@ -43,6 +43,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             Table table = _db.GetTable(Address);
+            
             bool rowsUpdated = true;
 
             // if we have a WHERE clause that we need to specify
@@ -92,7 +93,36 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 }
                                 else
                                 {
-                                    throw new NotImplementedException("Need to handle remote row for update");
+                                    HostDb hostDb = _db.GetHostDatabase(Address.DatabaseId);
+                                    var participant = hostDb.GetParticipant(rowAddress.ParticipantId);
+                                    foreach (var source in _sources)
+                                    {
+                                        if (source is UpdateTableValue)
+                                        {
+                                            var updateValue = source as UpdateTableValue;
+                                            var remoteUpdateValue = new RemoteValueUpdate();
+                                            remoteUpdateValue.ColumnName = updateValue.Column.ColumnName;
+                                            remoteUpdateValue.Value = updateValue.Value;
+                                            string errorMessage = string.Empty;
+
+                                            var result = 
+                                                hostDb.XactRequestParticipantUpdateRow
+                                                (
+                                                    participant,
+                                                    table.Name,
+                                                    table.Address.TableId,
+                                                    hostDb.Name,
+                                                    hostDb.Id,
+                                                    rowAddress.RowId, 
+                                                    remoteUpdateValue, 
+                                                    transaction, 
+                                                    transactionMode, 
+                                                    out errorMessage
+                                                );
+
+                                            throw new NotImplementedException("Need to handle remote row for update");
+                                        }
+                                    }
                                 }
                             }
 

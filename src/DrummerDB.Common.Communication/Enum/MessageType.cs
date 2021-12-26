@@ -9,9 +9,10 @@ namespace Drummersoft.DrummerDB.Common.Communication.Enum
     public enum MessageType
     {
         Unknown,
-        InsertRowRequest,
-        SaveContractRequest,
-        AcceptContractRequest,
-        GetRowRequest
+        InsertRow,
+        SaveContract,
+        AcceptContract,
+        GetRow,
+        UpdateRow
     }
 }

@@ -188,7 +188,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 // this is a reference row, we need to go get the data from the participant
                                 HostDb db = _db.GetHostDatabase(rsColumn.Table.DatabaseId);
                                 var participant = db.GetParticipant(value.ParticipantId.Value);
-                                rsRow[rsi] = db.GetValueFromParticipant(value, transaction, participant);
+                                rsRow[rsi] = db.XactRequestValueFromParticipant(value, transaction, participant);
                                 rsi++;
                             }
                         }
