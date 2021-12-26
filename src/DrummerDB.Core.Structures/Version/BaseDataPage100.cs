@@ -752,12 +752,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             {
                 if (row.ForwardedPageId == pageId)
                 {
-                    addresses.Add(new RowAddress(pageId, row.Id, offset));
+                    addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty));
                 }
             }
             else
             {
-                addresses.Add(new RowAddress(pageId, row.Id, offset));
+                addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty));
             }
 
         }

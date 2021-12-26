@@ -130,12 +130,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (maxFilter is not null)
             {
                 List<RowAddress> rows = maxFilter.GetRows(_db, transaction, transactionMode);
+                var localRows = GetLocalRows(rows);
+
                 Table table = _db.GetTable(Address);
 
                 foreach (var column in _columnNames)
                 {
-                    var results = table.GetValuesForColumnByRows(rows, column, transaction, transactionMode);
+                    var results = table.GetValuesForColumnByRows(localRows, column, transaction, transactionMode);
                     result.AddRange(results);
+                }
+
+                var remoteRows = GetRemoteRows(rows);
+                foreach (var row in remoteRows)
+                {
+                    foreach (var column in _columnNames)
+                    {
+                        int colId = table.GetColumn(column).Id;
+                        var address = new ValueAddress
+                        {
+                            ColumnId = colId,
+                            ColumnName = column,
+                            DatabaseId = Address.DatabaseId,
+                            RowId = row.RowId,
+                            TableId = Address.TableId,
+                            PageId = row.PageId,
+                            RowOffset = row.RowOffset,
+                            ParticipantId = row.ParticipantId,
+                            SchemaId = table.Schema().Schema.SchemaGUID,
+                            ParseLength = 0,
+                            ValueOffset = 0
+                        };
+
+                        result.Add(address);
+                    }
                 }
             }
 
@@ -171,6 +198,36 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             {
                 sw.Stop();
                 _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
+            }
+
+            return result;
+        }
+
+        private List<RowAddress> GetRemoteRows(List<RowAddress> rows)
+        {
+            var result = new List<RowAddress>();
+
+            foreach (var row in rows)
+            {
+                if (row.ParticipantId != Guid.Empty)
+                {
+                    result.Add(row);
+                }
+            }
+
+            return result;
+        }
+
+        private List<RowAddress> GetLocalRows(List<RowAddress> rows)
+        {
+            var result = new List<RowAddress>();
+
+            foreach (var row in rows)
+            {
+                if (row.ParticipantId == Guid.Empty)
+                {
+                    result.Add(row);
+                }
             }
 
             return result;

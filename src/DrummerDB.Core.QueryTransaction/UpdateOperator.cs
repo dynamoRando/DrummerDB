@@ -5,6 +5,7 @@ using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -64,27 +65,34 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             foreach (var rowAddress in targets.Item2)
                             {
-                                var row = table.GetRow(rowAddress);
-                                foreach (var source in _sources)
+                                if (rowAddress.ParticipantId == Guid.Empty)
                                 {
-                                    if (source is UpdateTableValue)
+                                    var row = table.GetRow(rowAddress);
+                                    foreach (var source in _sources)
                                     {
-                                        var updateValue = source as UpdateTableValue;
-
-                                        if (table.HasColumn(updateValue.Column.ColumnName))
+                                        if (source is UpdateTableValue)
                                         {
-                                            row.SetValue(updateValue.Column.ColumnName, updateValue.Value);
-                                            if (!table.XactUpdateRow(row, transaction, transactionMode))
+                                            var updateValue = source as UpdateTableValue;
+
+                                            if (table.HasColumn(updateValue.Column.ColumnName))
                                             {
-                                                rowsUpdated = false;
+                                                row.SetValue(updateValue.Column.ColumnName, updateValue.Value);
+                                                if (!table.XactUpdateRow(row, transaction, transactionMode))
+                                                {
+                                                    rowsUpdated = false;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                errorMessages.Add(
+                                                    $"Tried to update column {updateValue.Column.ColumnName} which is not in table {table.Name}");
                                             }
                                         }
-                                        else
-                                        {
-                                            errorMessages.Add(
-                                                $"Tried to update column {updateValue.Column.ColumnName} which is not in table {table.Name}");
-                                        }
                                     }
+                                }
+                                else
+                                {
+                                    throw new NotImplementedException("Need to handle remote row for update");
                                 }
                             }
 

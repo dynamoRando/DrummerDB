@@ -70,7 +70,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             int pageId = container.GetPageIdOfRow(rowId);
             var offsets = container.GetRowOffsets(rowId, pageId);
 
-            return new RowAddress(pageId, rowId, offsets.Max());
+            return new RowAddress(pageId, rowId, offsets.Max(), Guid.Empty);
         }
 
         public TreeStatus GetTreeSizeStatus(TreeAddress address, int sizeOfDataToAdd)
@@ -781,6 +781,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
             foreach (var row in rows)
             {
                 var physicalRow = GetRow(row.RowId, address);
+
+                if (!physicalRow.IsLocal)
+                {
+                    throw new InvalidOperationException("Remote row handling should be done at database level");
+                }
+
                 if (physicalRow.IsDeleted == false)
                 {
                     physicalRow.SortBinaryOrder();

@@ -131,20 +131,29 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            var rows = _cache.GetValues(Address, value.Column.Name, _schema);
+            List<ValueAddress> rows = _cache.GetValues(Address, value.Column.Name, _schema);
 
             foreach (var row in rows)
             {
-                ResultsetValue physicalValue = _cache.GetValueAtAddress(row, value.Column);
-
-                // note: we need to make sure the binary arrays are actually equal
-                byte[] actualValue = physicalValue.Value;
-                byte[] expectedValue = value.GetValueInBinary(false, true);
-                if (ValueComparer.IsMatch(value.Column.DataType, actualValue, expectedValue, comparison))
+                if (row.ParticipantId is null)
                 {
-                    var rowAddress = new RowAddress(row.PageId, row.RowId, row.RowOffset);
+                    ResultsetValue physicalValue = _cache.GetValueAtAddress(row, value.Column);
+
+                    // note: we need to make sure the binary arrays are actually equal
+                    byte[] actualValue = physicalValue.Value;
+                    byte[] expectedValue = value.GetValueInBinary(false, true);
+                    if (ValueComparer.IsMatch(value.Column.DataType, actualValue, expectedValue, comparison))
+                    {
+                        var rowAddress = new RowAddress(row.PageId, row.RowId, row.RowOffset, Guid.Empty);
+                        result.Add(rowAddress);
+                    }
+                }
+                else
+                {
+                    var rowAddress = new RowAddress(0, row.RowId, 0, row.ParticipantId.Value);
                     result.Add(rowAddress);
                 }
+
             }
 
             return result;
@@ -377,7 +386,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     throw new InvalidOperationException("Remote rows should be handled at database level");
                 }
 
-                
+
             }
 
             throw new InvalidOperationException($"Column: {address.ColumnName} is not part of table {Name}");
@@ -1243,7 +1252,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         throw new NotImplementedException("Unable to rollback insert at participant");
                     }
 
-                    
+
                 case TransactionMode.Commit:
 
                     // ? what do we do about the remote row?
