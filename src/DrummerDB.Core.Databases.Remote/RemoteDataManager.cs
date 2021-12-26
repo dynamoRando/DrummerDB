@@ -260,6 +260,63 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             }
         }
 
+        public bool RemoveRemoteRow(structParticipant participant,
+            string tableName,
+            int tableId,
+            string databaseName,
+            Guid dbId,
+            int rowId,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
+            out string errorMessage)
+        {
+
+            errorMessage = string.Empty;
+            var result = new RemoveRowFromPartialDatabaseResult();
+
+            ParticipantSink sink;
+            sink = GetOrAddParticipantSink(participant);
+
+            if (!sink.IsOnline())
+            {
+                errorMessage = $"Participant {participant.Alias} is not online";
+                return false;
+            }
+
+            var request = new RemoveRowFromPartialDatabaseRequest();
+            request.Authentication = GetAuthRequest();
+            request.MessageInfo = GetMessageInfo(MessageType.DeleteRow);
+
+            var rowAddress = new RowParticipantAddress();
+            rowAddress.DatabaseId = dbId.ToString();
+            rowAddress.DatabaseName = databaseName;
+            rowAddress.TableId = Convert.ToUInt32(tableId);
+            rowAddress.TableName = tableName;
+            rowAddress.RowId = Convert.ToUInt32(rowId);
+
+            request.RowAddress = rowAddress;
+
+            try
+            {
+                LogMessageInfo(request.MessageInfo, sink);
+                result = sink.Client.RemoveRowFromPartialDatabase(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+
+            if (result is null)
+            {
+                return false;
+            }
+            else
+            {
+                errorMessage = string.Empty;
+                return result.IsSuccessful;
+            }
+        }
+
         public bool UpdateRemoteRow(
             structParticipant participant,
             string tableName,

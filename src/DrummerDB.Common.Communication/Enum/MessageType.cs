@@ -13,6 +13,7 @@ namespace Drummersoft.DrummerDB.Common.Communication.Enum
         SaveContract,
         AcceptContract,
         GetRow,
-        UpdateRow
+        UpdateRow,
+        DeleteRow
     }
 }

@@ -5,6 +5,7 @@ using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -33,6 +34,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             Table table = _db.GetTable(Address);
+            HostDb db = _db.GetHostDatabase(Address.DatabaseId);
+            bool isSuccessful = false;
+            string errorMessage = string.Empty;
 
             // if we have a WHERE clause that we need to specify
             if (PreviousOperation is not null)
@@ -54,10 +58,45 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             foreach (var rowAddress in targets.Item2)
                             {
-                                var row = table.GetRow(rowAddress);
-                                if (table.XactDeleteRow(row, transaction, transactionMode))
+                                if (rowAddress.ParticipantId == Guid.Empty)
                                 {
-                                    messages.Add("DELETE completed successfully");
+                                    var row = table.GetRow(rowAddress);
+                                    if (table.XactDeleteRow(row, transaction, transactionMode))
+                                    {
+                                        messages.Add("DELETE completed successfully");
+                                    }
+                                }
+                                else
+                                {
+                                    // need to delete the remote row first
+                                    var participant = db.GetParticipant(rowAddress.ParticipantId);
+                                    isSuccessful = db.XactRequestParticipantRemoveRow
+                                        (
+                                        participant,
+                                        table.Name,
+                                        table.Address.TableId,
+                                        db.Name,
+                                        db.Id,
+                                        rowAddress.RowId,
+                                        transaction,
+                                        transactionMode,
+                                        out errorMessage
+                                        );
+
+                                    // if the remote row delete is successful, then delete the local reference
+                                    if (isSuccessful)
+                                    {
+                                        var row = table.GetRow(rowAddress);
+                                        if (table.XactDeleteRow(row, transaction, transactionMode))
+                                        {
+                                            messages.Add("DELETE completed successfully");
+                                        }
+                                    }
+
+                                    if (isSuccessful)
+                                    {
+                                        messages.Add($"REMOTE DELETE completed successfully at {participant.Alias}");
+                                    }
                                 }
                             }
                         }

@@ -234,6 +234,40 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return Task.FromResult(result);
         }
 
+        public override Task<RemoveRowFromPartialDatabaseResult> RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest request, ServerCallContext context)
+        {
+            var result = new RemoveRowFromPartialDatabaseResult();
+
+            bool isSuccessful = false;
+
+            if (request.MessageInfo is not null)
+            {
+                LogMessageInfo(request.MessageInfo);
+            }
+
+            var hasLogin = IsLoginValid(request.Authentication, context);
+            if (hasLogin.Result.IsAuthenticated)
+            {
+                // we should be checking to see if the host has authorizations to update the row in the database
+                Guid dbId = Guid.Parse(request.RowAddress.DatabaseId);
+                int tableId = Convert.ToInt32(request.RowAddress.TableId);
+                int rowId = Convert.ToInt32(request.RowAddress.RowId);
+                
+                isSuccessful = _handler.DeleteRowInPartialDb(
+                   dbId,
+                   request.RowAddress.DatabaseName,
+                   tableId,
+                   request.RowAddress.TableName,
+                   rowId
+                   );
+            }
+
+            result.AuthenticationResult = hasLogin.Result;
+            result.IsSuccessful = isSuccessful;
+
+            return Task.FromResult(result);
+        }
+
         public override Task<GetRowFromPartialDatabaseResult> GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest request, ServerCallContext context)
         {
             var result = new GetRowFromPartialDatabaseResult();

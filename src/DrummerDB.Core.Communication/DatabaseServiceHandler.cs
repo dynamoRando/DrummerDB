@@ -181,6 +181,40 @@ namespace Drummersoft.DrummerDB.Core.Communication
             _logger.Info(stringBuilder.ToString());
         }
 
+        public bool DeleteRowInPartialDb(
+            Guid dbId,
+            string dbName,
+            int tableId,
+            string tableName,
+            int rowId
+            )
+        {
+            // note: we didn't leverage a database action here, should we?
+            // this is different from how we implemented the insert row action
+            // therefore we don't have transactional data
+
+            bool isSuccessful = false;
+            PartialDb db = null;
+            db = _dbManager.GetPartialDb(dbId);
+            if (db is null)
+            {
+                db = _dbManager.GetPartialDb(dbName);
+            }
+
+            Table table = null;
+            table = db.GetTable(tableId);
+
+            if (table is null)
+            {
+                table = db.GetTable(tableName);
+            }
+
+            var row = table.GetRow(rowId);
+            isSuccessful = table.XactDeleteRow(row);
+           
+            return isSuccessful;
+        }
+
         public bool UpdateRowInPartialDb(
             Guid dbId,
             string dbName,
@@ -189,6 +223,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
             int rowId,
             RemoteValueUpdate updateValues)
         {
+
+            // note: we didn't leverage a database action here, should we?
+            // this is different from how we implemented the insert row action
+            // therefore we don't have transactional data
+
             bool isSuccessful = false;
             PartialDb db = null;
             db = _dbManager.GetPartialDb(dbId);

@@ -20,6 +20,7 @@ service DatabaseService {
 	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
 	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
 	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
+	rpc RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest) returns (RemoveRowFromPartialDatabaseResult);
 }
 
 // A message for creating a user database
@@ -182,4 +183,16 @@ message ParticipantAcceptsContractRequest {
 message ParticipantAcceptsContractResult {
 	bool contractAcceptanceIsAcknowledged = 1;
 	string errorMessage = 2;
+}
+
+message RemoveRowFromPartialDatabaseRequest {
+	Drum.AuthRequest authentication = 1;
+	Drum.MessageInfo MessageInfo = 2;
+	Drum.RowParticipantAddress rowAddress = 3;
+}
+
+message RemoveRowFromPartialDatabaseResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string resultMessage = 3;
 }

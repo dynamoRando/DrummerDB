@@ -347,6 +347,32 @@ namespace Drummersoft.DrummerDB.Core.Databases
             throw new NotImplementedException();
         }
 
+        public bool XactRequestParticipantRemoveRow(Participant participant,
+            string tableName,
+            int tableId,
+            string databaseName,
+            Guid dbId,
+            int rowId,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
+            out string errorMessage)
+        {
+
+            var result = _remote.RemoveRemoteRow(
+                 participant,
+                tableName,
+                tableId,
+                databaseName,
+                dbId,
+                rowId,
+                transaction,
+                transactionMode,
+                out errorMessage
+                );
+
+            return result;
+        }
+
         public bool XactRequestParticipantUpdateRow(
             Participant participant,
             string tableName,

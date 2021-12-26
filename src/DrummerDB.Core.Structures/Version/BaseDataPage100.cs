@@ -896,8 +896,10 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                         var hashData = span.Slice(remoteDataTotal, dataHashLength).ToArray();
                         row.Hash = hashData;
+                        row.Values = new IRowValue[0];
 
                         remoteDataTotal += dataHashLength;
+                        
                     }
                 }
             }

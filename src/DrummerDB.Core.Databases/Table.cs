@@ -316,7 +316,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                throw new NotImplementedException("Remote row handling not implemented yet");
+                row.Values = new IRowValue[0];
+                return row;
             }
         }
 
@@ -526,6 +527,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public bool XactAddRow(IRow row)
         {
             return XactAddRow(row, new TransactionRequest(), TransactionMode.None);
+        }
+
+        public bool XactDeleteRow(IRow row)
+        {
+            return XactDeleteRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
         public bool XactDeleteRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
