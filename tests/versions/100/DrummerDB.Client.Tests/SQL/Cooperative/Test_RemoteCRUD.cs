@@ -566,5 +566,11 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var selectedUpdatedCustomerNameParticipant = DbBinaryConvert.BinaryToString(spanSelectedUpdateParticipantValue);
             Assert.Equal(newCustomerName, selectedUpdatedCustomerNameParticipant);
         }
+
+        [Fact(Skip ="Test not written yet")]
+        public void Test_Remote_Insert_Read_Delete_Read()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
