@@ -9,17 +9,19 @@ namespace Drummersoft.DrummerDB.Core.Structures
     {
         public int PageId { get; init; }
         public int RowId { get; init; }
+        public Guid ParticipantId { get; init; }
 
         /// <summary>
         /// Represents the byte offset of the row on the page
         /// </summary>
         public int RowOffset { get; init; }
 
-        public RowAddress(int pageId, int rowId, int rowOffset)
+        public RowAddress(int pageId, int rowId, int rowOffset, Guid participantId)
         {
             PageId = pageId;
             RowId = rowId;
             RowOffset = rowOffset;
+            ParticipantId = participantId;
         }
     }
 }

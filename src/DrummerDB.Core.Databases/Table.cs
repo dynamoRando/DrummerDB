@@ -131,20 +131,29 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
-            var rows = _cache.GetValues(Address, value.Column.Name, _schema);
+            List<ValueAddress> rows = _cache.GetValues(Address, value.Column.Name, _schema);
 
             foreach (var row in rows)
             {
-                ResultsetValue physicalValue = _cache.GetValueAtAddress(row, value.Column);
-
-                // note: we need to make sure the binary arrays are actually equal
-                byte[] actualValue = physicalValue.Value;
-                byte[] expectedValue = value.GetValueInBinary(false, true);
-                if (ValueComparer.IsMatch(value.Column.DataType, actualValue, expectedValue, comparison))
+                if (row.ParticipantId is null)
                 {
-                    var rowAddress = new RowAddress(row.PageId, row.RowId, row.RowOffset);
+                    ResultsetValue physicalValue = _cache.GetValueAtAddress(row, value.Column);
+
+                    // note: we need to make sure the binary arrays are actually equal
+                    byte[] actualValue = physicalValue.Value;
+                    byte[] expectedValue = value.GetValueInBinary(false, true);
+                    if (ValueComparer.IsMatch(value.Column.DataType, actualValue, expectedValue, comparison))
+                    {
+                        var rowAddress = new RowAddress(row.PageId, row.RowId, row.RowOffset, Guid.Empty);
+                        result.Add(rowAddress);
+                    }
+                }
+                else
+                {
+                    var rowAddress = new RowAddress(0, row.RowId, 0, row.ParticipantId.Value);
                     result.Add(rowAddress);
                 }
+
             }
 
             return result;
@@ -284,6 +293,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return row;
         }
 
+        public IRow GetRow(int rowId)
+        {
+            return _cache.GetRow(rowId, Address);
+        }
+
         /// <summary>
         /// Gets the row.
         /// </summary>
@@ -302,19 +316,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                throw new NotImplementedException("Remote row handling not implemented yet");
-
-                var participantId = row.ParticipantId;
-                var remoteAddress = new SQLAddress { DatabaseId = this.Address.DatabaseId, TableId = this.Address.TableId, RowId = row.Id };
-                var participant = new Participant { Id = participantId.Value };
-
-                string errorMessage = string.Empty;
-
-                var remoteRow = _remoteManager.GetRowFromParticipant(participant, remoteAddress, out errorMessage);
-
-                // not sure if this is correct, or we need to do some sort of conversion for the row that came from cache
-                // for example, does remote row identify itself as local? from the perspective of the caller, is is not.
-                return remoteRow;
+                row.Values = new IRowValue[0];
+                return row;
             }
         }
 
@@ -384,7 +387,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     throw new InvalidOperationException("Remote rows should be handled at database level");
                 }
 
-                
+
             }
 
             throw new InvalidOperationException($"Column: {address.ColumnName} is not part of table {Name}");
@@ -524,6 +527,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public bool XactAddRow(IRow row)
         {
             return XactAddRow(row, new TransactionRequest(), TransactionMode.None);
+        }
+
+        public bool XactDeleteRow(IRow row)
+        {
+            return XactDeleteRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
         public bool XactDeleteRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
@@ -1250,7 +1258,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         throw new NotImplementedException("Unable to rollback insert at participant");
                     }
 
-                    
+
                 case TransactionMode.Commit:
 
                     // ? what do we do about the remote row?

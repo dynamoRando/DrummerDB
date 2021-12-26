@@ -10,6 +10,8 @@ using structHost = Drummersoft.DrummerDB.Core.Structures.HostInfo;
 using structContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 using Google.Protobuf;
 using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
+using structRowValue = Drummersoft.DrummerDB.Core.Structures.RowValue;
+using structColumnSchema = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using comRowValue = Drummersoft.DrummerDB.Common.Communication.RowValue;
 using comColumnSchema = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
 using comTableSchema = Drummersoft.DrummerDB.Common.Communication.TableSchema;
@@ -20,6 +22,7 @@ using System.Text;
 using static Drummersoft.DrummerDB.Common.Communication.DatabaseService.DatabaseService;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
+using System.Collections.Generic;
 
 namespace Drummersoft.DrummerDB.Core.Databases.Remote
 {
@@ -100,7 +103,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             // need authentication information to send
             request.Authentication = GetAuthRequest();
-            request.MessageInfo = GetMessageInfo(MessageType.InsertRowRequest);
+            request.MessageInfo = GetMessageInfo(MessageType.InsertRow);
             request.Transaction = GetTransactionInfo(transaction, transactionMode);
             request.RowId = Convert.ToUInt32(row.Id);
 
@@ -109,9 +112,9 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             comTableSchema.DatabaseName = dbName;
             comTableSchema.TableId = Convert.ToUInt32(tableId);
             comTableSchema.TableName = tableName;
-            
+
             request.Table = comTableSchema;
-            
+
 
             // need to build row values
             foreach (var sRV in row.Values)
@@ -174,7 +177,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             var request = new ParticipantAcceptsContractRequest();
             request.ContractGUID = contract.ContractGUID.ToString();
             request.DatabaseName = contract.DatabaseName;
-            request.MessageInfo = GetMessageInfo(MessageType.AcceptContractRequest);
+            request.MessageInfo = GetMessageInfo(MessageType.AcceptContract);
 
             var comParticipant = new Common.Communication.Participant();
             comParticipant.Alias = _hostInfo.HostName;
@@ -235,7 +238,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             var request = new SaveContractRequest();
             request.Contract = ContractConverter.ConvertContractForCommunication(contract, _hostInfo);
-            request.MessageInfo = GetMessageInfo(MessageType.SaveContractRequest);
+            request.MessageInfo = GetMessageInfo(MessageType.SaveContract);
 
             try
             {
@@ -257,27 +260,133 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             }
         }
 
-        // should probably include username/pw or token as a method of auth'd the request
-        public IRow GetRowFromParticipant(structParticipant participant, SQLAddress address, out string errorMessage)
+        public bool RemoveRemoteRow(structParticipant participant,
+            string tableName,
+            int tableId,
+            string databaseName,
+            Guid dbId,
+            int rowId,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
+            out string errorMessage)
+        {
+
+            errorMessage = string.Empty;
+            var result = new RemoveRowFromPartialDatabaseResult();
+
+            ParticipantSink sink;
+            sink = GetOrAddParticipantSink(participant);
+
+            if (!sink.IsOnline())
+            {
+                errorMessage = $"Participant {participant.Alias} is not online";
+                return false;
+            }
+
+            var request = new RemoveRowFromPartialDatabaseRequest();
+            request.Authentication = GetAuthRequest();
+            request.MessageInfo = GetMessageInfo(MessageType.DeleteRow);
+
+            var rowAddress = new RowParticipantAddress();
+            rowAddress.DatabaseId = dbId.ToString();
+            rowAddress.DatabaseName = databaseName;
+            rowAddress.TableId = Convert.ToUInt32(tableId);
+            rowAddress.TableName = tableName;
+            rowAddress.RowId = Convert.ToUInt32(rowId);
+
+            request.RowAddress = rowAddress;
+
+            try
+            {
+                LogMessageInfo(request.MessageInfo, sink);
+                result = sink.Client.RemoveRowFromPartialDatabase(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+
+            if (result is null)
+            {
+                return false;
+            }
+            else
+            {
+                errorMessage = string.Empty;
+                return result.IsSuccessful;
+            }
+        }
+
+        public bool UpdateRemoteRow(
+            structParticipant participant,
+            string tableName,
+            int tableId,
+            string databaseName,
+            Guid dbId,
+            int rowId,
+            RemoteValueUpdate updateValue,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
+            out string errorMessage)
         {
             errorMessage = string.Empty;
             ParticipantSink sink;
             sink = GetOrAddParticipantSink(participant);
-            GetRowFromPartialDatabaseResult result;
+            var result = new UpdateRowInTableResult();
+
+            var request = new UpdateRowInTableRequest();
+            request.Authentication = GetAuthRequest();
+            request.MessageInfo = GetMessageInfo(MessageType.UpdateRow);
+            request.DatabaseName = databaseName;
+            request.DatabaseId = dbId.ToString();
+            request.TableId = Convert.ToUInt32(tableId);
+            request.TableName = tableName;
+            request.WhereRowId = Convert.ToUInt32(rowId);
+            request.UpdateColumn = updateValue.ColumnName;
+            request.UpdateValue = updateValue.Value;
+
+            try
+            {
+                LogMessageInfo(request.MessageInfo, sink);
+                result = sink.Client.UpdateRowInTable(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+
+            if (result is not null)
+            {
+                return result.IsSuccessful;
+            }
+
+            return false;
+        }
+
+        // should probably include username/pw or token as a method of auth'd the request
+        public IRow GetRowFromParticipant(structParticipant participant, SQLAddress address, string databaseName, string tableName, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            ParticipantSink sink;
+            sink = GetOrAddParticipantSink(participant);
+            GetRowFromPartialDatabaseResult? result = null;
+            IRow rowResult = null;
 
             if (!sink.IsOnline())
             {
                 throw new InvalidOperationException("Participant is offline");
             }
 
-            throw new NotImplementedException("Still need to think through api");
-
             var request = new GetRowFromPartialDatabaseRequest();
+            request.RowAddress = new RowParticipantAddress();
             request.RowAddress.DatabaseId = address.DatabaseId.ToString();
             request.RowAddress.TableId = (uint)address.TableId;
             request.RowAddress.RowId = (uint)address.RowId;
+            request.RowAddress.DatabaseName = databaseName;
+            request.RowAddress.TableName = tableName;
             request.Authentication = GetAuthRequest();
-            request.MessageInfo = GetMessageInfo(MessageType.GetRowRequest);
+            request.MessageInfo = GetMessageInfo(MessageType.GetRow);
 
             try
             {
@@ -287,12 +396,18 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             catch (Exception ex)
             {
                 errorMessage = ex.Message;
+                return null;
             }
 
             if (result is not null)
             {
                 // do something with the result
+                rowResult = ConvertRequestToRow(result, participant.Id);
+                return rowResult;
             }
+
+            errorMessage = "Unable to get row from participant";
+            return null;
 
         }
         #endregion
@@ -488,6 +603,27 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             stringBuilder.Append($"Destination HostSink: {sink.Host} ");
 
             _logger.Info(stringBuilder.ToString());
+        }
+
+        private IRow ConvertRequestToRow(GetRowFromPartialDatabaseResult request, Guid? participantId)
+        {
+            var row = new structRow(Convert.ToInt32(request.Row.RowId), false, participantId);
+            var values = new List<structRowValue>(request.Row.Values.Count);
+
+            foreach (var comValue in request.Row.Values)
+            {
+                var comColumn = comValue.Column;
+                int enumType = Convert.ToInt32(comColumn.ColumnType);
+                var type = SQLColumnTypeConverter.Convert((SQLColumnType)enumType, Convert.ToInt32(comColumn.ColumnLength));
+                var col = new structColumnSchema(comColumn.ColumnName, type, Convert.ToInt32(comColumn.Ordinal));
+
+                var structValue = new structRowValue(col, comValue.Value.ToByteArray());
+                values.Add(structValue);
+            }
+
+            row.Values = values.ToArray();
+
+            return row;
         }
         #endregion
 

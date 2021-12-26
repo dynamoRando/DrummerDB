@@ -10,6 +10,7 @@ using Drummersoft.DrummerDB.Core.QueryTransaction;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -132,6 +133,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
             var table = partDb.GetTable(tableName);
             var insertAction = new InsertRowToPartialDbAction(row, partDb, table);
 
+            // we should be checking the database contract if the host has permissions for this
+            // or not
+
             return _queryManager.ExecuteDatabaseServiceAction(insertAction, out errorMessage);
         }
 
@@ -175,6 +179,107 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             stringBuilder.Append($"Message recieved at participant: {_hostInfo} ");
             _logger.Info(stringBuilder.ToString());
+        }
+
+        public bool DeleteRowInPartialDb(
+            Guid dbId,
+            string dbName,
+            int tableId,
+            string tableName,
+            int rowId
+            )
+        {
+            // note: we didn't leverage a database action here, should we?
+            // this is different from how we implemented the insert row action
+            // therefore we don't have transactional data
+
+            bool isSuccessful = false;
+            PartialDb db = null;
+            db = _dbManager.GetPartialDb(dbId);
+            if (db is null)
+            {
+                db = _dbManager.GetPartialDb(dbName);
+            }
+
+            Table table = null;
+            table = db.GetTable(tableId);
+
+            if (table is null)
+            {
+                table = db.GetTable(tableName);
+            }
+
+            var row = table.GetRow(rowId);
+            isSuccessful = table.XactDeleteRow(row);
+           
+            return isSuccessful;
+        }
+
+        public bool UpdateRowInPartialDb(
+            Guid dbId,
+            string dbName,
+            int tableId,
+            string tableName,
+            int rowId,
+            RemoteValueUpdate updateValues)
+        {
+
+            // note: we didn't leverage a database action here, should we?
+            // this is different from how we implemented the insert row action
+            // therefore we don't have transactional data
+
+            bool isSuccessful = false;
+            PartialDb db = null;
+            db = _dbManager.GetPartialDb(dbId);
+            if (db is null)
+            {
+                db = _dbManager.GetPartialDb(dbName);
+            }
+
+            Table table = null;
+            table = db.GetTable(tableId);
+
+            if (table is null)
+            {
+                table = db.GetTable(tableName);
+            }
+
+            var row = table.GetRow(rowId);
+            if (row is not null)
+            {
+                row.SetValue(updateValues.ColumnName, updateValues.Value);
+                isSuccessful = table.XactUpdateRow(row);
+            }
+
+            return isSuccessful;
+        }
+
+        public IRow GetRowFromPartDb(Guid databaseId, int tableId, int rowId, string dbName, string tableName)
+        {
+
+            // we should be checking against the database contract to make sure that the host has
+            // authorization for this
+            // we should also likely be logging this in the transaction log
+
+            PartialDb db = null;
+            db = _dbManager.GetPartialDb(databaseId);
+
+            if (db is null)
+            {
+                db = _dbManager.GetPartialDb(dbName);
+            }
+
+            Table table = null;
+            table = db.GetTable(tableId);
+
+            if (table is null)
+            {
+                table = db.GetTable(tableName);
+            }
+
+            var row = table.GetRow(rowId);
+
+            return row;
         }
 
         #endregion

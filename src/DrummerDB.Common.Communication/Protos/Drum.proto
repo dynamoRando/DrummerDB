@@ -68,6 +68,8 @@ message RowParticipantAddress {
 	uint32 rowId = 1;
 	uint32 tableId = 2;
 	string databaseId = 3;
+	string databaseName = 4;
+	string tableName = 5;
 }
 
 // A message for authentication purposes (note: this is proof of concept, and obviously not secure)

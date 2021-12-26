@@ -5,6 +5,7 @@ using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -42,6 +43,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             Table table = _db.GetTable(Address);
+            
             bool rowsUpdated = true;
 
             // if we have a WHERE clause that we need to specify
@@ -64,25 +66,61 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             foreach (var rowAddress in targets.Item2)
                             {
-                                var row = table.GetRow(rowAddress);
-                                foreach (var source in _sources)
+                                if (rowAddress.ParticipantId == Guid.Empty)
                                 {
-                                    if (source is UpdateTableValue)
+                                    var row = table.GetRow(rowAddress);
+                                    foreach (var source in _sources)
                                     {
-                                        var updateValue = source as UpdateTableValue;
-
-                                        if (table.HasColumn(updateValue.Column.ColumnName))
+                                        if (source is UpdateTableValue)
                                         {
-                                            row.SetValue(updateValue.Column.ColumnName, updateValue.Value);
-                                            if (!table.XactUpdateRow(row, transaction, transactionMode))
+                                            var updateValue = source as UpdateTableValue;
+
+                                            if (table.HasColumn(updateValue.Column.ColumnName))
                                             {
-                                                rowsUpdated = false;
+                                                row.SetValue(updateValue.Column.ColumnName, updateValue.Value);
+                                                if (!table.XactUpdateRow(row, transaction, transactionMode))
+                                                {
+                                                    rowsUpdated = false;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                errorMessages.Add(
+                                                    $"Tried to update column {updateValue.Column.ColumnName} which is not in table {table.Name}");
                                             }
                                         }
-                                        else
+                                    }
+                                }
+                                else
+                                {
+                                    HostDb hostDb = _db.GetHostDatabase(Address.DatabaseId);
+                                    var participant = hostDb.GetParticipant(rowAddress.ParticipantId);
+                                    foreach (var source in _sources)
+                                    {
+                                        if (source is UpdateTableValue)
                                         {
-                                            errorMessages.Add(
-                                                $"Tried to update column {updateValue.Column.ColumnName} which is not in table {table.Name}");
+                                            var updateValue = source as UpdateTableValue;
+                                            var remoteUpdateValue = new RemoteValueUpdate();
+                                            remoteUpdateValue.ColumnName = updateValue.Column.ColumnName;
+                                            remoteUpdateValue.Value = updateValue.Value;
+                                            string errorMessage = string.Empty;
+
+                                            var result = 
+                                                hostDb.XactRequestParticipantUpdateRow
+                                                (
+                                                    participant,
+                                                    table.Name,
+                                                    table.Address.TableId,
+                                                    hostDb.Name,
+                                                    hostDb.Id,
+                                                    rowAddress.RowId, 
+                                                    remoteUpdateValue, 
+                                                    transaction, 
+                                                    transactionMode, 
+                                                    out errorMessage
+                                                );
+
+                                            rowsUpdated = result;
                                         }
                                     }
                                 }

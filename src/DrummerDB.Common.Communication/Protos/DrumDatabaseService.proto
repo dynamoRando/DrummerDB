@@ -20,6 +20,7 @@ service DatabaseService {
 	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
 	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
 	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
+	rpc RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest) returns (RemoveRowFromPartialDatabaseResult);
 }
 
 // A message for creating a user database
@@ -102,13 +103,14 @@ message InsertRowResult {
 
 message UpdateRowInTableRequest{
 	Drum.AuthRequest authentication = 1;
-	string databaseName = 2;
-	string databaseId = 3;
-	string tableName = 4;
-	string tableId = 5;
-	uint32 whereRowId = 6;
-	Drum.RowValue whereValues = 7; // WHERE columnName = value
-	Drum.RowValue updateValues = 8; // SET columnName = value
+	Drum.MessageInfo messageInfo = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	string tableName = 5;
+	uint32 tableId = 6;
+	uint32 whereRowId = 7;
+	string updateColumn = 8;
+	string updateValue = 9; 
 }
 
 message UpdateRowInTableResult {
@@ -181,4 +183,16 @@ message ParticipantAcceptsContractRequest {
 message ParticipantAcceptsContractResult {
 	bool contractAcceptanceIsAcknowledged = 1;
 	string errorMessage = 2;
+}
+
+message RemoveRowFromPartialDatabaseRequest {
+	Drum.AuthRequest authentication = 1;
+	Drum.MessageInfo MessageInfo = 2;
+	Drum.RowParticipantAddress rowAddress = 3;
+}
+
+message RemoveRowFromPartialDatabaseResult {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string resultMessage = 3;
 }

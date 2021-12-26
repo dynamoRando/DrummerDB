@@ -186,11 +186,36 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public ResultsetValue GetValueFromParticipant(ValueAddress address, TransactionRequest transaction, Participant participant)
+        public ResultsetValue XactRequestValueFromParticipant(ValueAddress address, TransactionRequest transaction, Participant participant)
         {
+            var result = new ResultsetValue();
             string errorMessage = string.Empty;
-            var data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), out errorMessage);
-            throw new NotImplementedException();
+            var table = GetTable(address.TableId);
+
+            // this is inefficent
+            // we only need a single value, but we've requested the entire row from the participant
+            // this is because the api for com's was partially started before the api for queries
+            // will need to revisit so that the com api exposes a way to get a single value from a participant
+
+            var data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), Name, table.Name, out errorMessage);
+
+            // filter out by the value we're interested in
+            foreach (var value in data.Values)
+            {
+                if (string.Equals(value.Column.Name, address.ColumnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (value.IsNull())
+                    {
+                        result.IsNullValue = true;
+                    }
+                    else
+                    {
+                        result.Value = value.GetValueInBinary(false, value.Column.IsNullable);
+                    }
+                }
+            }
+
+            return result;
         }
 
         public Participant GetParticipant(Guid participantId)
@@ -320,6 +345,62 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public override bool LogFileHasOpenTransaction(TransactionEntryKey key)
         {
             throw new NotImplementedException();
+        }
+
+        public bool XactRequestParticipantRemoveRow(Participant participant,
+            string tableName,
+            int tableId,
+            string databaseName,
+            Guid dbId,
+            int rowId,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
+            out string errorMessage)
+        {
+
+            var result = _remote.RemoveRemoteRow(
+                 participant,
+                tableName,
+                tableId,
+                databaseName,
+                dbId,
+                rowId,
+                transaction,
+                transactionMode,
+                out errorMessage
+                );
+
+            return result;
+        }
+
+        public bool XactRequestParticipantUpdateRow(
+            Participant participant,
+            string tableName,
+            int tableId,
+            string databaseName,
+            Guid dbId,
+            int rowId,
+            RemoteValueUpdate updateValue,
+            TransactionRequest transaction,
+            TransactionMode transactionMode,
+            out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            var result = _remote.UpdateRemoteRow(
+                participant,
+                tableName,
+                tableId,
+                databaseName,
+                dbId,
+                rowId,
+                updateValue,
+                transaction,
+                transactionMode,
+                out errorMessage
+                );
+
+            return result;
         }
 
         public bool XactRequestParticipantSaveLatestContract(TransactionRequest transaction, TransactionMode transactionMode, Participant participant, out string errorMessage)

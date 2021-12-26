@@ -41,7 +41,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public RowAddress ToRowAddress()
         {
-            return new RowAddress(PageId, RowId, RowOffset);
+            return new RowAddress(PageId, RowId, RowOffset, Guid.Empty);
         }
     }
 }
