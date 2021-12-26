@@ -544,8 +544,8 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var spanSelectedUpdatedValue = new ReadOnlySpan<byte>(bSelectedUpdatedValue);
 
             // remove leading 4 byte int;
-            var actualUpdatedCustomerName = spanSelectedUpdatedValue.Slice(Constants.SIZE_OF_INT, spanSelectedUpdatedValue.Length - Constants.SIZE_OF_INT);
-            var selectedUpdatedCustomerName = DbBinaryConvert.BinaryToString(actualUpdatedCustomerName);
+            //var actualUpdatedCustomerName = spanSelectedUpdatedValue.Slice(Constants.SIZE_OF_INT, spanSelectedUpdatedValue.Length - Constants.SIZE_OF_INT);
+            var selectedUpdatedCustomerName = DbBinaryConvert.BinaryToString(spanSelectedUpdatedValue.ToArray());
             Assert.Equal(newCustomerName, selectedUpdatedCustomerName);
 
             // check to see if we can read the customer name at the participant
@@ -562,11 +562,9 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var spanSelectedUpdateParticipantValue = new ReadOnlySpan<byte>(bSelectedUpdatedParticipantValue);
 
             // remove leading 4 byte int;
-            var actualUpdatedCustomerParticipantName = spanSelectedUpdateParticipantValue.Slice(Constants.SIZE_OF_INT, spanSelectedUpdateParticipantValue.Length - Constants.SIZE_OF_INT);
-            var selectedUpdatedCustomerNameParticipant = DbBinaryConvert.BinaryToString(actualUpdatedCustomerParticipantName);
+            //var actualUpdatedCustomerParticipantName = spanSelectedUpdateParticipantValue.Slice(Constants.SIZE_OF_INT, spanSelectedUpdateParticipantValue.Length - Constants.SIZE_OF_INT);
+            var selectedUpdatedCustomerNameParticipant = DbBinaryConvert.BinaryToString(spanSelectedUpdateParticipantValue);
             Assert.Equal(newCustomerName, selectedUpdatedCustomerNameParticipant);
-
-            throw new NotImplementedException();
         }
     }
 }

@@ -181,6 +181,40 @@ namespace Drummersoft.DrummerDB.Core.Communication
             _logger.Info(stringBuilder.ToString());
         }
 
+        public bool UpdateRowInPartialDb(
+            Guid dbId,
+            string dbName,
+            int tableId,
+            string tableName,
+            int rowId,
+            RemoteValueUpdate updateValues)
+        {
+            bool isSuccessful = false;
+            PartialDb db = null;
+            db = _dbManager.GetPartialDb(dbId);
+            if (db is null)
+            {
+                db = _dbManager.GetPartialDb(dbName);
+            }
+
+            Table table = null;
+            table = db.GetTable(tableId);
+
+            if (table is null)
+            {
+                table = db.GetTable(tableName);
+            }
+
+            var row = table.GetRow(rowId);
+            if (row is not null)
+            {
+                row.SetValue(updateValues.ColumnName, updateValues.Value);
+                isSuccessful = table.XactUpdateRow(row);
+            }
+
+            return isSuccessful;
+        }
+
         public IRow GetRowFromPartDb(Guid databaseId, int tableId, int rowId, string dbName, string tableName)
         {
 

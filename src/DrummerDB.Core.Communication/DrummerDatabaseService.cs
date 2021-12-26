@@ -203,6 +203,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public override Task<UpdateRowInTableResult> UpdateRowInTable(UpdateRowInTableRequest request, ServerCallContext context)
         {
             var result = new UpdateRowInTableResult();
+            bool isSuccessful = false;
+
             if (request.MessageInfo is not null)
             {
                 LogMessageInfo(request.MessageInfo);
@@ -212,10 +214,22 @@ namespace Drummersoft.DrummerDB.Core.Communication
             if (hasLogin.Result.IsAuthenticated)
             {
                 // we should be checking to see if the host has authorizations to update the row in the database
-                throw new NotImplementedException();
+                Guid dbId = Guid.Parse(request.DatabaseId);
+                int tableId = Convert.ToInt32(request.TableId);
+                int rowId = Convert.ToInt32(request.WhereRowId);
+                var updateValues = new RemoteValueUpdate {  ColumnName = request.UpdateColumn, Value = request.UpdateValue }; ;
+
+                 isSuccessful = _handler.UpdateRowInPartialDb(
+                    dbId,
+                    request.DatabaseName,
+                    tableId,
+                    request.TableName,
+                    rowId,
+                    updateValues);
             }
 
             result.AuthenticationResult = hasLogin.Result;
+            result.IsSuccessful = isSuccessful;
 
             return Task.FromResult(result);
         }

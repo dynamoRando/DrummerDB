@@ -120,7 +120,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                                     out errorMessage
                                                 );
 
-                                            throw new NotImplementedException("Need to handle remote row for update");
+                                            rowsUpdated = result;
                                         }
                                     }
                                 }

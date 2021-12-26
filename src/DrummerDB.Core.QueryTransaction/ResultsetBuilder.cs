@@ -243,7 +243,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 _log.Performance(Assembly.GetExecutingAssembly().GetName().Name, LogService.GetCurrentMethod(), sw.ElapsedMilliseconds);
             }
 
-            return result;
+            var distinct = result.Distinct().ToList();
+
+            return distinct;
         }
 
         /// <summary>
