@@ -22,7 +22,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
     public class Test_RemoteCRUD
     {
         [Fact]
-        public void Test_RemoteDataCRUD()
+        public void Test_Remote_Insert_And_Read()
         {
             // the first half of this test is a copy of Test_GenerateAcceptContract
             // to ensure that the setup between a participant and host is still working
