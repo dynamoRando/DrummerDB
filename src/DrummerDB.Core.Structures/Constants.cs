@@ -11,6 +11,7 @@
         public static int PAGE_SIZE = 8192;
 
         public const int SIZE_OF_INT = 4;
+        public const int SIZE_OF_UINT = 4;
         public const int SIZE_OF_BOOL = 1;
         public const int SIZE_OF_GUID = 16;
         public const int SIZE_OF_DATETIME = 8;

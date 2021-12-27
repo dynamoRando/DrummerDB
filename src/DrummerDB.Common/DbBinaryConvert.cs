@@ -119,6 +119,11 @@ namespace Drummersoft.DrummerDB.Common
             return BitConverter.ToInt32(span);
         }
 
+        public static uint BinaryToUInt(ReadOnlySpan<byte> span)
+        {
+            return BitConverter.ToUInt32(span);
+        }
+
         /// <summary>
         /// Converts bytes to a boolean value
         /// </summary>
