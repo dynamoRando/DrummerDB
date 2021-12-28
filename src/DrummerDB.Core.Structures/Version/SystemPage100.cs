@@ -12,18 +12,18 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
     {
         #region Private Fields
         private byte[] _data;
-        private string _databaseName;
-        private int _databaseVersion;
-        private int _pageId = 0;
+        private string _databaseName;   
+        private ushort _databaseVersion;
+        private uint _pageId = 0;
         private DateTime _createdDate;
-        private int _V100 = Constants.DatabaseVersions.V100;
+        private ushort _V100 = Constants.DatabaseVersions.V100;
         private Guid _databaseId;
         #endregion
 
         #region Public Properties
         public override byte[] Data => _data;
         public override PageType Type => PageType.System;
-        public override int DatabaseVersion => _databaseVersion;
+        public override ushort DatabaseVersion => _databaseVersion;
         public override string DatabaseName => GetDbName();
         public override Guid DatabaseId => _databaseId;
         #endregion
@@ -76,10 +76,10 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// Returns the maximum System Data Page in this database, based on the System Page's Data
         /// </summary>
         /// <returns>The max Meta Page Id</returns>
-        public override int GetMaxSystemDataPage()
+        public override uint GetMaxSystemDataPage()
         {
             var span = new ReadOnlySpan<byte>(_data);
-            int maxPage = DbBinaryConvert.BinaryToInt(span.Slice(SystemPageConstants.MaxSystemDataPageOffset(_V100), SystemPageConstants.SIZE_OF_MAX_SYSTEM_DATA_PAGE(_V100)));
+            uint maxPage = DbBinaryConvert.BinaryToUInt(span.Slice(SystemPageConstants.MaxSystemDataPageOffset(_V100), SystemPageConstants.SIZE_OF_MAX_SYSTEM_DATA_PAGE(_V100)));
             return maxPage;
         }
 
@@ -112,15 +112,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             SaveDbNameToData();
         }
 
-        public override int PageId()
+        public override uint PageId()
         {
             var idSpan = new ReadOnlySpan<byte>(_data);
             var idBytes = idSpan.Slice(PageConstants.PageIdOffset(), PageConstants.SIZE_OF_PAGE_ID(_V100));
-            var result = BitConverter.ToInt32(idBytes);
+            var result = BitConverter.ToUInt32(idBytes);
             return result;
         }
 
-        public override int FirstSystemDataPageOffset()
+        public override uint FirstSystemDataPageOffset()
         {
             throw new NotImplementedException();
         }

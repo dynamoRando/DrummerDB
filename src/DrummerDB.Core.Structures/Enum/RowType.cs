@@ -3,9 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 
 namespace Drummersoft.DrummerDB.Core.Structures.Enum
 {
+    /// <summary>
+    /// Identifies the type of row
+    /// </summary>
+    /// <remarks>This is useful to determine the shape of the binary array
+    /// on the <see cref="BaseDataPage"/> </remarks>
     internal enum RowType
     {
         /// <summary>
@@ -37,7 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Enum
         /// </summary>
         /// <remarks>Used when creating a row for Cooperative Insert to send data to 
         /// partial database</remarks>
-        Temp,
+        TempParticipantRow,
 
         /// <summary>
         /// A row that is locally saved to the table, but for a specific tenant

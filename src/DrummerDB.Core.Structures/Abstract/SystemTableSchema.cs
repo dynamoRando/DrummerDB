@@ -11,7 +11,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
     internal abstract class SystemTableSchema : ITableSchema
     {
         public abstract ColumnSchema[] Columns { get; }
-        public abstract int Id { get; }
+        public abstract uint Id { get; }
         public abstract string Name { get; }
         public abstract Guid DatabaseId { get; }
         public abstract TreeAddress Address { get; }

@@ -69,5 +69,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         void SetValueAsNullForColumn(string columnName);
 
         bool IsValueNull(string columnName);
+        uint Size();
     }
 }

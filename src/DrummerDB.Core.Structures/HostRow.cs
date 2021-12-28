@@ -19,14 +19,48 @@ namespace Drummersoft.DrummerDB.Core.Structures
     {
         #region Private Fields
         private RowPreamble _preamble;
+        private RemotableFixedData _remotableFixedData;
         private byte[] _dataHash;
         #endregion
 
         #region Public Properties
         public override RowType Type => RowType.Remoteable;
-        public Guid RemoteId { get; set; }
-        public bool IsRemoteDeleted { get; set; }
-        public DateTime RemoteDeletionUTC { get; set; }
+        public Guid RemoteId
+        {
+            get
+            {
+                return _remotableFixedData.RemoteId;
+            }
+            set
+            {
+                _remotableFixedData.RemoteId = value;
+            }
+        }
+
+        public bool IsRemoteDeleted
+        {
+            get
+            {
+                return _remotableFixedData.IsRemoteDeleted;
+            }
+            set
+            {
+                _remotableFixedData.IsRemoteDeleted = value;
+            }
+        }
+
+        public DateTime RemoteDeletionUTC
+        {
+            get
+            {
+                return _remotableFixedData.RemoteDeletionUTC;
+            }
+
+            set
+            {
+                _remotableFixedData.RemoteDeletionUTC = value;
+            }
+        }
         public uint DataHashLength => (uint)_dataHash.Length;
         public byte[] DataHash => _dataHash;
         public RemoteType RemoteType => RemoteType.Participant;
@@ -46,6 +80,21 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public override void Delete()
+        {
+            _preamble.IsLogicallyDeleted = true;
+        }
+
+        public void SetRemotableFixedData(ReadOnlySpan<byte> data)
+        {
+            _remotableFixedData = new RemotableFixedData(data);
+        }
+
+        public void SetRemotableFixedData(RemotableFixedData data)
+        {
+            _remotableFixedData = data;
+        }
+
         public void SetDataHash(byte[] dataHash)
         {
             _dataHash = dataHash;
@@ -85,7 +134,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             var bRemoteDeletedUTC = DbBinaryConvert.DateTimeToBinary(RemoteDeletionUTC.ToString());
             arrays.Add(bRemoteDeletedUTC);
 
-            var bDataHashLength = DbBinaryConvert.UIntToBinary(DataHashLength); 
+            var bDataHashLength = DbBinaryConvert.UIntToBinary(DataHashLength);
             arrays.Add(bDataHashLength);
 
             arrays.Add(DataHash);

@@ -10,12 +10,12 @@
         /// </summary>
         /// <param name="version">The database version</param>
         /// <returns>The byte size for the Page Id</returns>
-        public static int SIZE_OF_PAGE_ID(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_PAGE_ID(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return Constants.SIZE_OF_INT;
+                    return Constants.SIZE_OF_UINT;
                 default:
                     return 0;
             }
@@ -26,18 +26,18 @@
         /// </summary>
         /// <param name="version">The database version</param>
         /// <returns>The byte size for the Page Type</returns>
-        public static int SIZE_OF_PAGE_TYPE(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_PAGE_TYPE(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return Constants.SIZE_OF_INT;
+                    return Constants.SIZE_OF_UINT;
                 default:
                     return 0;
             }
         }
 
-        public static int SIZE_OF_IS_DELETED(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_IS_DELETED(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -53,12 +53,12 @@
         /// </summary>
         /// <param name="version">The database version</param>
         /// <returns>The byte size for the Page Preamble</returns>
-        public static int SIZE_OF_PAGE_PREAMBLE(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_PAGE_PREAMBLE(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return SIZE_OF_PAGE_ID(version) + SIZE_OF_PAGE_TYPE(version) + SIZE_OF_IS_DELETED(version);
+                    return (ushort)(SIZE_OF_PAGE_ID(version) + SIZE_OF_PAGE_TYPE(version) + SIZE_OF_IS_DELETED(version));
                 default:
                     return 0;
             }
@@ -68,7 +68,7 @@
         /// Returns the byte offset for the Page Id
         /// </summary>
         /// <returns>The byte offset for the Page Id</returns>
-        public static int PageIdOffset()
+        public static ushort PageIdOffset()
         {
             return 0;
         }
@@ -78,7 +78,7 @@
         /// </summary>
         /// <param name="version">The database version</param>
         /// <returns>The byte offset for the Page Type</returns>
-        public static int PageTypeOffset(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort PageTypeOffset(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -89,12 +89,12 @@
             }
         }
 
-        public static int PageIsDeletedOffset(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort PageIsDeletedOffset(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return SIZE_OF_PAGE_ID(version) + SIZE_OF_PAGE_TYPE(version);
+                    return (ushort)(SIZE_OF_PAGE_ID(version) + SIZE_OF_PAGE_TYPE(version));
                 default:
                     return 0;
             }

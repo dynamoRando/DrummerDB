@@ -7,9 +7,9 @@ namespace Drummersoft.DrummerDB.Core.Structures
 {
     internal static class PageParser
     {
-        public delegate void ParsePageAction<T>(int pageId, RowPreamble row, int offset, int targetRowId, ref T item);
+        public delegate void ParsePageAction<T>(uint pageId, RowPreamble row, uint offset, uint targetRowId, ref T item);
 
-        public static void ParsePageData<T>(ReadOnlySpan<byte> data, int pageId, ParsePageAction<T> action, int targetRowId, bool stopAtFirstForward, bool includeDeletedRows, ref T foo)
+        public static void ParsePageData<T>(ReadOnlySpan<byte> data, uint pageId, ParsePageAction<T> action, uint targetRowId, bool stopAtFirstForward, bool includeDeletedRows, ref T foo)
         {
             uint runningTotal = (uint)DataPageConstants.RowDataStartOffset();
 
@@ -34,12 +34,12 @@ namespace Drummersoft.DrummerDB.Core.Structures
                 {
                     if (includeDeletedRows)
                     {
-                        action(pageId, item, (int)runningTotal, targetRowId, ref foo);
+                        action(pageId, item, runningTotal, targetRowId, ref foo);
                     }
                 }
                 else
                 {
-                    action(pageId, item, (int)runningTotal, targetRowId, ref foo);
+                    action(pageId, item, runningTotal, targetRowId, ref foo);
                 }
 
                 if (stopAtFirstForward && item.IsForwarded && item.ForwardOffset > 0)

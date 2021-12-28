@@ -6,7 +6,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
     /// <summary>
     /// A structure for identifying a database and table: DatabaseId, TableId, SchemaId
     /// </summary>
-    internal record struct TreeAddress(Guid DatabaseId, int TableId, Guid SchemaId)
+    internal record struct TreeAddress(Guid DatabaseId, uint TableId, Guid SchemaId)
     {
     }
 }

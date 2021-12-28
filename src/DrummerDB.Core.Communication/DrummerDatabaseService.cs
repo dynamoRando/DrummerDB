@@ -10,7 +10,7 @@ using drumContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 using drumTableSchema = Drummersoft.DrummerDB.Core.Structures.TableSchema;
 using drumColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using drumParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
-using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
+using structRow = Drummersoft.DrummerDB.Core.Structures.TempParticipantRow;
 using structColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using comColumn = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
 using comRow = Drummersoft.DrummerDB.Common.Communication.Row;
@@ -56,7 +56,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             bool hasLogin;
             AuthResult result = null;
 
-            if (request.Pw is null || request.Pw == String.Empty)
+            if (request.Pw is null || request.Pw == string.Empty)
             {
                 hasLogin = _handler.SystemHasHost(request.UserName, request.Token.ToByteArray());
             }
@@ -325,7 +325,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             foreach (var table in request.Contract.Schema.Tables)
             {
-                int tableId = Convert.ToInt32(table.TableId);
+                uint tableId = table.TableId;
                 string tableName = table.TableName;
                 int logicalStoragePolicy = Convert.ToInt32(table.LogicalStoragePolicy);
 

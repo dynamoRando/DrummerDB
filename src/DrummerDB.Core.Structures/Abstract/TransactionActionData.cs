@@ -10,7 +10,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract TransactionDataOperation Operation { get; }
         public abstract SQLAddress Address { get; }
 
-        public TransactionActionData(Guid databaseId, int tableId)
+        public TransactionActionData(Guid databaseId, uint tableId)
         {
         }
     }

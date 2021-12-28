@@ -193,25 +193,25 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                 currentOffset += Constants.SIZE_OF_GUID;
 
-                int tableId;
-                tableId = DbBinaryConvert.BinaryToInt(action.Slice(currentOffset, Constants.SIZE_OF_INT));
+                uint tableId;
+                tableId = DbBinaryConvert.BinaryToUInt(action.Slice(currentOffset, Constants.SIZE_OF_INT));
 
-                currentOffset += Constants.SIZE_OF_INT;
+                currentOffset += Constants.SIZE_OF_UINT;
 
-                int pageId;
-                pageId = DbBinaryConvert.BinaryToInt(action.Slice(currentOffset, Constants.SIZE_OF_INT));
+                uint pageId;
+                pageId = DbBinaryConvert.BinaryToUInt(action.Slice(currentOffset, Constants.SIZE_OF_INT));
 
-                currentOffset += Constants.SIZE_OF_INT;
+                currentOffset += Constants.SIZE_OF_UINT;
 
-                int rowId;
-                rowId = DbBinaryConvert.BinaryToInt(action.Slice(currentOffset, Constants.SIZE_OF_INT));
+                uint rowId;
+                rowId = DbBinaryConvert.BinaryToUInt(action.Slice(currentOffset, Constants.SIZE_OF_INT));
 
-                currentOffset += Constants.SIZE_OF_INT;
+                currentOffset += Constants.SIZE_OF_UINT;
 
-                int rowOffset;
-                rowOffset = DbBinaryConvert.BinaryToInt(action.Slice(currentOffset, Constants.SIZE_OF_INT));
+                uint rowOffset;
+                rowOffset = DbBinaryConvert.BinaryToUInt(action.Slice(currentOffset, Constants.SIZE_OF_INT));
 
-                currentOffset += Constants.SIZE_OF_INT;
+                currentOffset += Constants.SIZE_OF_UINT;
 
                 Guid schemaId;
                 schemaId = DbBinaryConvert.BinaryToGuid(action.Slice(currentOffset, Constants.SIZE_OF_GUID));

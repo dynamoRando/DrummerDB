@@ -5,15 +5,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.SQLType
     internal class SQLVarbinary : ISQLType
     {
         #region Private Fields
-        private int _maxLength;
+        private uint _maxLength;
         #endregion
 
         #region Public Properties
-        public int MaxLength => _maxLength;
+        public uint MaxLength => _maxLength;
         #endregion
 
         #region Constructors
-        public SQLVarbinary(int maxLength)
+        public SQLVarbinary(uint maxLength)
         {
             _maxLength = maxLength;
         }

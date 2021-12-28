@@ -34,12 +34,14 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
             _preamble = preamble;
         }
 
-        public abstract byte[] GetRowInPageBinaryFormat();
-        public abstract byte[] GetRowInTransactionBinaryFormat();
-        public abstract void ForwardRow(uint newOffset, uint pageId);
+
         #endregion
 
         #region Public Methods
+        public abstract byte[] GetRowInPageBinaryFormat();
+        public abstract byte[] GetRowInTransactionBinaryFormat();
+        public abstract void ForwardRow(uint newOffset, uint pageId);
+        public abstract void Delete();
         #endregion
 
         #region Private Methods

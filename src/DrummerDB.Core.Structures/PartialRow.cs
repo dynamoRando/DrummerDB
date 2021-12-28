@@ -11,17 +11,55 @@ using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
+    /// <summary>
+    /// A row that has <see cref="RowValue"/>s and has 
+    /// <see cref="IRowRemotable"/> data about the host that refers to it
+    /// </summary>
     internal class PartialRow : RowValueGroup, IRowRemotable
     {
         #region Private Fields
         private RowPreamble _preamble;
+        private RemotableFixedData _remotableFixedData;
         #endregion
 
         #region Public Properties
         public override RowType Type => RowType.RemotableAndLocal;
-        public Guid RemoteId { get; set; }
-        public bool IsRemoteDeleted { get; set; }
-        public DateTime RemoteDeletionUTC { get; set; }
+        public Guid RemoteId
+        {
+            get
+            {
+                return _remotableFixedData.RemoteId;
+            }
+            set
+            {
+                _remotableFixedData.RemoteId = value;
+            }
+        }
+
+        public bool IsRemoteDeleted
+        {
+            get
+            {
+                return _remotableFixedData.IsRemoteDeleted;
+            }
+            set
+            {
+                _remotableFixedData.IsRemoteDeleted = value;
+            }
+        }
+
+        public DateTime RemoteDeletionUTC
+        {
+            get
+            {
+                return _remotableFixedData.RemoteDeletionUTC;
+            }
+
+            set
+            {
+                _remotableFixedData.RemoteDeletionUTC = value;
+            }
+        }
         public uint DataHashLength => (uint)DataHash.Length;
         public byte[] DataHash => GetRowHash();
         public RemoteType RemoteType => RemoteType.Host;
@@ -35,6 +73,16 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public void SetRemotableFixedData(ReadOnlySpan<byte> data)
+        {
+            _remotableFixedData = new RemotableFixedData(data);
+        }
+
+        public void SetRemotableFixedData(RemotableFixedData data)
+        {
+            _remotableFixedData = data;
+        }
+
         public override byte[] GetRowInPageBinaryFormat()
         {
             return GetRowInBinaryFormat();

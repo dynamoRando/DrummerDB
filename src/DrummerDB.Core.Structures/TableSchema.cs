@@ -16,7 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
     {
         #region Private Fields
         private ColumnSchema[] _columns;
-        private int _Id;
+        private uint _Id;
         private string _name;
         private Guid _dbId;
         private TreeAddress _address => new TreeAddress(DatabaseId, _Id, _schema.SchemaGUID);
@@ -34,7 +34,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <summary>
         /// The local id of the table
         /// </summary>
-        public int Id => _Id;
+        public uint Id => _Id;
         /// <summary>
         /// The name of the table
         /// </summary>
@@ -65,7 +65,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <param name="dbId">The database id the table is in</param>
         /// <param name="columns">The columns of the table</param>
         /// <param name="schema">The database schema the table belongs to</param>
-        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, DatabaseSchemaInfo schema, LogicalStoragePolicy policy)
+        public TableSchema(uint id, string name, Guid dbId, List<ColumnSchema> columns, DatabaseSchemaInfo schema, LogicalStoragePolicy policy)
         {
             _Id = id;
             _name = name;
@@ -85,7 +85,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <param name="dbId">The database id the table is in</param>
         /// <param name="columns">The columns of the table</param>
         /// <param name="schema">The database schema the table belongs to</param>
-        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, DatabaseSchemaInfo schema, string databaseName)
+        public TableSchema(uint id, string name, Guid dbId, List<ColumnSchema> columns, DatabaseSchemaInfo schema, string databaseName)
         {
             _Id = id;
             _name = name;
@@ -104,7 +104,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <param name="name">The name of the table</param>
         /// <param name="dbId">The database id the table is in</param>
         /// <param name="columns">The columns of the table</param>
-        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, string databaseName)
+        public TableSchema(uint id, string name, Guid dbId, List<ColumnSchema> columns, string databaseName)
         {
             _Id = id;
             _name = name;
@@ -118,18 +118,18 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         }
 
-        public TableSchema(int id, string name, Guid dbId, List<ColumnSchema> columns, Guid objectId, string databaseName) : this(id, name, dbId, columns, databaseName)
+        public TableSchema(uint id, string name, Guid dbId, List<ColumnSchema> columns, Guid objectId, string databaseName) : this(id, name, dbId, columns, databaseName)
         {
             _objectId = objectId;
         }
 
         public TableSchema(ReadOnlySpan<byte> binaryData)
         {
-            int currentOffset = 0;
+            uint currentOffset = 0;
             var columns = new List<ColumnSchema>();
             string tableSchemaName = string.Empty;
             Guid tableSchemaGuid = Guid.Empty;
-            int colMaxLength = 0;
+            uint colMaxLength = 0;
 
             /*
             * Database Guid
@@ -152,56 +152,56 @@ namespace Drummersoft.DrummerDB.Core.Structures
             */
 
             // database guid
-            _dbId = DbBinaryConvert.BinaryToGuid(binaryData.Slice(currentOffset, Constants.SIZE_OF_GUID));
+            _dbId = DbBinaryConvert.BinaryToGuid(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_GUID));
 
             currentOffset += Constants.SIZE_OF_GUID;
 
-            int nameLength = 0;
+            uint nameLength = 0;
 
             // db name length
-            nameLength = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+            nameLength = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
             currentOffset += Constants.SIZE_OF_INT;
 
             // dbNamee
-            _name = DbBinaryConvert.BinaryToString(binaryData.Slice(currentOffset, nameLength));
+            _name = DbBinaryConvert.BinaryToString(binaryData.Slice((int)currentOffset, (int)nameLength));
 
             currentOffset += nameLength;
 
             // table int
-            _Id = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+            _Id = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
             currentOffset += Constants.SIZE_OF_INT;
 
             // table name length
-            int tableNameLength = 0;
-            tableNameLength = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+            uint tableNameLength = 0;
+            tableNameLength = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
             currentOffset += Constants.SIZE_OF_INT;
 
             // table name
-            _name = DbBinaryConvert.BinaryToString(binaryData.Slice(currentOffset, tableNameLength));
+            _name = DbBinaryConvert.BinaryToString(binaryData.Slice((int)currentOffset, (int)tableNameLength));
             currentOffset += tableNameLength;
 
             // table schema guid 
 
-            tableSchemaGuid = DbBinaryConvert.BinaryToGuid(binaryData.Slice(currentOffset, Constants.SIZE_OF_GUID));
+            tableSchemaGuid = DbBinaryConvert.BinaryToGuid(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_GUID));
             currentOffset += Constants.SIZE_OF_GUID;
 
             // table schema name length
-            int tableSchemaNameLength = 0;
-            tableSchemaNameLength = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+            uint tableSchemaNameLength = 0;
+            tableSchemaNameLength = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
             currentOffset += Constants.SIZE_OF_INT;
 
             // table schema name
-            tableSchemaName = DbBinaryConvert.BinaryToString(binaryData.Slice(currentOffset, tableSchemaNameLength));
+            tableSchemaName = DbBinaryConvert.BinaryToString(binaryData.Slice((int)currentOffset, (int)tableSchemaNameLength));
             currentOffset += tableSchemaNameLength;
 
             // table total columns
-            int totalColumns = 0;
-            totalColumns = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+            uint totalColumns = 0;
+            totalColumns = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
             currentOffset += Constants.SIZE_OF_INT;
 
             // total columns total binary length
-            int tableTotalColumnsBinaryLength = 0;
-            tableTotalColumnsBinaryLength = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+            uint tableTotalColumnsBinaryLength = 0;
+            tableTotalColumnsBinaryLength = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
             currentOffset += Constants.SIZE_OF_INT;
 
             // parse each column
@@ -209,34 +209,34 @@ namespace Drummersoft.DrummerDB.Core.Structures
             while (currentColumnCount < totalColumns)
             {
                 // ordinal
-                int columnOrdinal = 0;
-                columnOrdinal = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+                uint columnOrdinal = 0;
+                columnOrdinal = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
                 currentOffset += Constants.SIZE_OF_INT;
 
                 // name length
-                int columnNameLength = 0;
-                columnNameLength = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+                uint columnNameLength = 0;
+                columnNameLength = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
                 currentOffset += Constants.SIZE_OF_INT;
 
                 // column name
                 string columnName = string.Empty;
-                columnName = DbBinaryConvert.BinaryToString(binaryData.Slice(currentOffset, columnNameLength));
+                columnName = DbBinaryConvert.BinaryToString(binaryData.Slice((int)currentOffset, (int)columnNameLength));
                 currentOffset += columnNameLength;
 
                 // column data type
-                int columnDataType = 0;
-                columnDataType = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+                uint columnDataType = 0;
+                columnDataType = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
                 currentOffset += Constants.SIZE_OF_INT;
 
                 SQLColumnType columnType = (SQLColumnType)columnDataType;
 
                 // col max length
-                colMaxLength = DbBinaryConvert.BinaryToInt(binaryData.Slice(currentOffset, Constants.SIZE_OF_INT));
+                colMaxLength = DbBinaryConvert.BinaryToUInt(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_INT));
                 currentOffset += Constants.SIZE_OF_INT;
 
                 // is nullable
                 bool isNullable = false;
-                isNullable = DbBinaryConvert.BinaryToBoolean(binaryData.Slice(currentOffset, Constants.SIZE_OF_BOOL));
+                isNullable = DbBinaryConvert.BinaryToBoolean(binaryData.Slice((int)currentOffset, Constants.SIZE_OF_BOOL));
                 currentOffset += Constants.SIZE_OF_BOOL;
 
                 ISQLType colType;
@@ -361,7 +361,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             var dbName = DbBinaryConvert.StringToBinary(_name);
             arrays.Add(dbName);
 
-            var tableId = DbBinaryConvert.IntToBinary(_Id);
+            var tableId = DbBinaryConvert.UIntToBinary(_Id);
             arrays.Add(tableId);
 
             var tableNameLength = DbBinaryConvert.IntToBinary(_name.Length);
@@ -420,7 +420,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
             var arrays = new List<byte[]>();
 
-            var columnOrdinal = DbBinaryConvert.IntToBinary(column.Id);
+            var columnOrdinal = DbBinaryConvert.UIntToBinary(column.Id);
             arrays.Add(columnOrdinal);
 
             var nameLength = DbBinaryConvert.IntToBinary(column.Name.Length);
@@ -432,7 +432,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             var dataType = DbBinaryConvert.IntToBinary(SQLColumnTypeConverter.ConvertToInt(column.DataType, Constants.DatabaseVersions.V100));
             arrays.Add(dataType);
 
-            var columnLength = DbBinaryConvert.IntToBinary(column.Length);
+            var columnLength = DbBinaryConvert.UIntToBinary(column.Length);
             arrays.Add(columnLength);
 
             var isNullable = DbBinaryConvert.BooleanToBinary(column.IsNullable);

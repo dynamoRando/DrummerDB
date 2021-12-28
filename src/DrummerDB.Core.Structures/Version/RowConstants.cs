@@ -9,116 +9,136 @@
 
         internal static class Preamble
         {
-            internal static int SIZE_OF_ROW_ID => Constants.SIZE_OF_UINT;
-            internal static int SIZE_OF_ROW_TYPE => Constants.SIZE_OF_UINT;
-            internal static int SIZE_OF_IS_FORWARDED => Constants.SIZE_OF_BOOL;
-            internal static int SIZE_OF_FORWARD_OFFSET => Constants.SIZE_OF_UINT;
-            internal static int SIZE_OF_FORWARDED_PAGE_ID => Constants.SIZE_OF_UINT;
-            internal static int SIZE_OF_IS_LOGICALLY_DELETED => Constants.SIZE_OF_BOOL;
-            internal static int SIZE_OF_ROW_TOTAL_SIZE => Constants.SIZE_OF_UINT;
-            internal static int SIZE_OF_ROW_REMOTABLE_SIZE => Constants.SIZE_OF_UINT;
-            internal static int SIZE_OF_ROW_VALUE_SIZE => Constants.SIZE_OF_UINT;
+            internal static ushort SIZE_OF_ROW_ID => Constants.SIZE_OF_UINT;
+            internal static ushort SIZE_OF_ROW_TYPE => Constants.SIZE_OF_UINT;
+            internal static ushort SIZE_OF_IS_FORWARDED => Constants.SIZE_OF_BOOL;
+            internal static ushort SIZE_OF_FORWARD_OFFSET => Constants.SIZE_OF_UINT;
+            internal static ushort SIZE_OF_FORWARDED_PAGE_ID => Constants.SIZE_OF_UINT;
+            internal static ushort SIZE_OF_IS_LOGICALLY_DELETED => Constants.SIZE_OF_BOOL;
+            internal static ushort SIZE_OF_ROW_TOTAL_SIZE => Constants.SIZE_OF_UINT;
+            internal static ushort SIZE_OF_ROW_REMOTABLE_SIZE => Constants.SIZE_OF_UINT;
+            internal static ushort SIZE_OF_ROW_VALUE_SIZE => Constants.SIZE_OF_UINT;
 
-            internal static int RowIdOffset()
+            internal static short RowIdOffset()
             {
                 return 0;
             }
 
-            internal static int RowTypeOffset()
+            internal static ushort RowTypeOffset()
             {
                 return SIZE_OF_ROW_ID;
             }
 
-            internal static int IsForwardedOffset()
+            internal static ushort IsForwardedOffset()
             {
                 return
-                    SIZE_OF_ROW_ID +
-                    SIZE_OF_ROW_TYPE;
+                    (ushort)(SIZE_OF_ROW_ID +
+                    SIZE_OF_ROW_TYPE);
             }
 
-            internal static int ForwardOffset()
+            internal static ushort ForwardOffset()
             {
                 return
-                    SIZE_OF_ROW_ID +
+                    (ushort)(SIZE_OF_ROW_ID +
                     SIZE_OF_ROW_TYPE +
-                    SIZE_OF_IS_FORWARDED
+                    SIZE_OF_IS_FORWARDED)
                     ;
             }
 
-            internal static int ForwardedPageIdOffset()
+            internal static ushort ForwardedPageIdOffset()
             {
                 return
-                    SIZE_OF_ROW_ID +
+                    (ushort)(SIZE_OF_ROW_ID +
                     SIZE_OF_ROW_TYPE +
                     SIZE_OF_IS_FORWARDED +
-                    SIZE_OF_FORWARD_OFFSET
+                    SIZE_OF_FORWARD_OFFSET)
                     ;
             }
 
-            internal static int IsLogicallyDeletedOffset()
+            internal static ushort IsLogicallyDeletedOffset()
             {
                 return
-                    SIZE_OF_ROW_ID +
+                    (ushort)(SIZE_OF_ROW_ID +
                     SIZE_OF_ROW_TYPE +
                     SIZE_OF_IS_FORWARDED +
                     SIZE_OF_FORWARD_OFFSET +
-                    SIZE_OF_FORWARDED_PAGE_ID
+                    SIZE_OF_FORWARDED_PAGE_ID)
                 ;
             }
 
-            internal static int RowTotalSizeOffset()
+            internal static ushort RowTotalSizeOffset()
             {
                 return
-                    SIZE_OF_ROW_ID +
+                    (ushort)(SIZE_OF_ROW_ID +
                     SIZE_OF_ROW_TYPE +
                     SIZE_OF_IS_FORWARDED +
                     SIZE_OF_FORWARD_OFFSET +
                     SIZE_OF_FORWARDED_PAGE_ID + 
-                    SIZE_OF_IS_LOGICALLY_DELETED
+                    SIZE_OF_IS_LOGICALLY_DELETED)
                 ;
             }
 
-            internal static int RowRemotableSizeOffset()
+            internal static ushort RowRemotableSizeOffset()
             {
                 return
-                    SIZE_OF_ROW_ID +
+                    (ushort)(SIZE_OF_ROW_ID +
                     SIZE_OF_ROW_TYPE +
                     SIZE_OF_IS_FORWARDED +
                     SIZE_OF_FORWARD_OFFSET +
                     SIZE_OF_FORWARDED_PAGE_ID +
                     SIZE_OF_IS_LOGICALLY_DELETED +
-                    SIZE_OF_ROW_TOTAL_SIZE
+                    SIZE_OF_ROW_TOTAL_SIZE)
                 ;
             }
 
-            internal static int RowValueSizeOffset()
+            internal static ushort RowValueSizeOffset()
             {
                 return
-                    SIZE_OF_ROW_ID +
+                    (ushort)(SIZE_OF_ROW_ID +
                     SIZE_OF_ROW_TYPE +
                     SIZE_OF_IS_FORWARDED +
                     SIZE_OF_FORWARD_OFFSET +
                     SIZE_OF_FORWARDED_PAGE_ID +
                     SIZE_OF_IS_LOGICALLY_DELETED +
                     SIZE_OF_ROW_TOTAL_SIZE +
-                    SIZE_OF_ROW_REMOTABLE_SIZE
+                    SIZE_OF_ROW_REMOTABLE_SIZE)
                 ;
             }
 
-            internal static int Length()
+            internal static ushort Length()
             {
-                return 
-                    SIZE_OF_ROW_ID + 
+                return
+                    (ushort)(SIZE_OF_ROW_ID + 
                     SIZE_OF_ROW_TYPE + 
                     SIZE_OF_IS_FORWARDED +
                     SIZE_OF_FORWARD_OFFSET +
                     SIZE_OF_ROW_TOTAL_SIZE + 
                     SIZE_OF_ROW_REMOTABLE_SIZE +
-                    SIZE_OF_ROW_VALUE_SIZE
+                    SIZE_OF_ROW_VALUE_SIZE)
                     ;
             }
         }
             
+        internal static class RemotableFixedData
+        {
+            internal static ushort SIZE_OF_REMOTE_ID => Constants.SIZE_OF_GUID;
+            internal static ushort SIZE_OF_IS_REMOTE_DELETED => Constants.SIZE_OF_BOOL;
+            internal static ushort SIZE_OF_REMOTE_DELETED_UTC => Constants.SIZE_OF_DATETIME;
+            internal static ushort SIZE_OF_REMOTE_TYPE => Constants.SIZE_OF_UINT;
+            internal static ushort SIZE_OF_DATA_HASH_LENGTH => Constants.SIZE_OF_UINT;
 
+            // data hash is a variable value
+
+            public static ushort Length()
+            {
+                return
+                    (ushort)(SIZE_OF_REMOTE_ID +
+                    SIZE_OF_IS_REMOTE_DELETED +
+                    SIZE_OF_REMOTE_DELETED_UTC +
+                    SIZE_OF_REMOTE_TYPE +
+                    SIZE_OF_DATA_HASH_LENGTH)
+                    ;
+            }
+        }
     }
 }

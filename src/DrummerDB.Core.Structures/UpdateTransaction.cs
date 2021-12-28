@@ -18,7 +18,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public IRow Before => _rowBefore;
         public IRow After => _rowAfter;
 
-        public UpdateTransaction(Guid databaseId, int tableId, int rowId, int pageId, IRow rowBefore, IRow rowAfter, Guid schemaId) : base(databaseId, tableId)
+        public UpdateTransaction(Guid databaseId, uint tableId, uint rowId, uint pageId, IRow rowBefore, IRow rowAfter, Guid schemaId) : base(databaseId, tableId)
         {
             _address = new SQLAddress { DatabaseId = databaseId, TableId = tableId, PageId = pageId, RowId = rowId, RowOffset = 0, SchemaId = schemaId };
             _rowBefore = rowBefore;

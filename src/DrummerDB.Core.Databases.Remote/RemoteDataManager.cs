@@ -9,7 +9,7 @@ using structParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
 using structHost = Drummersoft.DrummerDB.Core.Structures.HostInfo;
 using structContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 using Google.Protobuf;
-using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
+using structRow = Drummersoft.DrummerDB.Core.Structures.TempParticipantRow;
 using structRowValue = Drummersoft.DrummerDB.Core.Structures.RowValue;
 using structColumnSchema = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using comRowValue = Drummersoft.DrummerDB.Common.Communication.RowValue;
@@ -615,7 +615,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
                 var comColumn = comValue.Column;
                 int enumType = Convert.ToInt32(comColumn.ColumnType);
                 var type = SQLColumnTypeConverter.Convert((SQLColumnType)enumType, Convert.ToInt32(comColumn.ColumnLength));
-                var col = new structColumnSchema(comColumn.ColumnName, type, Convert.ToInt32(comColumn.Ordinal));
+                var col = new structColumnSchema(comColumn.ColumnName, type, Convert.ToUInt32(comColumn.Ordinal));
 
                 var structValue = new structRowValue(col, comValue.Value.ToByteArray());
                 values.Add(structValue);

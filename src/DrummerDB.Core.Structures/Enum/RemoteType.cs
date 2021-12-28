@@ -24,7 +24,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Enum
         Participant,
 
         /// <summary>
-        /// The remote dat identifies the id of a Tenant
+        /// The remote data identifies the id of a Tenant
         /// </summary>
         Tenant
     }

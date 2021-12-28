@@ -33,6 +33,16 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public override void Delete()
+        {
+            _preamble.IsLogicallyDeleted = true;
+        }
+
+        public uint Size()
+        {
+            return (uint)GetRowInBinaryFormat().Length;
+        }
+
         public override void ForwardRow(uint newOffset, uint pageId)
         {
             _preamble.IsForwarded = true;
