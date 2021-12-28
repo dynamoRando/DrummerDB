@@ -1,7 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures.Abstract;
-using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
@@ -485,34 +484,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return row;
         }
 
-        public override RowDebug GetDebugRow(int rowId)
-        {
-            RowDebug row = null;
-            List<int> offsets = GetRowOffsets(rowId, true);
-
-            int rowOffset;
-            if (offsets.Count == 0)
-            {
-                return null;
-            }
-            else
-            {
-                rowOffset = offsets.Max();
-            }
-
-            if (rowOffset != 0)
-            {
-                row = GetDebugRowAtOffset(rowOffset, rowId);
-
-                if (row.IsForwarded() && row.ForwardedPageId() == PageId())
-                {
-                    row = GetDebugRowAtOffset(row.ForwardOffset(), rowId);
-                }
-            }
-
-            return row;
-        }
-
+       
         /// <summary>
         /// The Id of the Page, read from the Page's data
         /// </summary>
@@ -778,67 +750,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         private void SetTotalBytesUsed()
         {
             _totalBytesUsed = TotalBytesUsed();
-        }
-
-        private RowDebug GetDebugRowAtOffset(int offset, int rowId)
-        {
-            RowDebug row = null;
-            var span = new ReadOnlySpan<byte>(_data);
-
-            string pageData = BitConverter.ToString(span.ToArray());
-            Debug.WriteLine(pageData);
-
-            if (offset != 0)
-            {
-                int runningTotal = offset;
-                var preamble = span.Slice(offset, RowConstants.LengthOfPreamble());
-                RowDebug item = new RowDebug();
-
-                item.SetPreamble(preamble);
-                item.SetSchema(_schema as TableSchema);
-
-                if (item.RowId() == rowId)
-                {
-                    row = item;
-                    if (row.IsLocal())
-                    {
-                        ReadOnlySpan<byte> sizeOfRowData = span.Slice(runningTotal + RowConstants.LengthOfPreamble(), RowConstants.SIZE_OF_ROW_SIZE);
-
-                        row.SetRowSize(sizeOfRowData);
-
-                        int sizeOfRow = DbBinaryConvert.BinaryToInt(sizeOfRowData);
-                        int rowdataSlice = sizeOfRow - RowConstants.LengthOfPreamble() - RowConstants.SIZE_OF_ROW_SIZE;
-                        runningTotal += RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
-
-                        string stringData = BitConverter.ToString(span.Slice(runningTotal, rowdataSlice).ToArray());
-                        Debug.WriteLine(stringData);
-
-                        row.SetRowData(span.Slice(runningTotal, rowdataSlice));
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("remote row data has not been implemented");
-                        // TODO - haven't tested this yet, this is prototyping
-                        var binaryParticipantId = span.Slice(runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID);
-
-                        row.SetParticipant(binaryParticipantId);
-
-                        Guid partipantId = DbBinaryConvert.BinaryToGuid(binaryParticipantId);
-                        //row.ParticipantId = partipantId;
-
-                        //byte[] data = _cache.GetRemoteRowData(partipantId, new SQLAddress { DatabaseId = _address.DatabaseId, TableId = _address.TableId, PageId = PageId(), RowId = row.Id, RowOffset = 0 });
-                        //row.SetRowData(_schema, data);
-
-                        // ideally, we shouldn't have DrummerDB.Structures take a dependency on Network
-                        // maybe we should have DrummerDB.Databases take a dependency on Network?
-                        // In theory, we would have the database ask network to go get the remote bytes
-
-                        runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID + RowConstants.LengthOfPreamble();
-                    }
-                }
-            }
-
-            return row;
         }
 
         /// <summary>

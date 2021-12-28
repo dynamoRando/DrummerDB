@@ -1,5 +1,4 @@
 ﻿using Drummersoft.DrummerDB.Core.Structures.Abstract;
-using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Factory;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
@@ -67,11 +66,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         {
             return _basePage.HasRow(rowId);
         }
-        public override RowDebug GetDebugRow(int rowId)
-        {
-            return _basePage.GetDebugRow(rowId);
-        }
-
+    
         public override void ForwardRows(int rowId, int newPageId, int newPageOffset)
         {
             _basePage.ForwardRows(rowId, newPageId, newPageOffset);

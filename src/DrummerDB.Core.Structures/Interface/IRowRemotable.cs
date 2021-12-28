@@ -11,7 +11,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         public Guid RemoteId { get; set; }
         public bool IsRemoteDeleted { get; set; }
         public DateTime RemoteDeletionUTC { get; set; }
-        public uint DataHashLength { get; set; }
-        public byte[] DataHash { get; set; }
+        public uint DataHashLength { get; }
+        public byte[] DataHash { get; }
     }
 }

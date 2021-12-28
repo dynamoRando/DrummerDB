@@ -1,5 +1,4 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.DbDebug;
-using Drummersoft.DrummerDB.Core.Structures.Enum;
+﻿using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
 
@@ -95,7 +94,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         bool HasValue(IRowValue value);
         bool HasAllValues(IRowValue[] values);
         RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
-        RowDebug GetDebugRow(int rowId);
 
         /// <summary>
         /// Determines if the specified row lives on this page

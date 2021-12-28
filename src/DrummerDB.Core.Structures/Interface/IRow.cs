@@ -44,7 +44,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// </summary>
         /// <param name="newOffset">The byte offset where the row can now be found</param>
         /// <param name="pageId">The page where the forwarded row can be found</param>
-        void ForwardRow(int newOffset, int pageId);
+        void ForwardRow(uint newOffset, uint pageId);
 
         /// <summary>
         /// The number of bytes offset on the currrent page for the forwarded values

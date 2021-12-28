@@ -1,5 +1,4 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.DbDebug;
-using Drummersoft.DrummerDB.Core.Structures.Enum;
+﻿using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
@@ -46,7 +45,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
 
         public abstract bool HasValue(IRowValue value);
         public abstract RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);
-        public abstract RowDebug GetDebugRow(int rowId);
         public abstract List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false);
         public abstract PageAddress Address { get; }
         public abstract int GetCountOfRowIdsOnPage(bool includeDeletedRows = false);

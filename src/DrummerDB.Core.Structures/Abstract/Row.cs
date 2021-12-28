@@ -18,7 +18,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
 
         #region Public Properties
         public uint Id => _preamble.Id;
-        public RowType Type => _preamble.Type;
+        public virtual RowType Type => _preamble.Type;
         public bool IsLogicallyDeleted => _preamble.IsLogicallyDeleted;
         public bool IsForwarded => _preamble.IsForwarded;
         public uint ForwardOffset => _preamble.ForwardOffset;
@@ -36,7 +36,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
 
         public abstract byte[] GetRowInPageBinaryFormat();
         public abstract byte[] GetRowInTransactionBinaryFormat();
-        public abstract void ForwardRow(int newOffset, int pageId);
+        public abstract void ForwardRow(uint newOffset, uint pageId);
         #endregion
 
         #region Public Methods

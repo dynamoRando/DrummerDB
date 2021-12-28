@@ -25,6 +25,11 @@ namespace Drummersoft.DrummerDB.Common
             return BitConverter.GetBytes(i);
         }
 
+        public static byte[] UIntToBinary(uint ui)
+        {
+            return BitConverter.GetBytes(ui);
+        }
+        
         public static byte[] IntToBinary(string value)
         {
             int i;
