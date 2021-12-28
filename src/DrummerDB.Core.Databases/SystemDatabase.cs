@@ -184,7 +184,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _systemTables.Contains(tableName, schemaName);
         }
 
-        public Table GetTable(int tableId)
+        public Table GetTable(uint tableId)
         {
             return _systemTables.Get(tableId);
         }
@@ -313,7 +313,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         {
                             foreach (var resultTable in searchTableResults)
                             {
-                                int tableId = Convert.ToInt32(resultTable.GetValueInString(CooperativeTables.Columns.TableId));
+                                uint tableId = Convert.ToUInt32(resultTable.GetValueInString(CooperativeTables.Columns.TableId));
                                 string tableName = resultTable.GetValueInString(CooperativeTables.Columns.TableName);
                                 LogicalStoragePolicy policy = (LogicalStoragePolicy)Convert.ToInt32(resultTable.GetValueInString(CooperativeTables.Columns.LogicalStoragePolicy));
 
@@ -340,8 +340,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                                             string columnName = columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnName).Trim();
                                             var enumType = (SQLColumnType)Convert.ToInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnType));
                                             ISQLType type = SQLColumnTypeConverter.Convert(enumType, Constants.DatabaseVersions.V100);
-                                            int colLength = Convert.ToInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnLength));
-                                            int colOrdinal = Convert.ToInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnOrdinal));
+                                            uint colLength = Convert.ToUInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnLength));
+                                            uint colOrdinal = Convert.ToUInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnOrdinal));
                                             bool colIsNullable = DbBinaryConvert.BinaryToBoolean(columnResult.GetValueInByteSpan(CooperativeTableSchemas.Columns.ColumnIsNullable));
                                             int colBinaryOrder = Convert.ToInt32(columnResult.GetValueInString(CooperativeTableSchemas.Columns.ColumnBinaryOrder));
 

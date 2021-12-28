@@ -712,15 +712,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             /// </summary>
             public record PageItem
             {
-                public int Order;
-                public int PageId;
-                public int TableId;
+                public uint Order;
+                public uint PageId;
+                public uint TableId;
                 public PageType Type;
                 public DataPageType DataPageType;
-                public int Offset;
+                public uint Offset;
                 public bool IsDeleted;
 
-                public PageItem(int pageId, PageType type, DataPageType dataPageType, int order, int tableId, int offset, bool isDelted)
+                public PageItem(uint pageId, PageType type, DataPageType dataPageType, uint order, uint tableId, uint offset, bool isDelted)
                 {
                     PageId = pageId;
                     Type = type;

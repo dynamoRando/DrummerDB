@@ -76,7 +76,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public int GetMaxRowIdForTree(TreeAddress address)
+        public uint GetMaxRowIdForTree(TreeAddress address)
         {
             _rowId++;
             return _rowId;
@@ -87,7 +87,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public IRow GetRow(int rowId, TreeAddress address)
+        public IRow GetRow(uint rowId, TreeAddress address)
         {
             throw new NotImplementedException();
         }

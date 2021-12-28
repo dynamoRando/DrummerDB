@@ -78,7 +78,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             _userSystemCache.AddSystemPage(page.DatabaseId, page);
         }
 
-        public bool DeleteRow(int rowId, TreeAddress address)
+        public bool DeleteRow(uint rowId, TreeAddress address)
         {
             return _userDataCache.TryDeleteRow(rowId, address);
         }
@@ -129,7 +129,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userDataCache.HasRowsWithValue(address, value);
         }
 
-        public int CountOfRowsWithValue(TreeAddress address, IRowValue value)
+        public uint CountOfRowsWithValue(TreeAddress address, IRowValue value)
         {
             if (!_userDataCache.HasTree(address))
             {
@@ -139,9 +139,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userDataCache.CountOfRowsWithValue(address, value);
         }
 
-        public List<IRow> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
+        public List<RowValueGroup> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
-            var result = new List<IRow>();
+            var result = new List<RowValueGroup>();
 
             if (!_userDataCache.HasTree(address))
             {
@@ -169,9 +169,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userSystemCache.GetDatabaseName(dbId);
         }
 
-        public int GetMaxRowIdForTree(TreeAddress address)
+        public uint GetMaxRowIdForTree(TreeAddress address)
         {
-            int result = 0;
+            uint result = 0;
 
             var pages = _userDataCache.GetContainerPages(address);
             foreach (var pageId in pages)
@@ -208,12 +208,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="rowId">The row to get from cache</param>
         /// <param name="address">The tree address to get for</param>
         /// <returns>The row for the specified values, if found, otherwise NULL.</returns>
-        public IRow GetRow(int rowId, TreeAddress address)
+        public IRow GetRow(uint rowId, TreeAddress address)
         {
             return _userDataCache.GetRow(rowId, address);
         }
 
-        public RowAddress GetRowAddress(TreeAddress treeAddress, int rowId)
+        public RowAddress GetRowAddress(TreeAddress treeAddress, uint rowId)
         {
             return _userDataCache.GetRowAddress(treeAddress, rowId);
         }
@@ -238,7 +238,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userDataCache.GetTreeMemoryStatus(address);
         }
 
-        public TreeStatus GetTreeSizeStatus(TreeAddress address, int sizeOfDataToAdd)
+        public TreeStatus GetTreeSizeStatus(TreeAddress address, uint sizeOfDataToAdd)
         {
             return _userDataCache.GetTreeSizeStatus(address, sizeOfDataToAdd);
         }
@@ -329,7 +329,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="schema">The schema of the table</param>
         /// <remarks>This does not save the changes to storage, and to ensure persistence to disk you should call to storage with the 
         /// updated information</remarks>
-        public void UpdateRow(IRow row, TreeAddress address, ITableSchema schema, out int pageId)
+        public void UpdateRow(IRow row, TreeAddress address, ITableSchema schema, out uint pageId)
         {
             CacheUpdateRowResult cacheResult = CacheUpdateRowResult.Unknown;
             IBaseDataPage page = null;
@@ -405,7 +405,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             _userDataCache.AddPageToContainer(page, address);
         }
 
-        public int[] UserDataGetContainerPages(TreeAddress address)
+        public uint[] UserDataGetContainerPages(TreeAddress address)
         {
             return _userDataCache.GetContainerPages(address);
         }
@@ -419,7 +419,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userSystemCache.HasDatabase(dbId);
         }
 
-        public int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        public uint CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
             return _userDataCache.CountOfRowsWithAllValues(address, ref values);
         }

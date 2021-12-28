@@ -105,7 +105,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var db = manager.GetUserDatabase(userDbName, DatabaseType.Host);
             manager.CreateAdminLogin(userName, password, Guid.NewGuid());
 
-            int tableId = 990;
+            uint tableId = 990;
             string tableName = "TestTable";
 
             var columns = new List<ColumnSchema>();
@@ -140,7 +140,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 var table = db.GetTable(tableName);
                 var row = table.GetNewLocalRow();
 
-                int rowId = row.Id;
+                uint rowId = row.Id;
                 row.SortBinaryOrder();
 
                 row.SetValue("Name", "Randy");
@@ -154,7 +154,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 var row2 = table.GetNewLocalRow();
                 row2.SortBinaryOrder();
 
-                int row2Id = row2.Id;
+                uint row2Id = row2.Id;
                 row2.SortBinaryOrder();
 
                 row2.SetValue("Name", "Megan");
@@ -168,7 +168,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 var row3 = table.GetNewLocalRow();
                 row3.SortBinaryOrder();
 
-                int row3Id = row3.Id;
+                uint row3Id = row3.Id;
                 row3.SortBinaryOrder();
 
                 row3.SetValue("Name", "Mark");
@@ -182,7 +182,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 var row4 = table.GetNewLocalRow();
                 row4.SortBinaryOrder();
 
-                int row4Id = row4.Id;
+                uint row4Id = row4.Id;
                 row4.SortBinaryOrder();
 
                 row4.SetValue("Name", "Jennifer");
@@ -196,7 +196,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 var row5 = table.GetNewLocalRow();
                 row5.SortBinaryOrder();
 
-                int row5Id = row5.Id;
+                uint row5Id = row5.Id;
                 row4.SortBinaryOrder();
 
                 row5.SetValue("Name", "Jackie");

@@ -20,7 +20,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
     internal class DbDataFileReader100 : IDbDataFileReader
     {
         #region Private Fields
-        private int _V100 = Constants.DatabaseVersions.V100;
+        private ushort _V100 = Constants.DatabaseVersions.V100;
         private string _fileName;
         private string _dbName;
         private DateTime _createdDate;
@@ -68,10 +68,10 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
 
             byte[] data = new byte[Constants.PAGE_SIZE];
             var span = new Span<byte>(data);
-            int position = 0;
+            uint position = 0;
             var fi = new FileInfo(fileName);
             var totalFileLength = fi.Length;
-            int order = 0;
+            uint order = 0;
 
             bool quit = false;
 
@@ -88,7 +88,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                     binaryReader.Read(span);
                 }
 
-                int iPageId = DbBinaryConvert.BinaryToInt(span.Slice(PageConstants.PageIdOffset(), PageConstants.SIZE_OF_PAGE_ID(Constants.DatabaseVersions.V100)));
+                uint iPageId = DbBinaryConvert.BinaryToUInt(span.Slice(PageConstants.PageIdOffset(), PageConstants.SIZE_OF_PAGE_ID(Constants.DatabaseVersions.V100)));
                 int iPageType = DbBinaryConvert.BinaryToInt(span.Slice(PageConstants.PageTypeOffset(), PageConstants.SIZE_OF_PAGE_TYPE(Constants.DatabaseVersions.V100)));
                 bool isDeleted = DbBinaryConvert.BinaryToBoolean(span.Slice(PageConstants.PageIsDeletedOffset(), PageConstants.SIZE_OF_IS_DELETED(Constants.DatabaseVersions.V100)));
 
@@ -104,7 +104,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                     if (dataPageType is DataPageType.User)
                     {
                         var iDbId = DbBinaryConvert.BinaryToGuid(span.Slice(DataPageConstants.DatabaseIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_DATABASE_ID(Constants.DatabaseVersions.V100)));
-                        var iTableId = DbBinaryConvert.BinaryToInt(span.Slice(DataPageConstants.TableIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_TABLE_ID(Constants.DatabaseVersions.V100)));
+                        var iTableId = DbBinaryConvert.BinaryToUInt(span.Slice(DataPageConstants.TableIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_TABLE_ID(Constants.DatabaseVersions.V100)));
 
                         var pageItem = new PageItem(iPageId, PageType.Data, dataPageType, order, iTableId, position, isDeleted);
 
@@ -126,7 +126,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                     else
                     {
                         var iDbId = DbBinaryConvert.BinaryToGuid(span.Slice(DataPageConstants.DatabaseIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_DATABASE_ID(Constants.DatabaseVersions.V100)));
-                        var iTableId = DbBinaryConvert.BinaryToInt(span.Slice(DataPageConstants.TableIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_TABLE_ID(Constants.DatabaseVersions.V100)));
+                        uint iTableId = DbBinaryConvert.BinaryToUInt(span.Slice(DataPageConstants.TableIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_TABLE_ID(Constants.DatabaseVersions.V100)));
 
 
                         var pageItem = new PageItem(iPageId, pageType, dataPageType, order, iTableId, position, isDeleted);
@@ -151,12 +151,12 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
         }
 
 
-        public UserDataPageSearchResult GetAnyUserDataPage(string fileName, ITableSchema schema, PageAddress[] pagesInMemory, int tableId)
+        public UserDataPageSearchResult GetAnyUserDataPage(string fileName, ITableSchema schema, PageAddress[] pagesInMemory, uint tableId)
         {
             byte[] data = new byte[Constants.PAGE_SIZE];
             var span = new Span<byte>(data);
-            int position = 0;
-            int order = 1;
+            uint position = 0;
+            uint order = 1;
             UserDataPageSearchResult result = null;
 
             var fi = new FileInfo(fileName);
@@ -177,7 +177,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                     binaryReader.Read(span);
                 }
 
-                int iPageId = DbBinaryConvert.BinaryToInt(span.Slice(PageConstants.PageIdOffset(), PageConstants.SIZE_OF_PAGE_ID(Constants.DatabaseVersions.V100)));
+                uint iPageId = DbBinaryConvert.BinaryToUInt(span.Slice(PageConstants.PageIdOffset(), PageConstants.SIZE_OF_PAGE_ID(Constants.DatabaseVersions.V100)));
                 int iPageType = DbBinaryConvert.BinaryToInt(span.Slice(PageConstants.PageTypeOffset(), PageConstants.SIZE_OF_PAGE_TYPE(Constants.DatabaseVersions.V100)));
 
                 var pageType = (PageType)iPageType;
@@ -192,7 +192,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                     if (dataPageType is DataPageType.User)
                     {
                         var iDbId = DbBinaryConvert.BinaryToGuid(span.Slice(DataPageConstants.DatabaseIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_DATABASE_ID(Constants.DatabaseVersions.V100)));
-                        var iTableId = DbBinaryConvert.BinaryToInt(span.Slice(DataPageConstants.TableIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_TABLE_ID(Constants.DatabaseVersions.V100)));
+                        uint iTableId = DbBinaryConvert.BinaryToUInt(span.Slice(DataPageConstants.TableIdOffset(Constants.DatabaseVersions.V100), DataPageConstants.SIZE_OF_TABLE_ID(Constants.DatabaseVersions.V100)));
 
                         var address = new PageAddress(iDbId, iTableId, iPageId, schema.Schema.SchemaGUID);
 
@@ -275,7 +275,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
         #endregion
 
         #region Private Methods
-        private UserDataPage100 GetUserDataPageAtPosition(int position, ITableSchema schema)
+        private UserDataPage100 GetUserDataPageAtPosition(uint position, ITableSchema schema)
         {
             byte[] data = new byte[Constants.PAGE_SIZE];
             var span = new Span<byte>(data);

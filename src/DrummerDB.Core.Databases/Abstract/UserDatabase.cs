@@ -21,9 +21,9 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         #endregion
 
         #region Public Properties
+        public abstract Guid Id { get; }
         public abstract string Name { get; }
         public abstract int Version { get; }
-        public abstract Guid Id { get; }
         #endregion
 
         #region Constructors
@@ -39,22 +39,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         /// <param name="schema">The schema of the table to add</param>
         /// <returns><c>true</c> if successful, otherwise <c>false</c></returns>
         public abstract bool AddTable(TableSchema schema, out Guid tableObjectId);
-        public abstract bool XactAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId);
-        public abstract bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode);
-
-        /// <summary>
-        /// Checks the db's <seealso cref="DatabaseMetadata"/> (and therefore the System Data Pages) to see if the database has the specified table
-        /// </summary>
-        /// <param name="tableName">The name of the table</param>
-        /// <returns><c>true</c> if the database has the table, otherwise <c>false</c></returns>
-        public abstract bool HasTable(string tableName);
-        public abstract bool HasTable(string tableName, string schemaName);
-        public abstract bool HasTable(int tableId);
-        public abstract bool HasUser(string userName);
-        public abstract bool HasUser(string userName, Guid userId);
-        public abstract bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode);
-        public abstract bool HasSchema(string schemaName);
-        public abstract DatabaseSchemaInfo GetSchemaInformation(string schemaName);
+        public abstract bool AuthorizeUser(string userName, string pwInput, DbPermission permission, Guid objectId);
 
         /// <summary>
         /// Creates a user with the specified userName and pw. This will hash the pw and store in the database's metadata.
@@ -63,8 +48,12 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         /// <param name="pwInput">The pw to be assigned</param>
         /// <returns><c>true</c> if successful, otherwise <c>false</c></returns>
         public abstract bool CreateUser(string userName, string pwInput);
-        public abstract bool ValidateUser(string userName, string pwInput);
-        public abstract bool AuthorizeUser(string userName, string pwInput, DbPermission permission, Guid objectId);
+
+        public abstract uint GetMaxTableId();
+
+        public abstract List<TransactionEntry> GetOpenTransactions();
+
+        public abstract DatabaseSchemaInfo GetSchemaInformation(string schemaName);
 
         /// <summary>
         /// Returns a reference to the specified table in the database
@@ -72,9 +61,31 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         /// <param name="tableName">The name of table to find</param>
         /// <returns>The table specified</returns>
         public abstract Table GetTable(string tableName);
+
         public abstract Table GetTable(string tableName, string schemaName);
-        public abstract Table GetTable(int tableId);
-        public abstract List<TransactionEntry> GetOpenTransactions();
+
+        public abstract Table GetTable(uint tableId);
+
+        public abstract Guid GetTableObjectId(string tableName);
+
+        public abstract bool GrantUserPermission(string userName, DbPermission permission, Guid objectId);
+
+        public abstract bool HasSchema(string schemaName);
+
+        /// <summary>
+        /// Checks the db's <seealso cref="DatabaseMetadata"/> (and therefore the System Data Pages) to see if the database has the specified table
+        /// </summary>
+        /// <param name="tableName">The name of the table</param>
+        /// <returns><c>true</c> if the database has the table, otherwise <c>false</c></returns>
+        public abstract bool HasTable(string tableName);
+
+        public abstract bool HasTable(string tableName, string schemaName);
+
+        public abstract bool HasTable(uint tableId);
+
+        public abstract bool HasUser(string userName);
+
+        public abstract bool HasUser(string userName, Guid userId);
 
         /// <summary>
         /// Checks the actual log file to see if the transaction id specified is on disk and is marked as open
@@ -82,9 +93,13 @@ namespace Drummersoft.DrummerDB.Core.Databases.Abstract
         /// <param name="transactionId">The transaction to find on disk</param>
         /// <returns><c>true</c> if the transaciton is open, otherwise <c>false</c></returns>
         public abstract bool LogFileHasOpenTransaction(TransactionEntryKey key);
-        public abstract bool GrantUserPermission(string userName, DbPermission permission, Guid objectId);
-        public abstract Guid GetTableObjectId(string tableName);
-        public abstract int GetMaxTableId();
+
+        public abstract bool ValidateUser(string userName, string pwInput);
+
+        public abstract bool XactAddTable(TableSchema schema, TransactionRequest transaction, TransactionMode transactionMode, out Guid tableObjectId);
+        public abstract bool XactCreateSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode);
+
+        public abstract bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode);
         #endregion
 
         #region Private Methods

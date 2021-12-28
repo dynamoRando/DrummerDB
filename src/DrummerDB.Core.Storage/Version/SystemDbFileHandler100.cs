@@ -48,12 +48,12 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
         #endregion
 
         #region Public Methods
-        public override UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, int tableId)
+        public override UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, uint tableId)
         {
             return _dataFile.GetAnyUserDataPage(pagesInMemory, schema, tableId);
         }
 
-        public override int GetMaxPageId(TreeAddress address)
+        public override uint GetMaxPageId(TreeAddress address)
         {
             return _dataFile.GetMaxPageId(address);
         }
@@ -63,12 +63,12 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             return _dataFile.GetSystemPage();
         }
 
-        public override int GetTotalPages()
+        public override uint GetTotalPages()
         {
             return _dataFile.GetTotalPages();
         }
 
-        public override int GetTotalPages(TreeAddress address)
+        public override uint GetTotalPages(TreeAddress address)
         {
             return _dataFile.GetTotalPages(address);
         }

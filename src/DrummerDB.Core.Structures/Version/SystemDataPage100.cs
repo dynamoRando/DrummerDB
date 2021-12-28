@@ -119,7 +119,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <param name="rowId">The row id to return</param>
         /// <returns>The specified row if found, otherwise NULL</returns>
         /// <remarks>Note that this function can be used to get rows forwarded to other pages.</remarks>
-        public override IRow GetRow(uint rowId)
+        public override Row GetRow(uint rowId)
         {
             return _basePage.GetRow(rowId);
         }

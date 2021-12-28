@@ -1,6 +1,7 @@
 ﻿using C5;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
@@ -18,7 +19,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
     {
         #region Private Fields
         private TreeAddress _address;
-        private TreeDictionary<int, IBaseDataPage> _tree;
+        private TreeDictionary<uint, IBaseDataPage> _tree;
         private ReaderWriterLockSlim _locker = new ReaderWriterLockSlim();
         private LogService _log;
         #endregion
@@ -36,14 +37,14 @@ namespace Drummersoft.DrummerDB.Core.Memory
         public TreeContainer(TreeAddress address, IBaseDataPage page)
         {
             _address = address;
-            _tree = new TreeDictionary<int, IBaseDataPage>();
+            _tree = new TreeDictionary<uint, IBaseDataPage>();
             _tree.Add(page.PageId(), page);
         }
 
         public TreeContainer(TreeAddress address, IBaseDataPage page, LogService log)
         {
             _address = address;
-            _tree = new TreeDictionary<int, IBaseDataPage>();
+            _tree = new TreeDictionary<uint, IBaseDataPage>();
             _tree.Add(page.PageId(), page);
             _log = log;
         }
@@ -56,9 +57,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="rowId">The row id to find</param>
         /// <returns>An array of pageIds that have a reference to the row</returns>
         /// <remarks>This function will enter a read lock on the tree</remarks>
-        public int[] GetPageReferencesToRow(int rowId)
+        public uint[] GetPageReferencesToRow(uint rowId)
         {
-            List<int> pages = new List<int>();
+            List<uint> pages = new List<uint>();
 
             _locker.TryEnterReadLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
 
@@ -74,7 +75,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
             _locker.ExitReadLock();
 
-            int[] result = pages.Distinct().ToArray();
+            uint[] result = pages.Distinct().ToArray();
 
             return result;
         }
@@ -85,10 +86,10 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="rowId">The row id to find</param>
         /// <returns>The page id where the row is currently located</returns>
         /// <remarks>This function will enter a read lock on the tree</remarks>
-        public int GetPageIdOfRow(int rowId)
+        public uint GetPageIdOfRow(uint rowId)
         {
-            int result = 0;
-            int[] pageIds = GetPageReferencesToRow(rowId);
+            uint result = 0;
+            uint[] pageIds = GetPageReferencesToRow(rowId);
 
             _locker.TryEnterReadLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
             foreach (var pageId in pageIds)
@@ -115,9 +116,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="pageId">The page id to search</param>
         /// <returns>The offsets of the row on the page</returns>
         /// <remarks>This function will enter a read lock on the tree</remarks>
-        public List<int> GetRowOffsets(int rowId, int pageId)
+        public List<uint> GetRowOffsets(uint rowId, uint pageId)
         {
-            var result = new List<int>();
+            var result = new List<uint>();
 
             _locker.TryEnterReadLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
 
@@ -141,7 +142,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="row">The row to update</param>
         /// <returns>The Page Id where the row was updated.</returns>
         /// <remarks>This function tries to account for row forwards and when a page we're updating is full. This function will write lock the container. For more information on these concepts, see Page.md and Row.md</remarks>
-        public int UpdateRow(IRow row)
+        public uint UpdateRow(Row row)
         {
             if (_log is not null)
             {
@@ -164,15 +165,15 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="row">The row to add</param>
         /// <returns>the PageId wher the row was added</returns>
         /// <remarks>This function will write lock the container.</remarks>
-        public int AddRow(IRow row)
+        public uint AddRow(Row row)
         {
-            int pageId = 0;
+            uint pageId = 0;
 
             _locker.TryEnterWriteLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
 
             foreach (var page in _tree.Values)
             {
-                if (!page.IsFull(row.Size()))
+                if (!page.IsFull(row.TotalSize))
                 {
                     page.AddRow(row);
                     pageId = page.PageId();
@@ -184,9 +185,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return pageId;
         }
 
-        public bool DeleteRow(int rowId)
+        public bool DeleteRow(uint rowId)
         {
-            int pageId = 0;
+            uint pageId = 0;
             bool result = false;
 
             pageId = GetPageIdOfRow(rowId);
@@ -211,7 +212,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="rowSize">The size of the row to check</param>
         /// <returns>True if the container is full, otherwise false</returns>
         /// <remarks>This function will read lock the container.</remarks>
-        public bool IsTreeFull(int rowSize)
+        public bool IsTreeFull(uint rowSize)
         {
             bool isFull = false;
 
@@ -227,9 +228,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// </summary>
         /// <returns>The PageIds in this ocntainer</returns>
         /// <remarks>This function will read lock the container.</remarks>
-        public int[] Pages()
+        public uint[] Pages()
         {
-            int[] pages;
+            uint[] pages;
 
             _locker.TryEnterReadLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
             pages = _tree.Keys.ToArray();
@@ -307,7 +308,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="pageId">The page id to find</param>
         /// <returns>True if the page is in the tree, otherwise false</returns>
         /// <remarks>This function will read lock the tree.</remarks>
-        public bool HasPage(int pageId)
+        public bool HasPage(uint pageId)
         {
             bool hasPage = false;
 
@@ -325,7 +326,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="pageId">The page to get</param>
         /// <returns>The specified page</returns>
         /// <remarks>This function will read lock the tree. Note that generally speaking for thread safety we want to keep I/O for pages contained to the tree. This function might need to be removed. It is intended only for getting page data to save to disk.</remarks>
-        public IBaseDataPage GetPage(int pageId)
+        public IBaseDataPage GetPage(uint pageId)
         {
             IBaseDataPage page;
 
@@ -342,9 +343,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="rowId">The row identifier.</param>
         /// <returns>The row with the specified id if found, otherwise <c>NULL</c></returns>
         /// <remarks>Note that this will return the row even if the row was marked as <see cref="IRow.IsDeleted"/></remarks>
-        public IRow GetRow(int rowId)
+        public Row GetRow(uint rowId)
         {
-            IRow result = null;
+            Row result = null;
 
             _locker.TryEnterReadLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
             foreach (var page in _tree.Values)
@@ -371,13 +372,13 @@ namespace Drummersoft.DrummerDB.Core.Memory
         #endregion
 
         #region Private Methods
-        private int Update(IRow row)
+        private uint Update(Row row)
         {
             _locker.TryEnterWriteLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
 
-            int pageId = 0;
-            int rowId = row.Id;
-            int newRowOffset = 0;
+            uint pageId = 0;
+            uint rowId = row.Id;
+            uint newRowOffset = 0;
             IBaseDataPage newPage = null;
             IBaseDataPage page = null;
             PageUpdateRowResult updateResult = PageUpdateRowResult.Unknown;
@@ -407,7 +408,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                     newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != page.PageId()).FirstOrDefault();
                     if (newPage is not null)
                     {
-                        int newPageId = newPage.PageId();
+                        uint newPageId = newPage.PageId();
 
                         // add the row to the new page
                         newRowOffset = newPage.AddRow(row);
@@ -454,21 +455,21 @@ namespace Drummersoft.DrummerDB.Core.Memory
                     // sanity check, it should be forwarded
                     if (forwardedRow.IsForwarded)
                     {
-                        int pageIdToGet = forwardedRow.ForwardedPageId;
+                        uint pageIdToGet = forwardedRow.ForwardedPageId;
 
                         // get the actual page with the row
                         IBaseDataPage actualPage = _tree.Values.Where(p => p.PageId() == pageIdToGet).FirstOrDefault();
 
                         if (actualPage is not null)
                         {
-                            int actualPageId = actualPage.PageId();
-                            int newOffset = 0;
+                            uint actualPageId = actualPage.PageId();
+                            uint newOffset = 0;
 
                             PageUpdateRowResult attemptToUpdate = actualPage.TryUpdateRowData(row, out newOffset);
                             if (attemptToUpdate == PageUpdateRowResult.Success)
                             {
                                 // we need to go back and update all the forwards with the correct offset for the correct page
-                                int newPageId = actualPage.PageId();
+                                uint newPageId = actualPage.PageId();
                                 newRowOffset = newOffset;
 
                                 pages.ForEach(page =>
@@ -490,7 +491,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                 newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != actualPage.PageId()).FirstOrDefault();
                                 if (newPage is not null)
                                 {
-                                    int newPageId = newPage.PageId();
+                                    uint newPageId = newPage.PageId();
                                     newRowOffset = newPage.AddRow(row);
 
                                     pages.ForEach(p =>

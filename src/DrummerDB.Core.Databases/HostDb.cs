@@ -140,7 +140,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return Guid.Parse(stringContractGuid);
         }
 
-        public override int GetMaxTableId()
+        public override uint GetMaxTableId()
         {
             return _baseDb.GetMaxTableId();
         }
@@ -259,7 +259,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.GetSchemaInformation(schemaName);
         }
 
-        public override Table GetTable(int tableId)
+        public override Table GetTable(uint tableId)
         {
             return _baseDb.GetTable(tableId);
         }
@@ -296,7 +296,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.HasSchema(schemaName);
         }
 
-        public override bool HasTable(int tableId)
+        public override bool HasTable(uint tableId)
         {
             return _baseDb.HasTable(tableId);
         }
@@ -349,10 +349,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool XactRequestParticipantRemoveRow(Participant participant,
             string tableName,
-            int tableId,
+            uint tableId,
             string databaseName,
             Guid dbId,
-            int rowId,
+            uint rowId,
             TransactionRequest transaction,
             TransactionMode transactionMode,
             out string errorMessage)
@@ -376,10 +376,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public bool XactRequestParticipantUpdateRow(
             Participant participant,
             string tableName,
-            int tableId,
+            uint tableId,
             string databaseName,
             Guid dbId,
-            int rowId,
+            uint rowId,
             RemoteValueUpdate updateValue,
             TransactionRequest transaction,
             TransactionMode transactionMode,

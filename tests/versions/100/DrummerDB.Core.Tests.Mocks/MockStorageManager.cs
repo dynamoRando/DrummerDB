@@ -87,9 +87,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             return result;
         }
 
-        public int GetMaxPageId(TreeAddress address)
+        public uint GetMaxPageId(TreeAddress address)
         {
-            int result = 0;
+            uint result = 0;
             var item = _files.Where(f => f.Address == address).FirstOrDefault();
             if (!(item is null))
             {
@@ -222,7 +222,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public UserDataPage GetAnyUserDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, int tableId)
+        public UserDataPage GetAnyUserDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
         {
             UserDataPage result = null;
             var file = _files.Where(f => f.Address == address).FirstOrDefault();
@@ -239,7 +239,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             return result;
         }
 
-        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, int tableId)
+        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
         {
             throw new NotImplementedException();
         }

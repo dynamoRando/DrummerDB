@@ -6,7 +6,6 @@ using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Abstract;
-using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
@@ -255,9 +254,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// Creates a new row for the table's schema. Note that this does not set any values (they will be NULL). Defaults IsLocal = TRUE, and ParticipantId = NULL.
         /// </summary>
         /// <returns>A row representing the table's schema with no values set</returns>
-        public Row GetNewLocalRow()
+        public LocalRow GetNewLocalRow()
         {
-            var row = new Row(GetNextRowId(), true);
+            var preamble = new RowPreamble(GetNextRowId(), RowType.Local);
+            var row = new LocalRow(preamble);
+
             var values = new RowValue[_schema.Columns.Length];
             int i = 0;
 
@@ -293,7 +294,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return row;
         }
 
-        public IRow GetRow(int rowId)
+        public IRow GetRow(uint rowId)
         {
             return _cache.GetRow(rowId, Address);
         }
@@ -358,7 +359,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public List<IRow> GetRowsWithValue(RowValue value)
+        public List<RowValueGroup> GetRowsWithValue(RowValue value)
         {
             if (!HasColumn(value.Column.Name))
             {
@@ -664,7 +665,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             BringTreeOnline();
 
             TransactionEntry xact = null;
-            int pageId = 0;
+            uint pageId = 0;
             IRow beforeRow = null;
 
             if (TreeHasRoom(row.Size()))
@@ -749,7 +750,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return items;
         }
 
-        private int GetColumnId(string columnName)
+        private uint GetColumnId(string columnName)
         {
             foreach (var column in _schema.Columns)
             {
@@ -762,10 +763,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return 0;
         }
 
-        private int GetNextRowId()
+        private uint GetNextRowId()
         {
             BringTreeOnline();
-            int maxid = _cache.GetMaxRowIdForTree(Address);
+            uint maxid = _cache.GetMaxRowIdForTree(Address);
             maxid++;
             return maxid;
         }
@@ -786,7 +787,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <param name="row">The row being added</param>
         /// <returns>A transaction entry with an action of INSERT for this database, table, and row</returns>
         /// <remarks>This needs to be expanded to include the user issuing the transaction and the SQL plan.</remarks>
-        private TransactionEntry GetTransactionInsertEntry(TransactionRequest transaction, IRow row, int pageId)
+        private TransactionEntry GetTransactionInsertEntry(TransactionRequest transaction, IRow row, uint pageId)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
             var tranDataAction = new InsertTransaction(_schema.DatabaseId, _schema.Id, row.Id, pageId, _schema.Schema.SchemaGUID, row.GetRowInTransactionBinaryFormat());
@@ -805,7 +806,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return entry;
         }
 
-        private TransactionEntry GetTransactionUpdateEntry(TransactionRequest transaction, IRow before, IRow after, int pageId)
+        private TransactionEntry GetTransactionUpdateEntry(TransactionRequest transaction, IRow before, IRow after, uint pageId)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
             var tranDataAction = new UpdateTransaction(_schema.DatabaseId, _schema.Id, before.Id, pageId, before, after, _schema.Schema.SchemaGUID);
@@ -971,7 +972,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private bool XactAddLocalRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
         {
-            int pageId = 0;
+            uint pageId = 0;
             CacheAddRowResult addResult;
             TransactionEntry xact;
 
@@ -1074,9 +1075,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         xact.MarkComplete();
                         IBaseDataPage pageToSave = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
 
-                        var debug = new PageDebug(pageToSave.Data);
-                        string dataString = debug.DebugData();
-
                         _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
                             pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),
                             pageToSave.IsDeleted()
@@ -1097,7 +1095,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             // copy paste of local row actions
 
-            int pageId = 0;
+            uint pageId = 0;
             CacheAddRowResult addResult;
             TransactionEntry xact;
             bool remoteSaveIsSuccessful = false;
@@ -1271,9 +1269,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var insertAction = xact.GetActionAsInsert();
                         xact.MarkComplete();
                         IBaseDataPage pageToSave = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
-
-                        var debug = new PageDebug(pageToSave.Data);
-                        string dataString = debug.DebugData();
 
                         _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
                             pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),

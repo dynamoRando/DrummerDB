@@ -114,7 +114,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             List<ResultsetValue[]> resultRows;
             var tableAddress = tables.First();
-            List<int> rows = GetRowsForTable(tableAddress, addresses);
+            List<uint> rows = GetRowsForTable(tableAddress, addresses);
 
             rows.Sort();
             columns.OrderBy(o => o.Order);
@@ -152,7 +152,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return resultRows;
         }
 
-        private ResultsetValue[] GetValueForRow(List<ValueAddress> addresses, TransactionRequest transaction, TreeAddress tableAddress, int row)
+        private ResultsetValue[] GetValueForRow(List<ValueAddress> addresses, TransactionRequest transaction, TreeAddress tableAddress, uint row)
         {
             Stopwatch sw = null;
             if (_log is not null)
@@ -215,7 +215,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="rowId">The row id to filter down to</param>
         /// <param name="values">An unfiltered list of values</param>
         /// <returns>The values for the specified table and row</returns>
-        private List<ValueAddress> GetValuesForRow(TreeAddress table, int rowId, List<ValueAddress> values)
+        private List<ValueAddress> GetValuesForRow(TreeAddress table, uint rowId, List<ValueAddress> values)
         {
             Stopwatch sw = null;
             if (_log is not null)
@@ -309,7 +309,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         /// <param name="table">The table to filter on</param>
         /// <param name="addresses">An unfiltered list of addresses</param>
         /// <returns>A distinct list of row ids for the specified table</returns>
-        private List<int> GetRowsForTable(TreeAddress table, List<ValueAddress> addresses)
+        private List<uint> GetRowsForTable(TreeAddress table, List<ValueAddress> addresses)
         {
             Stopwatch sw = null;
             if (_log is not null)
@@ -317,7 +317,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 sw = Stopwatch.StartNew();
             }
 
-            var result = new List<int>();
+            var result = new List<uint>();
 
             var tableAddresses = GetAddressesForTable(table, addresses);
             foreach (var add in tableAddresses)

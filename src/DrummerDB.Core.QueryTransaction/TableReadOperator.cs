@@ -145,7 +145,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 {
                     foreach (var column in _columnNames)
                     {
-                        int colId = table.GetColumn(column).Id;
+                        uint colId = table.GetColumn(column).Id;
                         var address = new ValueAddress
                         {
                             ColumnId = colId,

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Databases;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -79,7 +80,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         foreach (var insertRow in Rows)
                         {
-                            var row = table.GetNewLocalRow();
+                            LocalRow row = table.GetNewLocalRow();
                             foreach (var insertValue in insertRow.Values)
                             {
                                 if (insertValue.IsNull)

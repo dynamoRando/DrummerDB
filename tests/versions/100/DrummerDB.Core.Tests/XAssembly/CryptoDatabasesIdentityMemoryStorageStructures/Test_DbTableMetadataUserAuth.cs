@@ -75,7 +75,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             }
 
             var tbName = "TableTestUsers";
-            var tbId = 1;
+            uint tbId = 1;
             var dbId = Guid.NewGuid();
 
             var cols = new List<ColumnSchema>();
@@ -168,7 +168,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             }
 
             var tbName = "TableTestUsers";
-            var tbId = 1;
+            uint tbId = 1;
             var dbId = Guid.NewGuid();
             Guid tableObjectId;
 

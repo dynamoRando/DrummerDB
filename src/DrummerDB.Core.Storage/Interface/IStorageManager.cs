@@ -34,7 +34,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
 
         public List<UserDataPage> GetAllUserDataPages(TreeAddress address, ITableSchema schema);
 
-        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, int tableId);
+        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId);
 
         /// <summary>
         /// Gets any user data page from disk, excluding the ones supplied that are already in memory.
@@ -43,14 +43,14 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         /// <param name="address">The address of the page you need.</param>
         /// <param name="schema">The schema of table you will be needing.</param>
         /// <returns></returns>
-        UserDataPage GetAnyUserDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, int tableId);
+        UserDataPage GetAnyUserDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId);
 
         /// <summary>
         /// Returns the max page id found on disk. If there are no pages, will return 0. (For a new database/table)
         /// </summary>
         /// <param name="address">The address to look up</param>
         /// <returns>The max page id for the specified tree.</returns>
-        int GetMaxPageId(TreeAddress address);
+        uint GetMaxPageId(TreeAddress address);
 
         List<string> GetSystemDatabaseNames();
 
@@ -73,7 +73,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         /// </summary>
         /// <param name="address">The address of the pages</param>
         /// <returns>The total number of pages on disk. This will return 0 if a brand new database/table</returns>
-        int GetTotalPages(TreeAddress address);
+        uint GetTotalPages(TreeAddress address);
 
         List<UserDatabaseInformation> GetUserDatabasesInformation();
 

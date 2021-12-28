@@ -54,8 +54,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// <param name="rowId">The row id to return</param>
         /// <returns>The specified row if found, otherwise NULL</returns>
         /// <remarks>Note that this function can be used to get rows forwarded to other pages. In other words, you can use this function to find where a row was forwarded.</remarks>
-        IRow GetRow(uint rowId);
-        IRow GetRow(RowAddress address);
+        Row GetRow(uint rowId);
+        Row GetRow(RowAddress address);
         RowAddress[] GetRowAddressesWithAllValues(IRowValue[] values);
 
         RowAddress[] GetRowAddressesWithValue(IRowValue value);

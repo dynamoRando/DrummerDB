@@ -10,7 +10,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
     {
         void AddSystemDbSystemPage(ISystemPage page);
         void AddUserDbSystemPage(ISystemPage page);
-        int GetMaxRowIdForTree(TreeAddress address);
+        uint GetMaxRowIdForTree(TreeAddress address);
 
         TreeStatus GetTreeMemoryStatus(TreeAddress address);
 

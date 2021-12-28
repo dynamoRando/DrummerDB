@@ -9,7 +9,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
     internal class UserDataPageSearchResult
     {
         internal UserDataPage UserDataPage { get; set; }
-        internal int Order { get; set; }
-        internal int Offset { get; set; }
+        internal uint Order { get; set; }
+        internal uint Offset { get; set; }
     }
 }

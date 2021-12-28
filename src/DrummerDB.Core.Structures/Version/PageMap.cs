@@ -15,7 +15,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             internal class PageMap
             {
                 #region Private Fields
-                int _maxItem = 0;
+                uint _maxItem = 0;
                 ConcurrentBag<PageItem> _items;
                 #endregion
 
@@ -37,14 +37,14 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     _maxItem = 0;
                 }
 
-                public int TotalPages()
+                public uint TotalPages()
                 {
-                    return _items.Count();
+                    return (uint)_items.Count();
                 }
 
-                public int TotalPages(TreeAddress address)
+                public uint TotalPages(TreeAddress address)
                 {
-                    int totalPages = 0;
+                    uint totalPages = 0;
 
                     foreach (var item in _items)
                     {
@@ -74,7 +74,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     return _items.Any(i => i.TableId == tableId);
                 }
 
-                public bool HasPage(int pageId, PageType type)
+                public bool HasPage(uint pageId, PageType type)
                 {
                     foreach (var item in _items)
                     {
@@ -87,7 +87,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     return false;
                 }
 
-                public bool HasPage(int pageId, int tableId, PageType type)
+                public bool HasPage(uint pageId, uint tableId, PageType type)
                 {
                     foreach (var item in _items)
                     {
@@ -101,9 +101,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 }
 
-                public int GetOffset(int pageId, int tableId, PageType type)
+                public uint GetOffset(uint pageId, uint tableId, PageType type)
                 {
-                    int result = 0;
+                    uint result = 0;
                     PageItem item = null;
 
                     foreach (var i in _items)
@@ -123,9 +123,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     return result;
                 }
 
-                public int GetMaxOrder()
+                public uint GetMaxOrder()
                 {
-                    int result = 0;
+                    uint result = 0;
 
                     foreach (var item in _items)
                     {

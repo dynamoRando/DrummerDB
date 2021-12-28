@@ -8,9 +8,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         void AddEntry(TransactionEntry entry);
         List<TransactionEntry> GetBatch(Guid transactionBatchId);
         void RemoveEntry(TransactionEntry entry);
-        TransactionEntry FindInsertTransactionForRowId(int rowId, Guid databaseId, int tableId);
-        TransactionEntry FindUpdateTransactionForRowId(int rowId);
-        TransactionEntry FindDeleteTransactionForRowId(int rowId);
+        TransactionEntry FindInsertTransactionForRowId(uint rowId, Guid databaseId, uint tableId);
+        TransactionEntry FindUpdateTransactionForRowId(uint rowId);
+        TransactionEntry FindDeleteTransactionForRowId(uint rowId);
         int GetNextSequenceNumberForBatchId(Guid transactionBatchId);
         TransactionEntry Get(TransactionEntryKey key);
     }

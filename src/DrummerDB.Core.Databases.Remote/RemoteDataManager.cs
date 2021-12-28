@@ -70,7 +70,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             string dbName,
             Guid dbId,
             string tableName,
-            int tableId,
+            uint tableId,
             out string errorMessage)
         {
             throw new NotImplementedException();
@@ -81,7 +81,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             string dbName,
             Guid dbId,
             string tableName,
-            int tableId,
+            uint tableId,
             TransactionRequest transaction,
             TransactionMode transactionMode,
             out string errorMessage)
@@ -262,10 +262,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
         public bool RemoveRemoteRow(structParticipant participant,
             string tableName,
-            int tableId,
+            uint tableId,
             string databaseName,
             Guid dbId,
-            int rowId,
+            uint rowId,
             TransactionRequest transaction,
             TransactionMode transactionMode,
             out string errorMessage)
@@ -320,10 +320,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         public bool UpdateRemoteRow(
             structParticipant participant,
             string tableName,
-            int tableId,
+            uint tableId,
             string databaseName,
             Guid dbId,
-            int rowId,
+            uint rowId,
             RemoteValueUpdate updateValue,
             TransactionRequest transaction,
             TransactionMode transactionMode,
@@ -365,7 +365,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         }
 
         // should probably include username/pw or token as a method of auth'd the request
-        public IRow GetRowFromParticipant(structParticipant participant, SQLAddress address, string databaseName, string tableName, out string errorMessage)
+        public TempParticipantRow GetRowFromParticipant(structParticipant participant, SQLAddress address, string databaseName, string tableName, out string errorMessage)
         {
             errorMessage = string.Empty;
             ParticipantSink sink;
@@ -605,9 +605,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             _logger.Info(stringBuilder.ToString());
         }
 
-        private IRow ConvertRequestToRow(GetRowFromPartialDatabaseResult request, Guid? participantId)
+        private TempParticipantRow ConvertRequestToRow(GetRowFromPartialDatabaseResult request, Guid? participantId)
         {
-            var row = new structRow(Convert.ToInt32(request.Row.RowId), false, participantId);
+            var tempPreamble = new RowPreamble(request.Row.RowId, RowType.TempParticipantRow);
+            var tempRow = new TempParticipantRow(tempPreamble);
+
             var values = new List<structRowValue>(request.Row.Values.Count);
 
             foreach (var comValue in request.Row.Values)
@@ -621,9 +623,9 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
                 values.Add(structValue);
             }
 
-            row.Values = values.ToArray();
+            tempRow.Values = values.ToArray();
 
-            return row;
+            return tempRow;
         }
         #endregion
 

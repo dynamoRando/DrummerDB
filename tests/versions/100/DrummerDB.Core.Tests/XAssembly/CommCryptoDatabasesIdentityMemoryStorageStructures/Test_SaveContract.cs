@@ -64,7 +64,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             string colName = "Col1";
             var dataType = new SQLInt();
-            int ordinal = 1;
+            uint ordinal = 1;
             var column = new ColumnSchema(colName, dataType, ordinal);
             var columns = new List<ColumnSchema>();
             columns.Add(column);
@@ -72,7 +72,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             Guid dbId = Guid.NewGuid();
             Guid tableObjectId = Guid.NewGuid();
             string tableName = "TestTable";
-            int tableId = 999;
+            uint tableId = 999;
             LogicalStoragePolicy policy = LogicalStoragePolicy.ParticipantOwned;
             var table = new TableSchema(tableId, tableName, dbId, columns, tableObjectId, userDbName);
             table.SetStoragePolicy(policy);

@@ -384,7 +384,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     // get the rest of the table schema information, see the "GetTables" function
                     string storedTableName = row.GetValueInString(ut.TableName).Trim();
-                    int storedTableId = DbBinaryConvert.BinaryToInt(row.GetValueInByte(ut.TableId));
+                    uint storedTableId = DbBinaryConvert.BinaryToUInt(row.GetValueInByte(ut.TableId));
 
                     var searchItem = new RowValue();
                     searchItem.Column = UserTableSchema.GetColumns().Where(c => c.Name == uts.TableId).FirstOrDefault();
@@ -398,9 +398,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var columnOrdinal = columns.GetValueInString(uts.ColumnOrdinal).Trim();
                         var columnLength = columns.GetValueInString(uts.ColumnLength).Trim();
 
-                        var iColumnOrdinal = Convert.ToInt32(columnOrdinal);
-                        var iColumnType = Convert.ToInt32(columnType);
-                        var iColumnLength = Convert.ToInt32(columnLength);
+                        var iColumnOrdinal = Convert.ToUInt32(columnOrdinal);
+                        var iColumnType = Convert.ToUInt32(columnType);
+                        var iColumnLength = Convert.ToUInt32(columnLength);
 
                         SQLColumnType columnEnumType = (SQLColumnType)iColumnType;
                         ColumnSchema cs = null;
@@ -471,7 +471,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 var table = _userTable.GetRow(row);
 
-                int tableId = Convert.ToInt32(table.GetValueInString(ut.TableId));
+                uint tableId = Convert.ToUInt32(table.GetValueInString(ut.TableId));
                 string tableName = table.GetValueInString(ut.TableName).Trim();
 
                 Guid tableSchemaId = Guid.Empty;
@@ -523,9 +523,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     var columnOrdinal = columns.GetValueInString(uts.ColumnOrdinal).Trim();
                     var columnLength = columns.GetValueInString(uts.ColumnLength).Trim();
 
-                    var iColumnOrdinal = Convert.ToInt32(columnOrdinal);
-                    var iColumnType = Convert.ToInt32(columnType);
-                    var iColumnLength = Convert.ToInt32(columnLength);
+                    var iColumnOrdinal = Convert.ToUInt32(columnOrdinal);
+                    var iColumnType = Convert.ToUInt32(columnType);
+                    var iColumnLength = Convert.ToUInt32(columnLength);
 
                     SQLColumnType columnEnumType = (SQLColumnType)iColumnType;
                     ColumnSchema cs = null;

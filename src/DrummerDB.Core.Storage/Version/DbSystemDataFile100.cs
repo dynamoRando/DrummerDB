@@ -53,7 +53,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             _dbName = dbName;
 
             _map = new PageMap();
-            int order = 0;
+            uint order = 0;
 
             _locker.EnterWriteLock();
             if (!File.Exists(fileName))
@@ -71,7 +71,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                     offset += page.Data.Length;
                 });
 
-                int runningLength = 0;
+                uint runningLength = 0;
                 pages.ForEach(page =>
                 {
                     order++;
@@ -82,7 +82,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                         {
                             var pData = page as SystemDataPage;
                             var pDataType = pData.DataPageType();
-                            runningLength += page.Data.Length;
+                            runningLength += (uint)page.Data.Length;
                             var item = new PageItem(page.PageId(), page.Type, pDataType, order, pData.TableId(), runningLength, page.IsDeleted());
                             _map.AddItem(item);
                         }
@@ -91,14 +91,14 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
                         {
                             var pData = page as UserDataPage;
                             var pDataType = pData.DataPageType();
-                            runningLength += page.Data.Length;
+                            runningLength += (uint)page.Data.Length;
                             var item = new PageItem(page.PageId(), page.Type, pDataType, order, pData.TableId(), runningLength, page.IsDeleted());
                             _map.AddItem(item);
                         }
                     }
                     else
                     {
-                        runningLength += page.Data.Length;
+                        runningLength += (uint)page.Data.Length;
                         var item = new PageItem(page.PageId(), page.Type, DataPageType.Unknown, order, 0, runningLength, page.IsDeleted());
                         _map.AddItem(item);
                     }
@@ -138,7 +138,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             File.Delete(_fileName);
         }
 
-        public override UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, int tableId)
+        public override UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, uint tableId)
         {
             UserDataPage result = null;
 
@@ -182,9 +182,9 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             return result;
         }
 
-        public override int GetMaxPageId(in TreeAddress address)
+        public override uint GetMaxPageId(in TreeAddress address)
         {
-            int maxPageId = 0;
+            uint maxPageId = 0;
 
             foreach (var item in _map.Items)
             {
@@ -218,24 +218,24 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             return page;
         }
 
-        public override int GetTotalPages()
+        public override uint GetTotalPages()
         {
             return _map.TotalPages();
         }
 
-        public override int GetTotalPages(TreeAddress address)
+        public override uint GetTotalPages(TreeAddress address)
         {
             return _map.TotalPages(address);
         }
 
-        public override UserDataPage GetUserDataPage(int id)
+        public override UserDataPage GetUserDataPage(uint id)
         {
             throw new NotImplementedException();
         }
 
         public override void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType, bool isDeleted)
         {
-            long offset = 0;
+            uint offset = 0;
             if (_map.HasPage(address.PageId, address.TableId, type))
             {
                 offset = _map.GetOffset(address.PageId, address.TableId, type);
@@ -243,7 +243,10 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             else
             {
                 var info = new FileInfo(_fileName);
-                offset = info.Length;
+                checked
+                {
+                    offset = (uint)info.Length;
+                }
             }
 
             _locker.EnterWriteLock();
@@ -254,7 +257,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Version
             {
                 checked
                 {
-                    var pageItem = new PageItem(address.PageId, type, dataPageType, _map.GetMaxOrder() + 1, address.TableId, (int)offset, isDeleted);
+                    var pageItem = new PageItem(address.PageId, type, dataPageType, _map.GetMaxOrder() + 1, address.TableId, offset, isDeleted);
                     _map.AddItem(pageItem);
                 }
             }
