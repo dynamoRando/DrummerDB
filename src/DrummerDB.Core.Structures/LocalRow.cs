@@ -15,7 +15,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
     /// Represents a standard row with a preamble and data.
     /// No remotable attributes associated with it.
     /// </summary>
-    internal class LocalRow : RowValueCollection
+    internal class LocalRow : RowValueGroup
     {
         public override RowType Type => RowType.Local;
         public LocalRow(RowPreamble preamble) : base(preamble)

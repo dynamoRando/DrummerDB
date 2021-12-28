@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 namespace Drummersoft.DrummerDB.Core.Structures
 {
     /// <summary>
-    /// Represents a concrete row with a preamble and that has values
+    /// Represents a concrete row with a preamble and has values
     /// </summary>
-    internal class RowValueCollection : Row, IRowValueCollection
+    internal class RowValueGroup : Row, IRowValueGroup
     {
         #region Private Fields
         RowPreamble _preamble;
@@ -26,7 +26,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Constructors
-        public RowValueCollection(RowPreamble preamble) : base(preamble)
+        public RowValueGroup(RowPreamble preamble) : base(preamble)
         {
             _preamble = preamble;
         }

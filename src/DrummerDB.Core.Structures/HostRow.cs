@@ -29,6 +29,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public DateTime RemoteDeletionUTC { get; set; }
         public uint DataHashLength => (uint)_dataHash.Length;
         public byte[] DataHash => _dataHash;
+        public RemoteType RemoteType => RemoteType.Participant;
         #endregion
 
         #region Constructors

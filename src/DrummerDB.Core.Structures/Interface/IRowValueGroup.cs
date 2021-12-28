@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.Structures.Interface
 {
-    internal interface IRowValueCollection
+    /// <summary>
+    /// Represents a row that has <see cref="RowValue"/>
+    /// </summary>
+    internal interface IRowValueGroup
     {
         /// <summary>
         /// A list of Values for this row

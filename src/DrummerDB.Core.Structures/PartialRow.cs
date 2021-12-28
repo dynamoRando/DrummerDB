@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.Structures
 {
-    internal class PartialRow : RowValueCollection, IRowRemotable
+    internal class PartialRow : RowValueGroup, IRowRemotable
     {
         #region Private Fields
         private RowPreamble _preamble;
@@ -24,7 +24,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public DateTime RemoteDeletionUTC { get; set; }
         public uint DataHashLength => (uint)DataHash.Length;
         public byte[] DataHash => GetRowHash();
-
+        public RemoteType RemoteType => RemoteType.Host;
         #endregion
 
         #region Constructors
