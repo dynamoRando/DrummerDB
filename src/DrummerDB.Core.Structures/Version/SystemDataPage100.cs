@@ -124,7 +124,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return _basePage.GetRow(rowId);
         }
 
-        public override IRow GetRow(RowAddress address)
+        public override Row GetRow(RowAddress address)
         {
             return _basePage.GetRow(address);
         }

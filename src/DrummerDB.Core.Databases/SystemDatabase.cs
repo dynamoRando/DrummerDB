@@ -376,14 +376,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             string hostId = contract.Host.HostGUID.ToString();
 
             var hostValue = RowValueMaker.Create(hosts, Hosts.Columns.HostGUID, hostId);
-            int countOfHosts = hosts.CountOfRowsWithValue(hostValue);
+            uint countOfHosts = hosts.CountOfRowsWithValue(hostValue);
 
             if (countOfHosts > 0)
             {
                 var coContractsTable = GetTable(CooperativeContracts.TABLE_NAME);
                 var contractGUID = contract.ContractGUID;
                 var contractGUIDValue = RowValueMaker.Create(coContractsTable, CooperativeContracts.Columns.ContractGUID, contractGUID.ToString());
-                int countOfExistingContracts = coContractsTable.CountOfRowsWithValue(contractGUIDValue);
+                uint countOfExistingContracts = coContractsTable.CountOfRowsWithValue(contractGUIDValue);
 
                 return countOfExistingContracts > 0;
             }
@@ -397,7 +397,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             string hostId = contract.Host.HostGUID.ToString();
 
             var hostValue = RowValueMaker.Create(hosts, Hosts.Columns.HostGUID, hostId);
-            int countOfHosts = hosts.CountOfRowsWithValue(hostValue);
+            uint countOfHosts = hosts.CountOfRowsWithValue(hostValue);
 
             if (countOfHosts == 0)
             {
@@ -485,7 +485,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var hosts = GetTable(Hosts.TABLE_NAME);
 
             var searchValue = RowValueMaker.Create(hosts, Hosts.Columns.HostName, hostName);
-            int totalCount = hosts.CountOfRowsWithValue(searchValue);
+            uint totalCount = hosts.CountOfRowsWithValue(searchValue);
 
             if (totalCount == 0)
             {
@@ -500,7 +500,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 var searchValueToken = RowValueMaker.Create(hosts, Hosts.Columns.Token, token);
                 var searchValues = new RowValue[2] { searchValue, searchValueToken };
-                int countOfHosts = hosts.CountOfRowsWithAllValues(searchValues);
+                uint countOfHosts = hosts.CountOfRowsWithAllValues(searchValues);
 
                 if (countOfHosts == 1)
                 {
@@ -539,7 +539,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var valueUserName = RowValueMaker.Create(_systemLogins, login.UserName, userName);
 
-            int count = _systemLogins.CountOfRowsWithValue(valueUserName);
+            uint count = _systemLogins.CountOfRowsWithValue(valueUserName);
             if (count > 1)
             {
                 throw new InvalidOperationException($"Muliple logins found for user {userName}");

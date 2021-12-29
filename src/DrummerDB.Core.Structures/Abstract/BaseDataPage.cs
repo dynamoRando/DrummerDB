@@ -41,7 +41,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         /// </summary>
         /// <returns>The total number of rows on the page. Note: Total Rows != Logical Rows</returns>
         public abstract uint TotalRows();
-        public abstract PageUpdateRowResult TryUpdateRowData(RowValueGroup row, out uint updatedOffset);
+        public abstract PageUpdateRowResult TryUpdateRowData(Row row, out uint updatedOffset);
 
         public abstract bool HasValue(IRowValue value);
         public abstract RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column);

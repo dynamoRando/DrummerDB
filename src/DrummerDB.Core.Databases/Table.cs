@@ -106,12 +106,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        public int CountOfRowsWithAllValues(IRowValue[] values)
+        public uint CountOfRowsWithAllValues(IRowValue[] values)
         {
             return _cache.CountOfRowsWithAllValues(Address, ref values);
         }
 
-        public int CountOfRowsWithValue(RowValue value)
+        public uint CountOfRowsWithValue(RowValue value)
         {
             if (!HasColumn(value.Column.Name))
             {
@@ -213,7 +213,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             throw new ColumnNotFoundException($"Column Id {id.ToString()} not found in table {_schema.Name}");
         }
 
-        public ColumnSchemaStruct GetColumnStruct(int id)
+        public ColumnSchemaStruct GetColumnStruct(uint id)
         {
             foreach (var column in _schema.Columns)
             {
@@ -360,6 +360,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public Row GetRow(uint rowId)
         {
             return _cache.GetRow(rowId, Address);
+        }
+
+        public PartialRow GetPartialRow(uint rowId)
+        {
+            var item = _cache.GetRow(rowId, Address);
+            if (item is PartialRow)
+            {
+                return item.AsPartial();
+            }
+            return null;
         }
 
         /// <summary>
@@ -644,12 +654,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return XactAddRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public bool XactDeleteRow(IRow row)
+        public bool XactDeleteRow(Row row)
         {
             return XactDeleteRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public bool XactDeleteRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        public bool XactDeleteRow(Row row, TransactionRequest request, TransactionMode transactionMode)
         {
             BringTreeOnline();
 
@@ -769,12 +779,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        public bool XactUpdateRow(IRow row)
+        public bool XactUpdateRow(Row row)
         {
             return XactUpdateRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public bool XactUpdateRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        public bool XactUpdateRow(Row row, TransactionRequest request, TransactionMode transactionMode)
         {
             BringTreeOnline();
 
@@ -943,7 +953,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (isUserDatabase)
             {
-                UserDataPage page = _storage.GetAnyUserDataPage(new int[0], Address, _schema, _schema.Id);
+                UserDataPage page = _storage.GetAnyUserDataPage(new uint[0], Address, _schema, _schema.Id);
 
                 if (page is null)
                 {
@@ -990,7 +1000,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                UserDataPage page = _storage.GetAnySystemDataPage(new int[0], Address, _schema, _schema.Id);
+                UserDataPage page = _storage.GetAnySystemDataPage(new uint[0], Address, _schema, _schema.Id);
 
                 if (page is null)
                 {
@@ -1018,7 +1028,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void HandleNoPagesOnTree()
         {
-            var page = _storage.GetAnyUserDataPage(new int[0], Address, _schema, _schema.Id);
+            var page = _storage.GetAnyUserDataPage(new uint[0], Address, _schema, _schema.Id);
 
             if (page is null)
             {
@@ -1084,7 +1094,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
-        private bool XactAddLocalRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        private bool XactAddLocalRow(Row row, TransactionRequest request, TransactionMode transactionMode)
         {
             uint pageId = 0;
             CacheAddRowResult addResult;

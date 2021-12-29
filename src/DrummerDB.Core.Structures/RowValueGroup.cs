@@ -120,7 +120,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public void SetRowData(ITableSchema schema, ReadOnlySpan<byte> span)
         {
             var values = new List<RowValue>();
-            int runningTotal = 0;
+            uint runningTotal = 0;
 
             if (schema is TableSchema)
             {
@@ -139,7 +139,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                         {
                             if (column.DataType is SQLInt)
                             {
-                                rowValue.SetValue(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                rowValue.SetValue(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
@@ -149,7 +149,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                             if (column.DataType is SQLDateTime)
                             {
-                                rowValue.SetValue(span.Slice(runningTotal, Constants.SIZE_OF_DATETIME));
+                                rowValue.SetValue(span.Slice((int)runningTotal, Constants.SIZE_OF_DATETIME));
 
                                 runningTotal += Constants.SIZE_OF_DATETIME;
                                 parseLength += Constants.SIZE_OF_DATETIME;
@@ -159,7 +159,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                             if (column.DataType is SQLDecimal)
                             {
-                                rowValue.SetValue(span.Slice(runningTotal, Constants.SIZE_OF_DECIMAL));
+                                rowValue.SetValue(span.Slice((int)runningTotal, Constants.SIZE_OF_DECIMAL));
 
                                 runningTotal += Constants.SIZE_OF_DECIMAL;
                                 parseLength += Constants.SIZE_OF_DECIMAL;
@@ -169,7 +169,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                             if (column.DataType is SQLBit)
                             {
-                                rowValue.SetValue(span.Slice(runningTotal, Constants.SIZE_OF_BOOL));
+                                rowValue.SetValue(span.Slice((int)runningTotal, Constants.SIZE_OF_BOOL));
 
                                 runningTotal += Constants.SIZE_OF_BOOL;
                                 parseLength += Constants.SIZE_OF_BOOL;
@@ -181,7 +181,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                         {
                             if (column.DataType is SQLVarChar)
                             {
-                                int length = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                uint length = DbBinaryConvert.BinaryToUInt(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                 if (column.Length > 0)
                                 {
@@ -195,7 +195,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
 
-                                string value = DbBinaryConvert.BinaryToString(span.Slice(runningTotal, length));
+                                string value = DbBinaryConvert.BinaryToString(span.Slice((int)runningTotal, (int)length));
                                 rowValue.SetValue(value);
 
                                 runningTotal += length;
@@ -206,7 +206,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                             if (column.DataType is SQLChar)
                             {
-                                int length = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                uint length = DbBinaryConvert.BinaryToUInt(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                 if (column.Length > 0)
                                 {
@@ -220,7 +220,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
 
-                                string value = DbBinaryConvert.BinaryToString(span.Slice(runningTotal, length));
+                                string value = DbBinaryConvert.BinaryToString(span.Slice((int)runningTotal, (int)length));
                                 rowValue.SetValue(value);
 
                                 runningTotal += length;
@@ -231,7 +231,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                             if (column.DataType is SQLBinary)
                             {
-                                int length = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                uint length = DbBinaryConvert.BinaryToUInt(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                 if (column.Length > 0)
                                 {
@@ -245,7 +245,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
 
-                                rowValue.SetValue(span.Slice(runningTotal, length).ToArray());
+                                rowValue.SetValue(span.Slice((int)runningTotal, (int)length).ToArray());
 
                                 runningTotal += length;
                                 parseLength += length;
@@ -255,7 +255,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                             if (column.DataType is SQLVarbinary)
                             {
-                                int length = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                uint length = DbBinaryConvert.BinaryToUInt(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                 if (column.Length > 0)
                                 {
@@ -269,7 +269,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                 runningTotal += Constants.SIZE_OF_INT;
                                 parseLength += Constants.SIZE_OF_INT;
 
-                                rowValue.SetValue(span.Slice(runningTotal, length).ToArray());
+                                rowValue.SetValue(span.Slice((int)runningTotal, (int)length).ToArray());
 
                                 runningTotal += length;
                                 parseLength += length;
@@ -280,7 +280,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     }
                     else // is nullable column
                     {
-                        bool isNull = DbBinaryConvert.BinaryToBoolean(span.Slice(runningTotal, Constants.SIZE_OF_BOOL));
+                        bool isNull = DbBinaryConvert.BinaryToBoolean(span.Slice((int)runningTotal, Constants.SIZE_OF_BOOL));
 
                         if (isNull)
                         {
@@ -302,7 +302,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                                 if (column.DataType is SQLInt)
                                 {
-                                    rowValue.SetValue(span.Slice(runningTotal, Constants.SIZE_OF_INT + Constants.SIZE_OF_BOOL));
+                                    rowValue.SetValue(span.Slice((int)runningTotal, Constants.SIZE_OF_INT + Constants.SIZE_OF_BOOL));
 
                                     runningTotal += Constants.SIZE_OF_INT;
                                     runningTotal += Constants.SIZE_OF_BOOL;
@@ -314,7 +314,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                                 if (column.DataType is SQLDateTime)
                                 {
-                                    rowValue.SetValue(span.Slice(runningTotal, Constants.SIZE_OF_DATETIME + Constants.SIZE_OF_BOOL));
+                                    rowValue.SetValue(span.Slice((int)runningTotal, Constants.SIZE_OF_DATETIME + Constants.SIZE_OF_BOOL));
 
                                     runningTotal += Constants.SIZE_OF_DATETIME;
                                     runningTotal += Constants.SIZE_OF_BOOL;
@@ -326,7 +326,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                                 if (column.DataType is SQLDecimal)
                                 {
-                                    rowValue.SetValue(span.Slice(runningTotal, Constants.SIZE_OF_DECIMAL + Constants.SIZE_OF_BOOL));
+                                    rowValue.SetValue(span.Slice((int)runningTotal, Constants.SIZE_OF_DECIMAL + Constants.SIZE_OF_BOOL));
 
                                     runningTotal += Constants.SIZE_OF_DECIMAL;
                                     runningTotal += Constants.SIZE_OF_BOOL;
@@ -338,7 +338,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                                 if (column.DataType is SQLBit)
                                 {
-                                    rowValue.SetValue(span.Slice(runningTotal, Constants.SIZE_OF_BOOL + Constants.SIZE_OF_BOOL));
+                                    rowValue.SetValue(span.Slice((int)runningTotal, Constants.SIZE_OF_BOOL + Constants.SIZE_OF_BOOL));
 
                                     runningTotal += Constants.SIZE_OF_BOOL;
                                     runningTotal += Constants.SIZE_OF_BOOL;
@@ -361,12 +361,12 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                     runningTotal += Constants.SIZE_OF_BOOL;
                                     parseLength += Constants.SIZE_OF_BOOL;
 
-                                    int length = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                    uint length = DbBinaryConvert.BinaryToUInt(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                     runningTotal += Constants.SIZE_OF_INT;
                                     parseLength += Constants.SIZE_OF_INT;
 
-                                    string value = DbBinaryConvert.BinaryToString(span.Slice(runningTotal, length));
+                                    string value = DbBinaryConvert.BinaryToString(span.Slice((int)runningTotal, (int)length));
                                     rowValue.SetValue(value);
 
                                     runningTotal += length;
@@ -381,12 +381,12 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                     runningTotal += Constants.SIZE_OF_BOOL;
                                     parseLength += Constants.SIZE_OF_BOOL;
 
-                                    int length = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                    uint length = DbBinaryConvert.BinaryToUInt(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                     runningTotal += Constants.SIZE_OF_INT;
                                     parseLength += Constants.SIZE_OF_INT;
 
-                                    string value = DbBinaryConvert.BinaryToString(span.Slice(runningTotal, length));
+                                    string value = DbBinaryConvert.BinaryToString(span.Slice((int)runningTotal, (int)length));
                                     rowValue.SetValue(value);
 
                                     runningTotal += length;
@@ -402,12 +402,12 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                     runningTotal += Constants.SIZE_OF_BOOL;
                                     parseLength += Constants.SIZE_OF_BOOL;
 
-                                    int length = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                    uint length = DbBinaryConvert.BinaryToUInt(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                     runningTotal += Constants.SIZE_OF_INT;
                                     parseLength += Constants.SIZE_OF_INT;
 
-                                    rowValue.SetValue(span.Slice(runningTotal, length).ToArray());
+                                    rowValue.SetValue(span.Slice((int)runningTotal, (int)length).ToArray());
 
                                     runningTotal += length;
                                     parseLength += length;
@@ -423,18 +423,18 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                     runningTotal += Constants.SIZE_OF_BOOL;
                                     parseLength += Constants.SIZE_OF_BOOL;
 
-                                    int length = DbBinaryConvert.BinaryToInt(span.Slice(runningTotal, Constants.SIZE_OF_INT));
+                                    uint length = DbBinaryConvert.BinaryToUInt(span.Slice((int)runningTotal, Constants.SIZE_OF_INT));
 
                                     runningTotal += Constants.SIZE_OF_INT;
                                     parseLength += Constants.SIZE_OF_INT;
 
                                     // troubleshoot issue with varbinary not having leadning IsNull value (which is false, but for parsing
                                     // purposes we need it included
-                                    int tempSliceIncludeLeadingNull = runningTotal - Constants.SIZE_OF_BOOL;
-                                    int tempLength = length + Constants.SIZE_OF_BOOL;
+                                    uint tempSliceIncludeLeadingNull = runningTotal - Constants.SIZE_OF_BOOL;
+                                    uint tempLength = length + Constants.SIZE_OF_BOOL;
 
                                     //rowValue.SetValue(span.Slice(runningTotal, length).ToArray());
-                                    rowValue.SetValue(span.Slice(tempSliceIncludeLeadingNull, tempLength).ToArray());
+                                    rowValue.SetValue(span.Slice((int)tempSliceIncludeLeadingNull, (int)tempLength).ToArray());
 
                                     runningTotal += length;
                                     parseLength += length;

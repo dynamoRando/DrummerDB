@@ -81,7 +81,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
 
             var contractValue = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, guid);
-            var rows = contracts.GetRowsWithValue(contractValue);
+            var rows = contracts.GetLocalRowsWithValue(contractValue);
 
             if (rows.Count != 1)
             {
@@ -117,7 +117,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var rows = contracts.GetRows();
             foreach (var row in rows)
             {
-                var data = contracts.GetRow(row);
+                var data = contracts.GetLocalRow(row);
                 var stringDate = data.GetValueInString(Tables.DatabaseContracts.Columns.GeneratedDate);
 
                 var date = DateTime.Parse(stringDate);
@@ -128,7 +128,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             var maxDateValue = RowValueMaker.Create(contracts, DatabaseContracts.Columns.GeneratedDate, maxDate.ToString());
-            var maxContractRow = contracts.GetRowsWithValue(maxDateValue);
+            var maxContractRow = contracts.GetLocalRowsWithValue(maxDateValue);
 
             if (maxContractRow.Count != 1)
             {
@@ -155,7 +155,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             Participant result = new();
             var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
             var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
-            int resultCount = participants.CountOfRowsWithValue(searchItem);
+            uint resultCount = participants.CountOfRowsWithValue(searchItem);
 
             if (resultCount > 1)
             {
@@ -169,7 +169,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (resultCount == 1)
             {
-                var results = participants.GetRowsWithValue(searchItem);
+                var results = participants.GetLocalRowsWithValue(searchItem);
                 foreach (var row in results)
                 {
                     result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
@@ -223,7 +223,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             Participant result = new();
             var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
             var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.ParticpantGUID, participantId.ToString());
-            int resultCount = participants.CountOfRowsWithValue(searchItem);
+            uint resultCount = participants.CountOfRowsWithValue(searchItem);
 
             if (resultCount > 1)
             {
@@ -237,7 +237,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (resultCount == 1)
             {
-                var results = participants.GetRowsWithValue(searchItem);
+                var results = participants.GetLocalRowsWithValue(searchItem);
                 foreach (var row in results)
                 {
                     result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
@@ -412,7 +412,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var participantTable = GetTable(Participants.TABLE_NAME);
             var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.ParticpantGUID, participant.Id.ToString());
-            int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
+            uint totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
 
             if (totalParticipants > 1)
             {
@@ -426,7 +426,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                var rowsForParticipant = participantTable.GetRowsWithValue(participantSearch);
+                var rowsForParticipant = participantTable.GetLocalRowsWithValue(participantSearch);
 
                 if (rowsForParticipant.Count != 1)
                 {
@@ -476,7 +476,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 throw new InvalidOperationException($"More than 1 or no participant found for alias {participant.Alias}");
             }
 
-            var rowsForParticipant = participantTable.GetRowsWithValue(participantSearch);
+            var rowsForParticipant = participantTable.GetLocalRowsWithValue(participantSearch);
 
             if (rowsForParticipant.Count != 1)
             {

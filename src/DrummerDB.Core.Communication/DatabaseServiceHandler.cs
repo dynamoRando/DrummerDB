@@ -184,9 +184,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public bool DeleteRowInPartialDb(
             Guid dbId,
             string dbName,
-            int tableId,
+            uint tableId,
             string tableName,
-            int rowId
+            uint rowId
             )
         {
             // note: we didn't leverage a database action here, should we?
@@ -218,9 +218,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public bool UpdateRowInPartialDb(
             Guid dbId,
             string dbName,
-            int tableId,
+            uint tableId,
             string tableName,
-            int rowId,
+            uint rowId,
             RemoteValueUpdate updateValues)
         {
 
@@ -244,7 +244,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 table = db.GetTable(tableName);
             }
 
-            var row = table.GetRow(rowId);
+            var row = table.GetPartialRow(rowId);
             if (row is not null)
             {
                 row.SetValue(updateValues.ColumnName, updateValues.Value);
@@ -254,7 +254,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return isSuccessful;
         }
 
-        public IRow GetRowFromPartDb(Guid databaseId, int tableId, int rowId, string dbName, string tableName)
+        public IRow GetRowFromPartDb(Guid databaseId, uint tableId, uint rowId, string dbName, string tableName)
         {
 
             // we should be checking against the database contract to make sure that the host has

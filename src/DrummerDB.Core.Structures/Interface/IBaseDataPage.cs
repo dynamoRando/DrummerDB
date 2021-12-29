@@ -113,7 +113,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// <param name="updatedOffset">The new offset location of the updated row, if the update was successful, otherwise 0.</param>
         /// <returns>A status of the attempted update</returns>
         /// <remarks>Do not use this function to try and update rows to be forwarded to other pages. Use the ForwardRows function instead.</remarks>
-        PageUpdateRowResult TryUpdateRowData(RowValueGroup row, out uint updatedOffset);
+        PageUpdateRowResult TryUpdateRowData(Row row, out uint updatedOffset);
         void UnDelete();
     }
 }

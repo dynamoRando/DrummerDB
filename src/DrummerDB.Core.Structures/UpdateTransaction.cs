@@ -10,15 +10,15 @@ namespace Drummersoft.DrummerDB.Core.Structures
     internal class UpdateTransaction : TransactionActionData
     {
         private SQLAddress _address;
-        private IRow _rowBefore;
-        private IRow _rowAfter;
+        private Row _rowBefore;
+        private Row _rowAfter;
 
         public override TransactionDataOperation Operation => TransactionDataOperation.Update;
         public override SQLAddress Address => _address;
-        public IRow Before => _rowBefore;
-        public IRow After => _rowAfter;
+        public Row Before => _rowBefore;
+        public Row After => _rowAfter;
 
-        public UpdateTransaction(Guid databaseId, uint tableId, uint rowId, uint pageId, IRow rowBefore, IRow rowAfter, Guid schemaId) : base(databaseId, tableId)
+        public UpdateTransaction(Guid databaseId, uint tableId, uint rowId, uint pageId, Row rowBefore, Row rowAfter, Guid schemaId) : base(databaseId, tableId)
         {
             _address = new SQLAddress { DatabaseId = databaseId, TableId = tableId, PageId = pageId, RowId = rowId, RowOffset = 0, SchemaId = schemaId };
             _rowBefore = rowBefore;

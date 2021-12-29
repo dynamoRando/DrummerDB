@@ -137,7 +137,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 var schema = RowValueMaker.Create(_databaseSchemas, DatabaseSchemas.Columns.SchemaName, schemaName);
 
-                int count = _databaseSchemas.CountOfRowsWithValue(schema);
+                uint count = _databaseSchemas.CountOfRowsWithValue(schema);
 
                 if (count > 0)
                 {
@@ -346,7 +346,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var tableSearch = RowValueMaker.Create(_userTable, ut.TableName, tableName, true);
             if (_userTable.HasValue(tableSearch))
             {
-                int count = _userTable.CountOfRowsWithValue(tableSearch);
+                uint count = _userTable.CountOfRowsWithValue(tableSearch);
 
                 if (count == 1)
                 {
@@ -489,7 +489,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     var recordSchemaName = RowValueMaker.Create(_databaseSchemas, DatabaseSchemas.Columns.SchemaGUID, table.GetValueInString(ut.SchemaGUID));
 
-                    int count = _databaseSchemas.CountOfRowsWithValue(recordSchemaName);
+                    uint count = _databaseSchemas.CountOfRowsWithValue(recordSchemaName);
 
                     if (count > 0)
                     {
@@ -607,7 +607,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var valueUserName = RowValueMaker.Create(_users, SystemSchemaConstants100.Tables.Users.Columns.UserName, userName);
 
-            int count = _users.CountOfRowsWithValue(valueUserName);
+            uint count = _users.CountOfRowsWithValue(valueUserName);
 
             if (count > 1)
             {
@@ -649,7 +649,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             if (ValidateUser(userName, pwInput))
             {
                 var searchValue = RowValueMaker.Create(_userObjectPermissions, uop.UserName, userName);
-                int count = _userObjectPermissions.CountOfRowsWithValue(searchValue);
+                uint count = _userObjectPermissions.CountOfRowsWithValue(searchValue);
 
                 if (count > 0)
                 {
@@ -688,7 +688,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             {
                 var searchValue = RowValueMaker.Create(_userObjectPermissions, uop.UserName, userName);
 
-                int count = _userObjectPermissions.CountOfRowsWithValue(searchValue);
+                uint count = _userObjectPermissions.CountOfRowsWithValue(searchValue);
 
                 if (count > 0)
                 {
@@ -722,13 +722,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
             searchItems[0] = sv1;
             searchItems[1] = sv2;
 
-            int count = _userObjects.CountOfRowsWithAllValues(searchItems);
+            uint count = _userObjects.CountOfRowsWithAllValues(searchItems);
 
             if (count > 0)
             {
                 if (count == 1)
                 {
-                    var result = _userObjects.GetRowsWithAllValues(searchItems);
+                    var result = _userObjects.GetLocalRowsWithAllValues(searchItems);
 
                     foreach (var row in result)
                     {
@@ -753,11 +753,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             var searchValue = RowValueMaker.Create(_userObjects, uo.ObjectId, objectId.ToString());
 
-            int count = _userObjects.CountOfRowsWithValue(searchValue);
+            uint count = _userObjects.CountOfRowsWithValue(searchValue);
 
             if (count > 0)
             {
-                var results = _userObjects.GetRowsWithValue(searchValue);
+                var results = _userObjects.GetLocalRowsWithValue(searchValue);
 
                 foreach (var row in results)
                 {
@@ -883,7 +883,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var search = RowValueMaker.Create(_userTable, ut.TableName, schema.Name, true);
 
-            int count = _userTable.CountOfRowsWithValue(search);
+            uint count = _userTable.CountOfRowsWithValue(search);
 
             var searchResult = _userTable.GetLocalRowsWithValue(search);
             if (count > 1)
@@ -929,7 +929,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var search = RowValueMaker.Create(_userTable, ut.TableName, schema.Name, true);
 
-            int count = _userTable.CountOfRowsWithValue(search);
+            uint count = _userTable.CountOfRowsWithValue(search);
 
             var searchResult = _userTable.GetLocalRowsWithValue(search);
             if (count > 1)
@@ -1063,7 +1063,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var search = RowValueMaker.Create(_userTableSchema, uts.TableId, schema.Id.ToString());
 
-            int count = _userTableSchema.CountOfRowsWithValue(search);
+            uint count = _userTableSchema.CountOfRowsWithValue(search);
 
             // if we haven't added any columns to the table
             if (schema.Columns.Count() == count)
@@ -1117,7 +1117,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var search = RowValueMaker.Create(_userTableSchema, uts.TableId, schema.Id.ToString());
 
-            int count = _userTableSchema.CountOfRowsWithValue(search);
+            uint count = _userTableSchema.CountOfRowsWithValue(search);
 
             // if we haven't added any columns to the table
             if (schema.Columns.Count() == count)

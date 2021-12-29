@@ -356,12 +356,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             }
         }
 
-        public override PageUpdateRowResult TryUpdateRowData(RowValueGroup updatedRow, out uint updatedOffset)
+        public override PageUpdateRowResult TryUpdateRowData(Row updatedRow, out uint updatedOffset)
         {
             PageUpdateRowResult result = PageUpdateRowResult.Unknown;
             uint rowId = updatedRow.Id;
             uint existingRowOffset = (uint)GetRowOffsets(rowId).Max();
-            RowValueGroup existingRow = null;
+            Row existingRow = null;
             var returnedRow = GetRow(rowId);
 
             if (returnedRow is RowValueGroup)
@@ -369,7 +369,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 existingRow = returnedRow as RowValueGroup;
             }
 
-            if (updatedRow.Size() == existingRow.Size())
+            if (updatedRow.TotalSize == existingRow.TotalSize)
             {
                 // update in place
                 byte[] rowData = updatedRow.GetRowInPageBinaryFormat();
@@ -379,7 +379,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             }
             else
             {
-                if (!(IsFull(updatedRow.Size())))
+                if (!(IsFull(updatedRow.TotalSize)))
                 {
                     // add the row to the page
                     uint newRowOffset = AppendRowToData(updatedRow);
