@@ -139,9 +139,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userDataCache.CountOfRowsWithValue(address, value);
         }
 
-        public List<RowValueGroup> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
+        public List<Row> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
-            var result = new List<RowValueGroup>();
+            var result = new List<Row>();
 
             if (!_userDataCache.HasTree(address))
             {

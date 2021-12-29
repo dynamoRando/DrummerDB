@@ -6,6 +6,7 @@ using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,6 +34,17 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public byte[] GetRowHash()
+        {
+            // ideally this code should be in Drummersoft.DrummerDB.Core.Cryptogrpahy
+            // but the dependencies wouldn't work (would result in a circular reference)
+            // may later change the dependency layout, but for now leaving this here
+            // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
+            var sourceData = GetRowDataInBinary();
+            var sha256Hash = SHA256.Create();
+            return sha256Hash.ComputeHash(sourceData);
+        }
+     
         public override void Delete()
         {
             _preamble.IsLogicallyDeleted = true;
@@ -119,7 +131,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     var rowValue = new RowValue();
                     rowValue.Column = column;
 
-                    int parseLength = 0;
+                    uint parseLength = 0;
 
                     if (!column.IsNullable) // nullable == false
                     {

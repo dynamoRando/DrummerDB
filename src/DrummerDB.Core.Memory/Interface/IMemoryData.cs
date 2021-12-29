@@ -1,5 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Core.Memory.Enum;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
@@ -14,14 +15,14 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         bool DeleteRow(uint rowId, TreeAddress address);
         List<RowAddress> GetRowAddressesWithValue(TreeAddress address, RowValue value);
         bool HasRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
-        int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
-        IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
+        uint CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
+        Row[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
 
-        List<IRow> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema);
+        List<Row> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema);
 
         bool HasRowsWithValue(TreeAddress address, IRowValue value);
-        int CountOfRowsWithValue(TreeAddress address, IRowValue value);
-        IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema);
+        uint CountOfRowsWithValue(TreeAddress address, IRowValue value);
+        Row[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema);
 
         /// <summary>
         /// Returns the name of the database for the specified database id. This method will load the system page into cache if it is not already there.
@@ -36,9 +37,9 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         /// <param name="rowId">The row to get from cache</param>
         /// <param name="address">The tree address to get for</param>
         /// <returns>The row for the specified values if found, otherwise NULL.</returns>
-        IRow GetRow(uint rowId, TreeAddress address);
+        Row GetRow(uint rowId, TreeAddress address);
 
-        IRow GetRow(RowAddress address, TreeAddress treeAddress);
+        Row GetRow(RowAddress address, TreeAddress treeAddress);
 
         RowAddress GetRowAddress(TreeAddress treeAddress, uint rowId);
 
@@ -72,8 +73,8 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         /// <param name="schema">The schema of the table</param>
         /// <param name="pageId">The page id where the row was added</param>
         /// <returns>A result reporting the status of the attempt to add the row</returns>
-        CacheAddRowResult TryAddRow(IRow row, TreeAddress address, ITableSchema schema, out uint pageId);
+        CacheAddRowResult TryAddRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId);
 
-        void UpdateRow(IRow row, TreeAddress address, ITableSchema schema, out uint pageId);
+        void UpdateRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId);
     }
 }

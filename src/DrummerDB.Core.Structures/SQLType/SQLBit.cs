@@ -14,7 +14,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.SQLType
         #endregion
 
         #region Public Methods
-        int IFixedSQLType.Size()
+        uint IFixedSQLType.Size()
         {
             return Constants.SIZE_OF_BOOL;
         }

@@ -15,8 +15,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract Guid DbId();
         public abstract void DeleteRow(uint rowId);
         public abstract void ForwardRows(uint rowId, uint newPageId, uint newPageOffset);
-        public abstract IRow GetRow(uint rowId);
-        public abstract IRow GetRow(RowAddress address);
+        public abstract Row GetRow(uint rowId);
+        public abstract Row GetRow(RowAddress address);
         public abstract List<RowAddress> GetRowIdsOnPage(bool includeDeletdRows = false);
         public abstract PageRowStatus GetRowStatus(uint rowId);
         /// <summary>

@@ -37,7 +37,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             _transactions.Remove(entry);
         }
 
-        public TransactionEntry FindInsertTransactionForRowId(uint rowId, Guid databaseId, int tableId)
+        public TransactionEntry FindInsertTransactionForRowId(uint rowId, Guid databaseId, uint tableId)
         {
             return _transactions.FindInsertTransactionForRowId(rowId, databaseId, tableId);
         }

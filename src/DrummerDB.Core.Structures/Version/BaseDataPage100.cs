@@ -444,6 +444,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         {
             uint offset = 0;
 
+            if (row.IsTempForParticipant())
+            {
+                throw new InvalidOperationException("Temp rows should not be sent to cache or disk");
+            }
+
             if (!IsFull(row.TotalSize))
             {
                 offset = AppendRowToData(row);
@@ -459,7 +464,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return offset;
         }
 
-        public override IRow GetRow(RowAddress address)
+        public override Row GetRow(RowAddress address)
         {
             return GetRowAtOffset(address.RowOffset, address.RowId);
         }
@@ -742,12 +747,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             {
                 if (row.ForwardedPageId == pageId)
                 {
-                    addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty));
+                    addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type, Row.HasLocalData(row.Type)));
                 }
             }
             else
             {
-                addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty));
+                addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type, Row.HasLocalData(row.Type)));
             }
         }
 
@@ -858,7 +863,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         /// <param name="row">The row to be added</param>
         /// <returns>The offset where the row was added</returns>
-        private uint AppendRowToData(IRow row)
+        private uint AppendRowToData(Row row)
         {
             var rowData = row.GetRowInPageBinaryFormat();
             uint nextAvailableRowOffset = (uint)DataPageConstants.RowDataStartOffset(_V100) + _totalBytesUsed;

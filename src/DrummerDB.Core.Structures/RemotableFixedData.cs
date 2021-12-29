@@ -17,6 +17,15 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public RemoteType RemoteType;
         public uint DataHashLength;
 
+        public RemotableFixedData(Guid remoteId, bool isRemoteDeleted, DateTime remoteDeletedUTC, RemoteType type, uint dataHashLength)
+        {
+            RemoteId = remoteId;
+            IsRemoteDeleted = isRemoteDeleted;
+            RemoteDeletionUTC = remoteDeletedUTC;
+            RemoteType = type;
+            DataHashLength = dataHashLength;
+        }
+
         public RemotableFixedData(ReadOnlySpan<byte> data)
         {
             uint runningTotal = 0;
@@ -40,5 +49,27 @@ namespace Drummersoft.DrummerDB.Core.Structures
             var bDataHashLength = data.Slice((int)runningTotal, RowConstants.RemotableFixedData.SIZE_OF_DATA_HASH_LENGTH);
             DataHashLength = DbBinaryConvert.BinaryToUInt(bDataHashLength);
         }
+
+        public byte[] ToBinaryFormat()
+        {
+            var arrays = new List<byte[]>(5);
+            var bRemoteId = DbBinaryConvert.GuidToBinary(RemoteId);
+            arrays.Add(bRemoteId);
+
+            var bIsRemoteDeleted = DbBinaryConvert.BooleanToBinary(IsRemoteDeleted);
+            arrays.Add(bIsRemoteDeleted);
+
+            var bRemoteDeletedUTC = DbBinaryConvert.DateTimeToBinary(RemoteDeletionUTC.ToString());
+            arrays.Add(bRemoteDeletedUTC);
+
+            var bRemoteType = DbBinaryConvert.UIntToBinary((uint)RemoteType);
+            arrays.Add(bRemoteType);
+
+            var bDataHashLength = DbBinaryConvert.UIntToBinary(DataHashLength);
+            arrays.Add(bDataHashLength);
+
+            return DbBinaryConvert.ArrayStitch(arrays);
+        }
+
     }
 }

@@ -155,7 +155,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             TableId = Address.TableId,
                             PageId = row.PageId,
                             RowOffset = row.RowOffset,
-                            ParticipantId = row.ParticipantId,
+                            RemotableId = row.RemotableId,
                             SchemaId = table.Schema().Schema.SchemaGUID,
                             ParseLength = 0,
                             ValueOffset = 0
@@ -209,7 +209,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             foreach (var row in rows)
             {
-                if (row.ParticipantId != Guid.Empty)
+                if (row.RemotableId != Guid.Empty)
                 {
                     result.Add(row);
                 }
@@ -224,7 +224,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             foreach (var row in rows)
             {
-                if (row.ParticipantId == Guid.Empty)
+                if (row.RemotableId == Guid.Empty)
                 {
                     result.Add(row);
                 }

@@ -177,7 +177,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         if (value.ColumnId == value.ColumnId)
                         {
-                            if (value.ParticipantId is null)
+                            if (value.RemotableId is null)
                             {
                                 // this may not be correct
                                 rsRow[rsi] = table.GetValueAtAddress(value, transaction);
@@ -187,7 +187,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             {
                                 // this is a reference row, we need to go get the data from the participant
                                 HostDb db = _db.GetHostDatabase(rsColumn.Table.DatabaseId);
-                                var participant = db.GetParticipant(value.ParticipantId.Value);
+                                var participant = db.GetParticipant(value.RemotableId.Value);
                                 rsRow[rsi] = db.XactRequestValueFromParticipant(value, transaction, participant);
                                 rsi++;
                             }

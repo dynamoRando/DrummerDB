@@ -25,6 +25,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         #region Public Properties
         public override RowType Type => RowType.Remoteable;
+
         public Guid RemoteId
         {
             get
@@ -124,19 +125,10 @@ namespace Drummersoft.DrummerDB.Core.Structures
             _preamble.Type = Type;
             _preamble.RowValueSize = 0;
 
-            var arrays = new List<byte[]>(5);
-            var bRemoteId = DbBinaryConvert.GuidToBinary(RemoteId);
-            arrays.Add(bRemoteId);
+            _remotableFixedData.DataHashLength = (uint)_dataHash.Length;
 
-            var bIsRemoteDeleted = DbBinaryConvert.BooleanToBinary(IsRemoteDeleted);
-            arrays.Add(bIsRemoteDeleted);
-
-            var bRemoteDeletedUTC = DbBinaryConvert.DateTimeToBinary(RemoteDeletionUTC.ToString());
-            arrays.Add(bRemoteDeletedUTC);
-
-            var bDataHashLength = DbBinaryConvert.UIntToBinary(DataHashLength);
-            arrays.Add(bDataHashLength);
-
+            var arrays = new List<byte[]>(2);
+            arrays.Add(_remotableFixedData.ToBinaryFormat());
             arrays.Add(DataHash);
 
             var bRemoteData = DbBinaryConvert.ArrayStitch(arrays);

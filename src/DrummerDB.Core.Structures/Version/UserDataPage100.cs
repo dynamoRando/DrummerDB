@@ -120,7 +120,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             return _basePage.AddRow(row);
         }
 
-        public override IRow GetRow(RowAddress address)
+        public override Row GetRow(RowAddress address)
         {
             return _basePage.GetRow(address);
         }

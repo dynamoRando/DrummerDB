@@ -19,6 +19,7 @@ using static Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants
 using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables.LoginTable.Columns;
 using Drummersoft.DrummerDB.Core.Structures.SQLType.Interface;
 using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -107,7 +108,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var rowAddresses = hostTable.GetRows();
                 foreach (var address in rowAddresses)
                 {
-                    var row = hostTable.GetRow(address);
+                    var row = hostTable.GetLocalRow(address);
                     return row.GetValueInByte(Tables.HostInfo.Columns.Token);
                 }
             }
@@ -130,7 +131,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var rowAddresses = hostTable.GetRows();
                 foreach (var address in rowAddresses)
                 {
-                    var row = hostTable.GetRow(address);
+                    var row = hostTable.GetLocalRow(address);
                     string stringGuid = row.GetValueInString(Tables.HostInfo.Columns.HostGUID);
                     return Guid.Parse(stringGuid);
                 }
@@ -148,7 +149,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var rowAddresses = hostTable.GetRows();
                 foreach (var address in rowAddresses)
                 {
-                    var row = hostTable.GetRow(address);
+                    var row = hostTable.GetLocalRow(address);
                     return row.GetValueInString(Tables.HostInfo.Columns.HostName);
                 }
             }
@@ -245,7 +246,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var searchAcceptedValue = RowValueMaker.Create(contractTable, CooperativeContracts.Columns.Status, Convert.ToInt32(acceptedStatus).ToString());
 
                 var rowSearchValues = new IRowValue[2] { searchHosts, searchAcceptedValue };
-                var searchResults = contractTable.GetRowsWithAllValues(rowSearchValues);
+                var searchResults = contractTable.GetLocalRowsWithAllValues(rowSearchValues);
 
                 if (searchResults.Count() > 0)
                 {
@@ -276,7 +277,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         // we've found the max accepted contract guid for the specified host, now fill out the returnValue
 
                         // fill out host info
-                        var hostInfo = hosts.GetRowsWithValue(searchHosts);
+                        var hostInfo = hosts.GetLocalRowsWithValue(searchHosts);
 
                         if (hostInfo.Count() != 1)
                         {
@@ -308,7 +309,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var contractTables = GetTable(CooperativeTables.TABLE_NAME);
                         var searchDbId = RowValueMaker.Create(contractTables, CooperativeTables.Columns.DatabaseId, returnValue.DatabaseId.ToString());
 
-                        var searchTableResults = contractTables.GetRowsWithValue(searchDbId);
+                        var searchTableResults = contractTables.GetLocalRowsWithValue(searchDbId);
                         if (searchTableResults.Count > 0)
                         {
                             foreach (var resultTable in searchTableResults)
@@ -333,7 +334,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                                     {
                                         // look up each column for that table
                                         var tableColumnSchema = GetTable(CooperativeTableSchemas.TABLE_NAME);
-                                        var columnResults = tableColumnSchema.GetRowsWithAllValues(searchColumnValues);
+                                        var columnResults = tableColumnSchema.GetLocalRowsWithAllValues(searchColumnValues);
 
                                         foreach (var columnResult in columnResults)
                                         {
@@ -503,7 +504,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 if (countOfHosts == 1)
                 {
-                    var rows = hosts.GetRowsWithAllValues(searchValues);
+                    var rows = hosts.GetLocalRowsWithAllValues(searchValues);
                     foreach (var row in rows)
                     {
                         var storedToken = row.GetValueInByte(Hosts.Columns.Token);
@@ -544,7 +545,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 throw new InvalidOperationException($"Muliple logins found for user {userName}");
             }
 
-            var rows = _systemLogins.GetRowsWithValue(valueUserName);
+            var rows = _systemLogins.GetLocalRowsWithValue(valueUserName);
 
             foreach (var row in rows)
             {
@@ -600,19 +601,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public bool UserHasSystemPermission(string userName, SystemPermission permission)
         {
             var searchUserName = RowValueMaker.Create(_systemLoginRoles, LoginRolesTable.Columns.UserName, userName);
-            List<IRow> rolesForUser = _systemLoginRoles.GetRowsWithValue(searchUserName);
+            List<Row> rolesForUser = _systemLoginRoles.GetRowsWithValue(searchUserName);
 
             foreach (var role in rolesForUser)
             {
-                string roleName = role.GetValueInString(LoginRolesTable.Columns.RoleName);
+                string roleName = role.AsLocal().GetValueInString(LoginRolesTable.Columns.RoleName);
 
                 RowValue searchRoleName = RowValueMaker.Create(_systemRolePermissions, SystemRolesPermissions.Columns.RoleName,
                     roleName);
 
-                List<IRow> permissions = _systemRolePermissions.GetRowsWithValue(searchRoleName);
+                List<Row> permissions = _systemRolePermissions.GetRowsWithValue(searchRoleName);
                 foreach (var item in permissions)
                 {
-                    string permissionString = item.GetValueInString(SystemRolesPermissions.Columns.SystemPermission);
+                    string permissionString = item.AsLocal().GetValueInString(SystemRolesPermissions.Columns.SystemPermission);
                     int permissionInt = Convert.ToInt32(permissionString);
                     SystemPermission storedPermission = (SystemPermission)permissionInt;
                     if (storedPermission == permission || storedPermission == SystemPermission.FullAccess)
@@ -789,7 +790,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (count > 0)
             {
-                var rows = _systemRolePermissions.GetRowsWithValue(fullAccess);
+                var rows = _systemRolePermissions.GetLocalRowsWithValue(fullAccess);
                 foreach (var row in rows)
                 {
                     // find the users in the role that has full access and grant those users full rights to the dbo and sys schemas
@@ -800,7 +801,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     if (loginCount > 0)
                     {
-                        var users = _systemLoginRoles.GetRowsWithValue(findUsers);
+                        var users = _systemLoginRoles.GetLocalRowsWithValue(findUsers);
                         foreach (var user in users)
                         {
                             var record = _databaseSchemaPermissions.GetNewLocalRow();
@@ -839,7 +840,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     }
                 }
 
-                Row row = _systemLoginRoles.GetNewLocalRow();
+                LocalRow row = _systemLoginRoles.GetNewLocalRow();
                 row.SetValue(LoginRolesTable.Columns.RoleName, role.Name);
                 row.SetValue(LoginRolesTable.Columns.RoleGUID, roleGuid.ToString());
                 row.SetValue(LoginRolesTable.Columns.UserName, userName);

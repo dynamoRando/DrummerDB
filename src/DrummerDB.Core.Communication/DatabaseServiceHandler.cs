@@ -302,22 +302,21 @@ namespace Drummersoft.DrummerDB.Core.Communication
         /// <exception cref="NotImplementedException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>This function serves as the inverse of the <see cref="RowValue.GetValueInBinary(bool, bool)"/> function.</remarks>
-        private Row GetRowFromInsertRequest(InsertRowRequest request)
+        private PartialRow GetRowFromInsertRequest(InsertRowRequest request)
         {
             string dbName = request.Table.DatabaseName;
             string tableName = request.Table.TableName;
 
             var partDb = _dbManager.GetPartialDb(dbName);
             var table = partDb.GetTable(tableName);
-            var localRow = table.GetNewLocalRow();
-            localRow.Id = Convert.ToInt32(request.RowId);
+            var partialRow = table.GetNewPartialRow(request.RowId);
 
             foreach (var value in request.Values)
             {
                 var binaryData = value.Value.ToByteArray();
                 var colType = (SQLColumnType)value.Column.ColumnType;
 
-                foreach (var rowValue in localRow.Values)
+                foreach (var rowValue in partialRow.Values)
                 {
                     if (string.Equals(rowValue.Column.Name, value.Column.ColumnName))
                     {
@@ -374,7 +373,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 }
             }
 
-            return localRow;
+            return partialRow;
         }
         #endregion
     }

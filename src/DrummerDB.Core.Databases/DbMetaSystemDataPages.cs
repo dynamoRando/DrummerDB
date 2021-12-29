@@ -4,6 +4,7 @@ using Drummersoft.DrummerDB.Core.IdentityAccess.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
@@ -104,7 +105,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 _userTable.XactDeleteRow(row, transaction, transactionMode);
             }
 
-            var uts_value = RowValueMaker.Create(_userTableSchema, uts.TableId, ut_results.First().GetValueInString(ut.TableId), true);
+            var uts_value = RowValueMaker.Create(_userTableSchema, uts.TableId, ut_results.First().AsLocal().GetValueInString(ut.TableId), true);
             var uts_results = _userTableSchema.GetRowsWithValue(uts_value);
 
             foreach (var row in uts_results)
@@ -112,7 +113,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 _userTableSchema.XactDeleteRow(row, transaction, transactionMode);
             }
 
-            var uto_value = RowValueMaker.Create(_userObjects, uo.ObjectId, ut_results.First().GetValueInString(ut.UserObjectId), true);
+            var uto_value = RowValueMaker.Create(_userObjects, uo.ObjectId, ut_results.First().AsLocal().GetValueInString(ut.UserObjectId), true);
             var uto_results = _userObjects.GetRowsWithValue(uto_value);
 
             foreach (var row in uto_results)
@@ -120,7 +121,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 _userObjects.XactDeleteRow(row, transaction, transactionMode);
             }
 
-            var uop_value = RowValueMaker.Create(_userObjectPermissions, uop.ObjectId, ut_results.First().GetValueInString(ut.UserObjectId), true);
+            var uop_value = RowValueMaker.Create(_userObjectPermissions, uop.ObjectId, ut_results.First().AsLocal().GetValueInString(ut.UserObjectId), true);
             var uop_results = _userObjectPermissions.GetRowsWithValue(uop_value);
 
             foreach (var row in uop_results)
@@ -140,7 +141,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 if (count > 0)
                 {
-                    var records = _databaseSchemas.GetRowsWithValue(schema);
+                    var records = _databaseSchemas.GetLocalRowsWithValue(schema);
 
                     foreach (var record in records)
                     {
@@ -179,10 +180,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool TryDropDbSchema(string schemaName, TransactionRequest request, TransactionMode transactionMode)
         {
+            throw new NotImplementedException();
+            /*
             if (HasDbSchema(schemaName))
             {
-                var schema = RowValueMaker.Create(_databaseSchemas, dbs.SchemaName, schemaName);
-                List<IRow> rows = _databaseSchemas.GetRowsWithValue(schema);
+                RowValue schema = RowValueMaker.Create(_databaseSchemas, dbs.SchemaName, schemaName);
+                List<Row> rows = _databaseSchemas.GetRowsWithValue(schema);
 
                 foreach (var row in rows)
                 {
@@ -196,6 +199,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             return false;
+            */
         }
 
         public bool HasUser(string userName)
@@ -346,7 +350,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 if (count == 1)
                 {
-                    var schemaRowData = _userTable.GetRowsWithValue(tableSearch);
+                    var schemaRowData = _userTable.GetLocalRowsWithValue(tableSearch);
                     var row = schemaRowData.First();
 
                     // need to parse table schema information
@@ -372,7 +376,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                         if (count == 1)
                         {
-                            var schemaRows = _databaseSchemas.GetRowsWithValue(searchSchemaInfo);
+                            var schemaRows = _databaseSchemas.GetLocalRowsWithValue(searchSchemaInfo);
                             var userDefinedSchema = schemaRows.First();
                             schemaInfo = new DatabaseSchemaInfo(userDefinedSchema.GetValueInString(dbs.SchemaName), Guid.Parse(userDefinedSchema.GetValueInString(dbs.SchemaGUID)));
                         }
@@ -390,7 +394,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     searchItem.Column = UserTableSchema.GetColumns().Where(c => c.Name == uts.TableId).FirstOrDefault();
                     searchItem.SetValue(storedTableId.ToString());
 
-                    var columnsForTable = _userTableSchema.GetRowsWithValue(searchItem);
+                    var columnsForTable = _userTableSchema.GetLocalRowsWithValue(searchItem);
                     foreach (var columns in columnsForTable)
                     {
                         var columnName = columns.GetValueInString(uts.ColumnName).Trim();
@@ -469,7 +473,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var row in rows)
             {
-                var table = _userTable.GetRow(row);
+                var table = _userTable.GetLocalRow(row);
 
                 uint tableId = Convert.ToUInt32(table.GetValueInString(ut.TableId));
                 string tableName = table.GetValueInString(ut.TableName).Trim();
@@ -489,7 +493,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                     if (count > 0)
                     {
-                        var schemas = _databaseSchemas.GetRowsWithValue(recordSchemaName);
+                        var schemas = _databaseSchemas.GetLocalRowsWithValue(recordSchemaName);
 
                         foreach (var schema in schemas)
                         {
@@ -515,7 +519,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 searchItem.Column = UserTableSchema.GetColumns().Where(c => c.Name == uts.TableId).FirstOrDefault();
                 searchItem.SetValue(tableId.ToString());
 
-                var columnsForTable = _userTableSchema.GetRowsWithValue(searchItem);
+                var columnsForTable = _userTableSchema.GetLocalRowsWithValue(searchItem);
                 foreach (var columns in columnsForTable)
                 {
                     var columnName = columns.GetValueInString(uts.ColumnName).Trim();
@@ -610,7 +614,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 throw new InvalidOperationException($"Muliple users found for user {userName}");
             }
 
-            var rows = _users.GetRowsWithValue(valueUserName);
+            var rows = _users.GetLocalRowsWithValue(valueUserName);
 
             foreach (var row in rows)
             {
@@ -649,7 +653,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 if (count > 0)
                 {
-                    var results = _userObjectPermissions.GetRowsWithValue(searchValue);
+                    var results = _userObjectPermissions.GetLocalRowsWithValue(searchValue);
 
                     foreach (var row in results)
                     {
@@ -688,7 +692,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                 if (count > 0)
                 {
-                    var results = _userObjectPermissions.GetRowsWithValue(searchValue);
+                    var results = _userObjectPermissions.GetLocalRowsWithValue(searchValue);
                     foreach (var row in results)
                     {
                         var guid = row.GetValueInString(uop.ObjectId);
@@ -875,19 +879,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void UpdateUserTable100(ITableSchema schema)
         {
-            Row row = null;
+            LocalRow row = null;
 
             var search = RowValueMaker.Create(_userTable, ut.TableName, schema.Name, true);
 
             int count = _userTable.CountOfRowsWithValue(search);
 
-            var searchResult = _userTable.GetRowsWithValue(search);
+            var searchResult = _userTable.GetLocalRowsWithValue(search);
             if (count > 1)
             {
                 throw new InvalidOperationException("Multiple tables found with same name");
             }
 
-            row = searchResult.First() as Row;
+            row = searchResult.First();
 
             row.SetValue(ut.TableId, schema.Id.ToString());
             row.SetValue(ut.TableName, schema.Name);
@@ -921,19 +925,19 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void UpdateUserTable100(ITableSchema schema, TransactionRequest transaction, TransactionMode transactionMode)
         {
-            Row row = null;
+            LocalRow row = null;
 
             var search = RowValueMaker.Create(_userTable, ut.TableName, schema.Name, true);
 
             int count = _userTable.CountOfRowsWithValue(search);
 
-            var searchResult = _userTable.GetRowsWithValue(search);
+            var searchResult = _userTable.GetLocalRowsWithValue(search);
             if (count > 1)
             {
                 throw new InvalidOperationException("Multiple tables found with same name");
             }
 
-            row = searchResult.First() as Row;
+            row = searchResult.First();
 
             row.SetValue(ut.TableId, schema.Id.ToString());
             row.SetValue(ut.TableName, schema.Name);
@@ -1064,7 +1068,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             // if we haven't added any columns to the table
             if (schema.Columns.Count() == count)
             {
-                var results = _userTableSchema.GetRowsWithValue(search);
+                var results = _userTableSchema.GetLocalRowsWithValue(search);
                 foreach (var value in results)
                 {
                     int iterValue = DbBinaryConvert.BinaryToInt(value.GetValueInByte(uts.TableId));
@@ -1118,7 +1122,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             // if we haven't added any columns to the table
             if (schema.Columns.Count() == count)
             {
-                var results = _userTableSchema.GetRowsWithValue(search);
+                var results = _userTableSchema.GetLocalRowsWithValue(search);
                 foreach (var value in results)
                 {
                     int iterValue = DbBinaryConvert.BinaryToInt(value.GetValueInByte(uts.TableId));

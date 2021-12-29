@@ -1,4 +1,6 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.Interface;
+﻿using Drummersoft.DrummerDB.Core.Structures.Abstract;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 
 namespace Drummersoft.DrummerDB.Core.Structures
@@ -57,7 +59,11 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public Guid SchemaId { get; init; }
 
-        public Guid? ParticipantId { get; set; }
+        public Guid? RemotableId { get; set; }
+
+        public RowType RowType { get; set; }
+
+        public bool HasDataLocally => Row.HasLocalData(RowType);
 
         public PageAddress ToPageAddress()
         {
@@ -71,7 +77,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public RowAddress ToRowAddress()
         {
-            return new RowAddress(PageId, RowId, RowOffset, ParticipantId.GetValueOrDefault());
+            return new RowAddress(PageId, RowId, RowOffset, RemotableId.GetValueOrDefault(), RowType);
         }
 
         public SQLAddress ToSQLAddress()

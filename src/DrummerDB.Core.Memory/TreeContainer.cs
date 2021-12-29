@@ -51,6 +51,27 @@ namespace Drummersoft.DrummerDB.Core.Memory
         #endregion
 
         #region Public Methods
+        public RowType GetRowType(uint rowId, uint pageId)
+        {
+            RowType type = RowType.Unknown;
+
+            _locker.TryEnterReadLock(Constants.READ_WRITE_LOCK_TIMEOUT_MILLISECONDS);
+
+            IBaseDataPage page = _tree.Values.Where(page => page.PageId() == pageId).FirstOrDefault();
+            if (page is not null)
+            {
+                if (page.HasRow(rowId))
+                {
+                    var row = page.GetRow(rowId);
+                    type = row.Type;
+                }
+            }
+
+            _locker.ExitReadLock();
+
+            return type;
+        }
+
         /// <summary>
         /// Returns all the pages that have have either the row on them, or have a reference to the row but is forwarded
         /// </summary>

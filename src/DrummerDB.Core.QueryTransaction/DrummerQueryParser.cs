@@ -339,7 +339,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     foreach (var row in rows)
                     {
-                        hostGuid = Guid.Parse(row.GetValueInString(Tables.Hosts.Columns.HostGUID));
+                        hostGuid = Guid.Parse(row.AsValueGroup().GetValueInString(Tables.Hosts.Columns.HostGUID));
                     }
 
                     if (hostGuid != Guid.Empty)

@@ -371,7 +371,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             ParticipantSink sink;
             sink = GetOrAddParticipantSink(participant);
             GetRowFromPartialDatabaseResult? result = null;
-            IRow rowResult = null;
+            TempParticipantRow rowResult = null;
 
             if (!sink.IsOnline())
             {

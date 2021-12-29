@@ -14,7 +14,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
 
         TreeStatus GetTreeMemoryStatus(TreeAddress address);
 
-        TreeStatus GetTreeSizeStatus(TreeAddress address, int sizeOfDataToAdd);
+        TreeStatus GetTreeSizeStatus(TreeAddress address, uint sizeOfDataToAdd);
         bool HasUserDataAddress(TreeAddress address);
 
         bool HasUserDataPage(PageAddress address);

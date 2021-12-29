@@ -28,8 +28,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
 
         public abstract uint GetCountOfRowsWithValue(IRowValue value);
 
-        public abstract IRow GetRow(uint rowId);
-        public abstract IRow GetRow(RowAddress address);
+        public abstract Row GetRow(uint rowId);
+        public abstract Row GetRow(RowAddress address);
         public abstract RowAddress[] GetRowAddressesWithAllValues(IRowValue[] values);
 
         public abstract RowAddress[] GetRowAddressesWithValue(IRowValue value);

@@ -50,7 +50,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// </summary>
         /// <param name="rowId">The row Id to find</param>
         /// <returns>The <see cref="InsertTransaction"/> with the specified row, or <c>NULL</c></returns>
-        public TransactionEntry FindInsertTransactionForRowId(uint rowId, Guid databaseId, int tableId)
+        public TransactionEntry FindInsertTransactionForRowId(uint rowId, Guid databaseId, uint tableId)
         {
             foreach (var xact in _transactions)
             {

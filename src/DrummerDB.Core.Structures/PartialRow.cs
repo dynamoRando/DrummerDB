@@ -95,8 +95,6 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Private Methods
-
-
         private byte[] GetRowInBinaryFormat()
         {
             var valueData = GetRowDataInBinary();
@@ -121,18 +119,17 @@ namespace Drummersoft.DrummerDB.Core.Structures
             var bRemoteData = DbBinaryConvert.ArrayStitch(arrays);
 
             _preamble.RowRemotableSize = (uint)bRemoteData.Length;
-            _preamble.RowTotalSize = 
-                _preamble.RowRemotableSize + 
-                _preamble.RowValueSize + 
-                (uint)RowConstants.Preamble.Length();
+            _preamble.RowTotalSize =
+                _preamble.RowRemotableSize +
+                _preamble.RowValueSize +
+                RowConstants.Preamble.Length();
 
-            var finalArrays = new List<byte[]>(2);
+            var finalArrays = new List<byte[]>(3);
             finalArrays.Add(_preamble.ToBinaryFormat());
             finalArrays.Add(valueData);
             finalArrays.Add(bRemoteData);
 
             return DbBinaryConvert.ArrayStitch(finalArrays);
-
         }
 
         private byte[] GetRowDataInBinary()
@@ -147,21 +144,6 @@ namespace Drummersoft.DrummerDB.Core.Structures
             }
 
             return DbBinaryConvert.ArrayStitch(arrays);
-        }
-
-        /// <summary>
-        /// Computes the row hash data from RowValues, sets the propery of the Hash, and returns the it to the caller
-        /// </summary>
-        /// <returns>A hash of the row data's values</returns>
-        private byte[] GetRowHash()
-        {
-            // ideally this code should be in Drummersoft.DrummerDB.Core.Cryptogrpahy
-            // but the dependencies wouldn't work (would result in a circular reference)
-            // may later change the dependency layout, but for now leaving this here
-            // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
-            var sourceData = GetRowDataInBinary();
-            var sha256Hash = SHA256.Create();
-            return sha256Hash.ComputeHash(sourceData);
         }
         #endregion
     }
