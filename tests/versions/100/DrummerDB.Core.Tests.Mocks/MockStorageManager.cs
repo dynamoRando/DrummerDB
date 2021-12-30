@@ -310,5 +310,20 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public UserDataPage GetAnySystemDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public UserDataPage GetAnyUserDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
+        {
+            throw new NotImplementedException();
+        }
+
+        uint IStorageManager.GetTotalPages(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

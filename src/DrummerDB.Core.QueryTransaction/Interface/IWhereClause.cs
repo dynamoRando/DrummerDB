@@ -6,7 +6,7 @@
     interface IWhereClause
     {
         WhereClause? WhereClause { get; set; }
-        int GetMaxWhereClauseId();
+        uint GetMaxWhereClauseId();
         bool HasWhereClause { get; }
     }
 }

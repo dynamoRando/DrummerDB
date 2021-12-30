@@ -35,9 +35,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             TableName = tableName;
         }
 
-        public int GetMaxColumnId()
+        public uint GetMaxColumnId()
         {
-            int max = 0;
+            uint max = 0;
             foreach (var column in Columns)
             {
                 if (column.Ordinal > max)
@@ -49,7 +49,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return max;
         }
 
-        public bool HasColumn(int ordinal)
+        public bool HasColumn(uint ordinal)
         {
             foreach (var column in Columns)
             {
@@ -67,7 +67,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return GetColumnAtOrdinal(GetMaxColumnId());
         }
 
-        public ColumnSchema GetColumnAtOrdinal(int ordinal)
+        public ColumnSchema GetColumnAtOrdinal(uint ordinal)
         {
             foreach (var column in Columns)
             {
@@ -113,7 +113,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public void HandleEnterColumnDefinition(ContextWrapper context)
         {
-            int ordinal = GetMaxColumnId() + 1;
+            uint ordinal = GetMaxColumnId() + 1;
             Current = new ColumnSchema();
             Current.Ordinal = ordinal;
         }
@@ -174,9 +174,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         parsedLength = parsedLength.Replace("(", string.Empty);
                         parsedLength = parsedLength.Replace(")", string.Empty);
 
-                        int length = 0;
+                        uint length = 0;
 
-                        if (int.TryParse(parsedLength, out length))
+                        if (uint.TryParse(parsedLength, out length))
                         {
                             column.DataType = new SQLVarChar(length);
                             column.Length = length;
@@ -193,9 +193,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         parsedLength = parsedLength.Replace("(", string.Empty);
                         parsedLength = parsedLength.Replace(")", string.Empty);
 
-                        int length = 0;
+                        uint length = 0;
 
-                        if (int.TryParse(parsedLength, out length))
+                        if (uint.TryParse(parsedLength, out length))
                         {
                             column.DataType = new SQLChar(length);
                             column.Length = length;
@@ -213,9 +213,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         parsedLength = parsedLength.Replace("(", string.Empty);
                         parsedLength = parsedLength.Replace(")", string.Empty);
 
-                        int length = 0;
+                        uint length = 0;
 
-                        if (int.TryParse(parsedLength, out length))
+                        if (uint.TryParse(parsedLength, out length))
                         {
                             column.DataType = new SQLVarbinary(length);
                             column.Length = length;
@@ -232,9 +232,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         parsedLength = parsedLength.Replace("(", string.Empty);
                         parsedLength = parsedLength.Replace(")", string.Empty);
 
-                        int length = 0;
+                        uint length = 0;
 
-                        if (int.TryParse(parsedLength, out length))
+                        if (uint.TryParse(parsedLength, out length))
                         {
                             column.DataType = new SQLBinary(length);
                             column.Length = length;

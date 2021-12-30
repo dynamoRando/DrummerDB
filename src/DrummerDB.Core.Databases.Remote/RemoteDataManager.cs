@@ -615,8 +615,8 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             foreach (var comValue in request.Row.Values)
             {
                 var comColumn = comValue.Column;
-                int enumType = Convert.ToInt32(comColumn.ColumnType);
-                var type = SQLColumnTypeConverter.Convert((SQLColumnType)enumType, Convert.ToInt32(comColumn.ColumnLength));
+                uint enumType = comColumn.ColumnType;
+                var type = SQLColumnTypeConverter.Convert((SQLColumnType)enumType, comColumn.ColumnLength);
                 var col = new structColumnSchema(comColumn.ColumnName, type, Convert.ToUInt32(comColumn.Ordinal));
 
                 var structValue = new structRowValue(col, comValue.Value.ToByteArray());

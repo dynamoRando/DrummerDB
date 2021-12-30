@@ -10,9 +10,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     {
         public TableRowValue TableRowValue { get; set; }
         public ValueComparisonOperator ComparisonOperator { get; set; }
-        public int Order { get; set; }
+        public uint Order { get; set; }
 
-        public TableReadFilter(TableRowValue value, ValueComparisonOperator operation, int order)
+        public TableReadFilter(TableRowValue value, ValueComparisonOperator operation, uint order)
         {
             TableRowValue = value;
             ComparisonOperator = operation;

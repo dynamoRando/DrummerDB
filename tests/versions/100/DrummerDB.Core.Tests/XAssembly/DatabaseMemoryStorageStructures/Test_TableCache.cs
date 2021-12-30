@@ -67,7 +67,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             table.XactAddRow(row);
 
-            var memoryRow = cacheManager.GetRow(rowId, table.Address);
+            var memoryRow = cacheManager.GetRow(rowId, table.Address) as LocalRow;
 
             // --- ACT
             var setName = row.GetValueInString("Name");
@@ -196,7 +196,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             while (currentRowInterval <= maxInterval)
             {
                 currentRowInterval++;
-                var rowToUpdate = cacheManager.GetRow(rowToUpdateId, table.Address);
+                var rowToUpdate = cacheManager.GetRow(rowToUpdateId, table.Address) as LocalRow;
                 rowToUpdate.SetValue("Id", currentRowInterval.ToString());
 
                 Debug.WriteLine($"Setting {rowToUpdate.Id.ToString()} to value {currentRowInterval.ToString()}");
@@ -204,7 +204,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
                 cacheManager.UpdateRow(rowToUpdate, table.Address, tableSchema, out _);
             }
 
-            var finalRow = cacheManager.GetRow(rowToUpdateId, table.Address);
+            var finalRow = cacheManager.GetRow(rowToUpdateId, table.Address) as LocalRow;
 
             var expected = currentRowInterval.ToString();
             var actual = finalRow.GetValueInString("Id");

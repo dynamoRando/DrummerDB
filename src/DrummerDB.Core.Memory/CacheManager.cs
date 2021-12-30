@@ -191,7 +191,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return result;
         }
 
-        public IRow GetRow(RowAddress address, TreeAddress treeAddress)
+        public Row GetRow(RowAddress address, TreeAddress treeAddress)
         {
             var pageAddress = new PageAddress(treeAddress.DatabaseId, treeAddress.TableId, address.PageId, treeAddress.SchemaId);
             var page = _userDataCache.GetPage(pageAddress);
@@ -208,7 +208,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="rowId">The row to get from cache</param>
         /// <param name="address">The tree address to get for</param>
         /// <returns>The row for the specified values, if found, otherwise NULL.</returns>
-        public IRow GetRow(uint rowId, TreeAddress address)
+        public Row GetRow(uint rowId, TreeAddress address)
         {
             return _userDataCache.GetRow(rowId, address);
         }
@@ -329,7 +329,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <param name="schema">The schema of the table</param>
         /// <remarks>This does not save the changes to storage, and to ensure persistence to disk you should call to storage with the 
         /// updated information</remarks>
-        public void UpdateRow(IRow row, TreeAddress address, ITableSchema schema, out uint pageId)
+        public void UpdateRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId)
         {
             CacheUpdateRowResult cacheResult = CacheUpdateRowResult.Unknown;
             IBaseDataPage page = null;
@@ -424,12 +424,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userDataCache.CountOfRowsWithAllValues(address, ref values);
         }
 
-        public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        public Row[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
             return _userDataCache.GetRowsWithAllValues(address, ref values);
         }
 
-        public IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
+        public Row[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
         {
             throw new NotImplementedException();
         }

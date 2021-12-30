@@ -469,7 +469,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             // and when the participant executes their own GENERATE HOSTINFO AS HOSTNAME ZYXW they generate their own id
             // and so these don't match when searching by participant GUID
             var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.Alias, participant.Alias);
-            int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
+            uint totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
 
             if (totalParticipants != 1)
             {

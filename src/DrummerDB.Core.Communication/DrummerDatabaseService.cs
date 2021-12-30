@@ -334,7 +334,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 foreach (var column in table.Columns)
                 {
                     uint colOrdinal = column.Ordinal;
-                    int colLength = Convert.ToInt32(column.ColumnLength);
+                    uint colLength = column.ColumnLength;
                     var enumColType = (SQLColumnType)column.ColumnType;
                     var colType = SQLColumnTypeConverter.Convert(enumColType, colLength);
                     var dColumn = new drumColumn(column.ColumnName, colType, colOrdinal);

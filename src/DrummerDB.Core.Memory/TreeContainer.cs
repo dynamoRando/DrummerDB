@@ -426,7 +426,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                 if (updateResult == PageUpdateRowResult.NotEnoughRoom)
                 {
                     // need to find another page with enough room to update with the updated row data, then mark the existing rows as forwarded on this page
-                    newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != page.PageId()).FirstOrDefault();
+                    newPage = _tree.Values.Where(p => !p.IsFull(row.TotalSize) && p.PageId() != page.PageId()).FirstOrDefault();
                     if (newPage is not null)
                     {
                         uint newPageId = newPage.PageId();
@@ -509,7 +509,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                             else if (attemptToUpdate == PageUpdateRowResult.NotEnoughRoom)
                             {
                                 // need to find a page with room for the update, then go back and update all the other pages with the correct forwarded page id and offset
-                                newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != actualPage.PageId()).FirstOrDefault();
+                                newPage = _tree.Values.Where(p => !p.IsFull(row.TotalSize) && p.PageId() != actualPage.PageId()).FirstOrDefault();
                                 if (newPage is not null)
                                 {
                                     uint newPageId = newPage.PageId();
@@ -546,7 +546,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             if (updateResult == PageUpdateRowResult.NotEnoughRoom)
             {
                 // grab any page (that's not the current page) that isn't full and can fit our row size
-                newPage = _tree.Values.Where(p => !p.IsFull(row.Size()) && p.PageId() != page.PageId()).FirstOrDefault();
+                newPage = _tree.Values.Where(p => !p.IsFull(row.TotalSize) && p.PageId() != page.PageId()).FirstOrDefault();
                 if (newPage is not null)
                 {
                     newRowOffset = newPage.AddRow(row);

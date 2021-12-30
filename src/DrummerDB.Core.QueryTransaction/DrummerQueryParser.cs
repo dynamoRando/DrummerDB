@@ -247,7 +247,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var hostTable = sysDb.GetTable(Tables.Hosts.TABLE_NAME);
 
                     var hostNameValue = RowValueMaker.Create(hostTable, Tables.Hosts.Columns.HostName, hostName);
-                    int resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
+                    uint resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
 
                     if (resultCount != 1)
                     {
@@ -256,7 +256,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        var hostsResults = hostTable.GetRowsWithValue(hostNameValue);
+                        var hostsResults = hostTable.GetLocalRowsWithValue(hostNameValue);
 
                         if (hostsResults.Count != 1)
                         {

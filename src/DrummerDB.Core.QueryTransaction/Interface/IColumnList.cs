@@ -9,7 +9,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.Interface
     interface IColumnList
     {
         public List<StatementColumn> Columns { get; set; }
-        public int GetMaxColumnId();
+        public uint GetMaxColumnId();
         public bool TryValidateColumnList(ContextWrapper context, IDatabase database, out List<string> errors);
     }
 }

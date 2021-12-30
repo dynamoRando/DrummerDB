@@ -9,20 +9,13 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
 {
     internal interface IMemoryData
     {
-        bool TryRemoveTree(TreeAddress address);
+        uint CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
+
+        uint CountOfRowsWithValue(TreeAddress address, IRowValue value);
+
         bool DeleteRow(IRow row, TreeAddress address);
 
         bool DeleteRow(uint rowId, TreeAddress address);
-        List<RowAddress> GetRowAddressesWithValue(TreeAddress address, RowValue value);
-        bool HasRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
-        uint CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
-        Row[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
-
-        List<Row> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema);
-
-        bool HasRowsWithValue(TreeAddress address, IRowValue value);
-        uint CountOfRowsWithValue(TreeAddress address, IRowValue value);
-        Row[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema);
 
         /// <summary>
         /// Returns the name of the database for the specified database id. This method will load the system page into cache if it is not already there.
@@ -43,6 +36,8 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
 
         RowAddress GetRowAddress(TreeAddress treeAddress, uint rowId);
 
+        List<RowAddress> GetRowAddressesWithValue(TreeAddress address, RowValue value);
+
         /// <summary>
         /// Returns a list of row addresses for every single row
         /// </summary>
@@ -50,9 +45,22 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         /// <returns>A list of row addresses for every single row</returns>
         /// <remarks>This is an expensive operation. Use this sparingly.</remarks>
         List<RowAddress> GetRows(TreeAddress address);
+
+        Row[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
+
+        List<Row> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema);
+
+        Row[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema);
+
         ResultsetValue GetValueAtAddress(in ValueAddress address, ColumnSchema column);
+
         List<ValueAddress> GetValues(TreeAddress address, string columnName, ITableSchema schema);
+
         List<ValueAddress> GetValuesForColumnByRows(TreeAddress address, string columnName, ITableSchema schema, List<RowAddress> rows);
+
+        bool HasRowsWithAllValues(TreeAddress address, ref IRowValue[] values);
+
+        bool HasRowsWithValue(TreeAddress address, IRowValue value);
 
         /// <summary>
         /// Determines whether the specified tree address has the specified value.
@@ -75,6 +83,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         /// <returns>A result reporting the status of the attempt to add the row</returns>
         CacheAddRowResult TryAddRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId);
 
+        bool TryRemoveTree(TreeAddress address);
         void UpdateRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId);
     }
 }

@@ -647,7 +647,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             foreach (var db in databases)
             {
                 var dbName = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseName, db.Name);
-                int count = _databaseTableDatabases.CountOfRowsWithValue(dbName);
+                uint count = _databaseTableDatabases.CountOfRowsWithValue(dbName);
 
                 if (count == 0)
                 {
@@ -670,7 +670,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var searchItems = new IRowValue[2] { dbNameSearch, dbTypeSearch };
 
-            int count = _databaseTableDatabases.CountOfRowsWithAllValues(searchItems);
+            uint count = _databaseTableDatabases.CountOfRowsWithAllValues(searchItems);
 
             if (count == 0)
             {
@@ -692,7 +692,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             var searchItems = new IRowValue[2] { dbNameSearch, dbTypeSearch };
 
-            int count = _databaseTableDatabases.CountOfRowsWithAllValues(searchItems);
+            uint count = _databaseTableDatabases.CountOfRowsWithAllValues(searchItems);
 
             if (count == 0)
             {
@@ -709,7 +709,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public void XactRemoveDbNameFromDatabasesTable(string dbName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             var dbNameSearch = RowValueMaker.Create(_databaseTableDatabases, DatabaseTableDatabases.Columns.DatabaseName, dbName);
-            int count = _databaseTableDatabases.CountOfRowsWithValue(dbNameSearch);
+            uint count = _databaseTableDatabases.CountOfRowsWithValue(dbNameSearch);
 
             if (count > 0)
             {
@@ -828,7 +828,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 string roleName = string.Empty;
 
                 RowValue searchForRole = RowValueMaker.Create(_systemRoles, SystemRolesTable.Columns.RoleName, role.Name);
-                var roles = _systemRoles.GetRowsWithValue(searchForRole);
+                var roles = _systemRoles.GetLocalRowsWithValue(searchForRole);
 
                 foreach (var x in roles)
                 {
@@ -852,7 +852,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     var permissionToCheck =
                         RowValueMaker.Create(_systemRolePermissions, SystemRolesPermissions.Columns.SystemPermission, Convert.ToString((int)permission));
 
-                    int count = _systemRolePermissions.CountOfRowsWithValue(permissionToCheck);
+                    uint count = _systemRolePermissions.CountOfRowsWithValue(permissionToCheck);
 
                     if (count == 0)
                     {
@@ -1029,7 +1029,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (!_systemRoles.HasValue(systemAdmin))
             {
-                Row role = _systemRoles.GetNewLocalRow();
+                LocalRow role = _systemRoles.GetNewLocalRow();
 
                 var guid = Guid.NewGuid();
 
@@ -1038,7 +1038,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 role.SetValue(SystemDatabaseConstants100.Tables.SystemRolesTable.Columns.RoleGUID, guid.ToString());
                 _systemRoles.XactAddRow(role);
 
-                Row permission = _systemRolePermissions.GetNewLocalRow();
+                LocalRow permission = _systemRolePermissions.GetNewLocalRow();
                 permission.SetValue(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleName,
                     SystemDatabaseConstants100.SystemLoginConstants.SystemRoles.Names.SystemAdmin);
                 permission.SetValue(SystemDatabaseConstants100.Tables.SystemRolesPermissions.Columns.RoleGUID, guid.ToString());

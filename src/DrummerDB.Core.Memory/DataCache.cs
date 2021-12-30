@@ -313,7 +313,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return false;
         }
 
-        public CacheUpdateRowResult TryUpdateRow(IRow row, TreeAddress address, out uint pageId)
+        public CacheUpdateRowResult TryUpdateRow(Row row, TreeAddress address, out uint pageId)
         {
             TreeContainer container = null;
             pageId = 0;

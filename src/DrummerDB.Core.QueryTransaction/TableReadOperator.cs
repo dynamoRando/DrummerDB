@@ -124,7 +124,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 throw new ArgumentNullException(nameof(_filters));
             }
 
-            int maxFilterId = _filters.Max(f => f.Order);
+            uint maxFilterId = _filters.Max(f => f.Order);
             ITableReadFilter maxFilter = _filters.Where(filter => filter.Order == maxFilterId).FirstOrDefault();
 
             if (maxFilter is not null)

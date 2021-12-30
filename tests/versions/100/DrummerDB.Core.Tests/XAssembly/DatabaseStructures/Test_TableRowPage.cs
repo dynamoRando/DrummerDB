@@ -253,7 +253,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             page.AddRow(row3);
 
-            var returnedrow = page.GetRow(row3Id);
+            var returnedrow = page.GetRow(row3Id) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(row3NickName, returnedrow.GetValueInString("NickName"));
@@ -358,7 +358,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             page.AddRow(row3);
 
-            var returnedrow = page.GetRow(row2Id);
+            var returnedrow = page.GetRow(row2Id) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(row2NickName, returnedrow.GetValueInString("NickName"));
@@ -530,10 +530,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // delete row 2
             page.DeleteRow(row2Id);
 
-            var deletedRow = page.GetRow(row2Id);
+            var deletedRow = page.GetRow(row2Id) as LocalRow;
 
             // --- ASSERT
-            Assert.True(deletedRow.IsDeleted);
+            Assert.True(deletedRow.IsLogicallyDeleted);
         }
 
         /// <summary>
@@ -636,7 +636,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             // --- ACT
             page.TryUpdateRowData(row, out _);
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(nameFlip, updatedRow.GetValueInString("Name"));
@@ -740,7 +740,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             row.SetValue("Name", newName);
             page.TryUpdateRowData(row, out _);
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(newName, updatedRow.GetValueInString("Name"));
@@ -795,7 +795,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
-            var row = table.GetNewLocalRow();
+            LocalRow row = table.GetNewLocalRow();
             uint rowId = row.Id;
             row.SortBinaryOrder();
 
@@ -844,7 +844,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 1
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             var newName2 = "12345678901234567890";
 
@@ -853,7 +853,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 2
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
             var newName3 = "foobazbar";
@@ -861,7 +861,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 3
             page.TryUpdateRowData(row, out _);
 
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(newName3, updatedRow.GetValueInString("Name"));
@@ -1026,7 +1026,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 1
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             var newName2 = "12345678901234567890";
 
@@ -1035,7 +1035,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 2
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
             var newName3 = "foobazbar";
@@ -1043,10 +1043,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 3
             page.TryUpdateRowData(row, out _);
 
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
-            var returnedRow = page.GetRow(rowId);
+            var returnedRow = page.GetRow(rowId) as LocalRow;
             bool nickNamevalueIsNull = returnedRow.IsValueNull("NickName");
             bool rankValueIsNotNull = returnedRow.IsValueNull("Rank");
 
@@ -1119,7 +1119,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 1
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             var newName2 = "12345678901234567890";
 
@@ -1128,7 +1128,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 2
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
             var newName3 = "foobazbar";
@@ -1136,10 +1136,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 3
             page.TryUpdateRowData(row, out _);
 
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
-            var returnedRow = page.GetRow(rowId);
+            var returnedRow = page.GetRow(rowId) as LocalRow;
             bool nickNameValueIsNull = returnedRow.IsValueNull("NickName");
             bool rankValueIsNotNull = returnedRow.IsValueNull("Rank");
             var rankValue = returnedRow.GetValueInString("Rank");
@@ -1277,9 +1277,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             uint rowMixNullOffset = page.AddRow(rowMixNull);
 
             // --- ACT
-            var returnedNullRow = page.GetRow(rowIdAllNull);
-            var returnedNotNullRow = page.GetRow(rowIdNotNull);
-            var returnedMixRow = page.GetRow(rowIdMixNull);
+            var returnedNullRow = page.GetRow(rowIdAllNull) as LocalRow;
+            var returnedNotNullRow = page.GetRow(rowIdNotNull) as LocalRow;
+            var returnedMixRow = page.GetRow(rowIdMixNull) as LocalRow;
 
             // --- ASSERT
             Assert.Equal("Randy", returnedNotNullRow.GetValueInString("Name"));

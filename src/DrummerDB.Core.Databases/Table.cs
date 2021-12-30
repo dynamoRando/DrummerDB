@@ -790,7 +790,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             TransactionEntry xact = null;
             uint pageId = 0;
-            IRow beforeRow = null;
+            Row beforeRow = null;
 
             if (TreeHasRoom(row.TotalSize))
             {
@@ -895,7 +895,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return maxid;
         }
 
-        private TransactionEntry GetTransactionDeleteEntry(TransactionRequest transaction, IRow rowToBeDeleted, RowAddress rowAddress)
+        private TransactionEntry GetTransactionDeleteEntry(TransactionRequest transaction, Row rowToBeDeleted, RowAddress rowAddress)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
             var tranDataAction = new DeleteTransaction(_schema.DatabaseId, _schema.Id, rowToBeDeleted.Id, rowAddress.PageId, rowAddress.RowOffset, rowToBeDeleted, _schema.Schema.SchemaGUID);
@@ -911,7 +911,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <param name="row">The row being added</param>
         /// <returns>A transaction entry with an action of INSERT for this database, table, and row</returns>
         /// <remarks>This needs to be expanded to include the user issuing the transaction and the SQL plan.</remarks>
-        private TransactionEntry GetTransactionInsertEntry(TransactionRequest transaction, IRow row, uint pageId)
+        private TransactionEntry GetTransactionInsertEntry(TransactionRequest transaction, Row row, uint pageId)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
             var tranDataAction = new InsertTransaction(_schema.DatabaseId, _schema.Id, row.Id, pageId, _schema.Schema.SchemaGUID, row.GetRowInTransactionBinaryFormat());
@@ -930,7 +930,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return entry;
         }
 
-        private TransactionEntry GetTransactionUpdateEntry(TransactionRequest transaction, IRow before, IRow after, uint pageId)
+        private TransactionEntry GetTransactionUpdateEntry(TransactionRequest transaction, Row before, Row after, uint pageId)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
             var tranDataAction = new UpdateTransaction(_schema.DatabaseId, _schema.Id, before.Id, pageId, before, after, _schema.Schema.SchemaGUID);
