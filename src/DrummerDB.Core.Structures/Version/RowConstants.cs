@@ -112,6 +112,8 @@
                     SIZE_OF_ROW_TYPE + 
                     SIZE_OF_IS_FORWARDED +
                     SIZE_OF_FORWARD_OFFSET +
+                    SIZE_OF_FORWARDED_PAGE_ID + 
+                    SIZE_OF_IS_LOGICALLY_DELETED + 
                     SIZE_OF_ROW_TOTAL_SIZE + 
                     SIZE_OF_ROW_REMOTABLE_SIZE +
                     SIZE_OF_ROW_VALUE_SIZE)

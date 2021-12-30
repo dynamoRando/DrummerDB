@@ -67,6 +67,11 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public bool IsDataSet()
+        {
+            return _value is not null;
+        }
+
         public string DebugValue()
         {
             if (_value is not null)

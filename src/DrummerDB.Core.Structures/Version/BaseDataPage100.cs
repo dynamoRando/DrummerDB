@@ -796,11 +796,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     {
                         case RowType.Local:
                             LocalRow localRow = new LocalRow(item);
-                            ReadOnlySpan<byte> sizeOfRowData = span.Slice((int)(runningTotal + RowConstants.Preamble.Length()), (int)RowConstants.Preamble.SIZE_OF_ROW_VALUE_SIZE);
-                            uint sizeOfRow = DbBinaryConvert.BinaryToUInt(sizeOfRowData);
-                            uint rowdataSlice = (uint)(sizeOfRow - RowConstants.Preamble.Length() - RowConstants.Preamble.SIZE_OF_ROW_VALUE_SIZE);
-                            runningTotal += (uint)(RowConstants.Preamble.Length() + RowConstants.Preamble.SIZE_OF_ROW_VALUE_SIZE);
-                            localRow.SetRowData(_schema, span.Slice((int)runningTotal, (int)rowdataSlice));
+                            runningTotal += RowConstants.Preamble.Length();
+                            localRow.SetRowData(_schema, span.Slice((int)runningTotal, (int)item.RowValueSize));
 
                             row = localRow;
 

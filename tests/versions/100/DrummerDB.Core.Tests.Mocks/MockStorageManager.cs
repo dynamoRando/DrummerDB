@@ -12,10 +12,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
 {
     internal class MockStorageManager : IStorageManager
     {
+        private TreeAddress _address;
         private List<MockDbFile> _files;
         private ITableSchema _schema;
-        private TreeAddress _address;
-
         internal MockStorageManager()
         {
             _files = new List<MockDbFile>();
@@ -25,22 +24,6 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         {
             _files = new List<MockDbFile>();
             _schema = schema;
-        }
-
-        public void SetAddress(TreeAddress address)
-        {
-            _address = address;
-
-            var fakeFile = new MockDbFile { Address = address, Pages = new List<UserDataPage>() };
-            fakeFile.Pages.Add(new UserDataPage100(new PageAddress
-            (
-                address.DatabaseId,
-                address.TableId,
-                1,
-                _schema.Schema.SchemaGUID
-            ), _schema));
-
-            _files.Add(fakeFile);
         }
 
         public void CreateSystemDatabase(string dbName, List<IPage> pages, DataFileType type, int version = 100)
@@ -53,6 +36,21 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public bool DeleteHostDatabase(string dbName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<UserDataPage> GetAllUserDataPages(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<UserDataPage> GetAllUserDataPages(TreeAddress address, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
         public IBaseDataPage GetAnyDataPage(int[] pagesInMemory, TreeAddress address, PageType type)
         {
             IBaseDataPage result = null;
@@ -61,7 +59,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             if (!(file is null))
             {
                 var intPageIds = new List<int>();
-                foreach(var id in file.PageIds())
+                foreach (var id in file.PageIds())
                 {
                     intPageIds.Add((int)id);
                 }
@@ -74,6 +72,21 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             }
 
             return result;
+        }
+
+        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public UserDataPage GetAnySystemDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
+        {
+            throw new NotImplementedException();
         }
 
         public UserDataPage GetAnyUserDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema)
@@ -96,6 +109,34 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             }
 
             return result;
+        }
+
+        public UserDataPage GetAnyUserDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
+        {
+            UserDataPage result = null;
+            var file = _files.Where(f => f.Address == address).FirstOrDefault();
+
+            if (!(file is null))
+            {
+                var intPageIds = new List<int>();
+                foreach (var id in file.PageIds())
+                {
+                    intPageIds.Add((int)id);
+                }
+
+                int idToGet = intPageIds.Except(pagesInMemory).FirstOrDefault();
+                if (idToGet != 0)
+                {
+                    result = file.Pages.Where(p => p.PageId() == idToGet && p.TableId() == tableId).FirstOrDefault();
+                }
+            }
+
+            return result;
+        }
+
+        public UserDataPage GetAnyUserDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
+        {
+            throw new NotImplementedException();
         }
 
         public uint GetMaxPageId(TreeAddress address)
@@ -143,6 +184,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             }
         }
 
+        uint IStorageManager.GetTotalPages(TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<UserDatabaseInformation> GetUserDatabasesInformation()
         {
             throw new NotImplementedException();
@@ -151,6 +197,16 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         public bool HasSystemDatabaseFile(string dbName)
         {
             throw new NotImplementedException();
+        }
+
+        public bool IsSystemDatabase(Guid databaseId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsUserDatabase(Guid databaseId)
+        {
+            return true;
         }
 
         public void LoadSystemDatabaseFilesIntoMemory()
@@ -163,6 +219,35 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public void LogCloseTransaction(Guid databaseId, TransactionEntry transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool LogFileHasOpenTransaction(Guid databaseId, TransactionEntryKey key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogOpenTransaction(Guid databaseId, TransactionEntry transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool MarkPageAsDeleted(PageAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveOpenTransaction(Guid databaseId, TransactionEntry transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SaveContractToDisk(Contract contract)
+        {
+            throw new NotImplementedException();
+        }
 
         public void SavePageDataToDisk(PageAddress address, byte[] data, PageType type)
         {
@@ -183,84 +268,6 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             }
         }
 
-        public int TotalSystemDatabasesOnDisk()
-        {
-            throw new NotImplementedException();
-        }
-
-        public int TotalUserDatabasesOnDisk()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool DeleteHostDatabase(string dbName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void LogOpenTransaction(Guid databaseId, TransactionEntry transaction)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void LogCloseTransaction(Guid databaseId, TransactionEntry transaction)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RemoveOpenTransaction(Guid databaseId, TransactionEntry transaction)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LogFileHasOpenTransaction(Guid databaseId, TransactionEntryKey key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsUserDatabase(Guid databaseId)
-        {
-            return true;
-        }
-
-        public bool IsSystemDatabase(Guid databaseId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema)
-        {
-            throw new NotImplementedException();
-        }
-
-        public UserDataPage GetAnyUserDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
-        {
-            UserDataPage result = null;
-            var file = _files.Where(f => f.Address == address).FirstOrDefault();
-
-            if (!(file is null))
-            {
-                var intPageIds = new List<int>();
-                foreach (var id in file.PageIds())
-                {
-                    intPageIds.Add((int)id);
-                }
-
-                int idToGet = intPageIds.Except(pagesInMemory).FirstOrDefault();
-                if (idToGet != 0)
-                {
-                    result = file.Pages.Where(p => p.PageId() == idToGet && p.TableId() == tableId).FirstOrDefault();
-                }
-            }
-
-            return result;
-        }
-
-        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
-        {
-            throw new NotImplementedException();
-        }
-
         public void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType)
         {
             IBaseDataPage page = null;
@@ -278,21 +285,6 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
                     file.Pages.Add(new UserDataPage100(data, _schema));
                 }
             }
-        }
-
-        public List<UserDataPage> GetAllUserDataPages(TreeAddress address)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<UserDataPage> GetAllUserDataPages(TreeAddress address, ITableSchema schema)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool MarkPageAsDeleted(PageAddress address)
-        {
-            throw new NotImplementedException();
         }
 
         public void SavePageDataToDisk(PageAddress address, byte[] data, PageType type, DataPageType dataPageType, bool isDeleted)
@@ -323,22 +315,27 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             }
         }
 
-        public bool SaveContractToDisk(Contract contract)
+        public void SetAddress(TreeAddress address)
+        {
+            _address = address;
+
+            var fakeFile = new MockDbFile { Address = address, Pages = new List<UserDataPage>() };
+            fakeFile.Pages.Add(new UserDataPage100(new PageAddress
+            (
+                address.DatabaseId,
+                address.TableId,
+                1,
+                _schema.Schema.SchemaGUID
+            ), _schema));
+
+            _files.Add(fakeFile);
+        }
+        public int TotalSystemDatabasesOnDisk()
         {
             throw new NotImplementedException();
         }
 
-        public UserDataPage GetAnySystemDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public UserDataPage GetAnyUserDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
-        {
-            throw new NotImplementedException();
-        }
-
-        uint IStorageManager.GetTotalPages(TreeAddress address)
+        public int TotalUserDatabasesOnDisk()
         {
             throw new NotImplementedException();
         }

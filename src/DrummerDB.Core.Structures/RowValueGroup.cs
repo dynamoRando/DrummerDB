@@ -449,6 +449,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                 }
 
                 Values = values.ToArray();
+                SetSizes();
             }
         }
 
@@ -464,6 +465,8 @@ namespace Drummersoft.DrummerDB.Core.Structures
             {
                 rowValue.SetValue(value, true);
             }
+
+            SetSizes();
         }
 
         /// <summary>
@@ -489,6 +492,8 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
                 rowValue.SetValue(value);
             }
+
+            SetSizes();
         }
 
         public void SetValueAsNullForColumn(string columnName)
@@ -498,6 +503,8 @@ namespace Drummersoft.DrummerDB.Core.Structures
             {
                 rowValue.SetValueAsNull();
             }
+
+            SetSizes();
         }
 
         public void SortBinaryOrder()
@@ -558,6 +565,36 @@ namespace Drummersoft.DrummerDB.Core.Structures
             }
 
             return null;
+        }
+
+        private void SetTotalSize()
+        {
+            _preamble.RowTotalSize = (uint)_preamble.ToBinaryFormat().Length + _preamble.RowValueSize;
+        }
+
+        private void SetValueSize()
+        {
+            SortBinaryOrder();
+            List<byte[]> arrays = new List<byte[]>();
+
+            foreach (var value in Values)
+            {
+                if (value.IsDataSet())
+                {
+                    var bytes = value.GetValueInBinary();
+                    arrays.Add(bytes);
+                }
+                
+            }
+
+            var totalArrays = DbBinaryConvert.ArrayStitch(arrays);
+            _preamble.RowValueSize = (uint)totalArrays.Length;
+        }
+
+        private void SetSizes()
+        {
+            SetValueSize();
+            SetTotalSize();
         }
         #endregion
     }

@@ -73,5 +73,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// the BOOL prefix before the rest of the length. See <seealso cref="Row.SetRowData(ITableSchema, ReadOnlySpan{byte})"/> for the implementation.
         /// </summary>
         uint ParseValueLength { get; set; }
+
+        bool IsDataSet();
     }
 }
