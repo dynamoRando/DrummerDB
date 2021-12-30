@@ -168,7 +168,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                             }
                         }
 
-                        uint valueOffset = (uint)(RowConstants.Preamble.Length() + RowConstants.Preamble.SIZE_OF_ROW_TOTAL_SIZE + columnValueOffset);
+                        uint valueOffset = (uint)(RowConstants.Preamble.Length() + columnValueOffset);
                         var schemaColumn = schema.Columns.Where(c => string.Equals(c.Name, columnName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
                         foreach (var row in rows)
@@ -209,9 +209,18 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                         var bytes = physicalRow.GetRowInPageBinaryFormat();
                                         schema.SortBinaryOrder();
 
-                                        uint valueOffset = (uint)(RowConstants.Preamble.Length() + RowConstants.Preamble.SIZE_OF_ROW_TOTAL_SIZE);
-                                        //int valueOffset = RowConstants.LengthOfPreamble() + row.RowOffset;
-
+                                        uint valueOffset = 0;
+                                        
+                                        if (physicalRow.IsRemotable())
+                                        {
+                                            valueOffset = RowConstants.Preamble.Length() + physicalRow.RemoteSize;
+                                        }
+                                        else
+                                        {
+                                            valueOffset = RowConstants.Preamble.Length();
+                                        }
+                                        
+                                        
                                         foreach (var value in rowValueGroup.Values)
                                         {
                                             if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
@@ -805,9 +814,8 @@ namespace Drummersoft.DrummerDB.Core.Memory
                     var bytes = physicalRow.GetRowInPageBinaryFormat();
                     schema.SortBinaryOrder();
 
-                    uint valueOffset = (uint)(RowConstants.Preamble.Length() + RowConstants.Preamble.SIZE_OF_ROW_TOTAL_SIZE);
-                    //int valueOffset = RowConstants.LengthOfPreamble() + row.RowOffset;
-
+                    uint valueOffset = (uint)RowConstants.Preamble.Length();
+                    
                     foreach (var value in physicalRow.AsValueGroup().Values)
                     {
                         if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))

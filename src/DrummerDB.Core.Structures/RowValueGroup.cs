@@ -584,7 +584,6 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     var bytes = value.GetValueInBinary();
                     arrays.Add(bytes);
                 }
-                
             }
 
             var totalArrays = DbBinaryConvert.ArrayStitch(arrays);

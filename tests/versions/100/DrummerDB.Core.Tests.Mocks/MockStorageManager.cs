@@ -136,7 +136,31 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
 
         public UserDataPage GetAnyUserDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
         {
-            throw new NotImplementedException();
+            UserDataPage result = null;
+            var file = _files.Where(f => f.Address == address).FirstOrDefault();
+
+            var intPagesInMemory = new List<int>();
+            foreach(var x in pagesInMemory)
+            {
+                intPagesInMemory.Add((int)x);
+            }
+
+            if (!(file is null))
+            {
+                var intPageIds = new List<int>();
+                foreach (var id in file.PageIds())
+                {
+                    intPageIds.Add((int)id);
+                }
+
+                int idToGet = intPageIds.Except(intPagesInMemory).FirstOrDefault();
+                if (idToGet != 0)
+                {
+                    result = file.Pages.Where(p => p.PageId() == idToGet && p.TableId() == tableId).FirstOrDefault();
+                }
+            }
+
+            return result;
         }
 
         public uint GetMaxPageId(TreeAddress address)
@@ -186,7 +210,15 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
 
         uint IStorageManager.GetTotalPages(TreeAddress address)
         {
-            throw new NotImplementedException();
+            var item = _files.Where(f => f.Address == address).FirstOrDefault();
+            if (item is null)
+            {
+                return 0;
+            }
+            else
+            {
+                return (uint)item.Pages.Count;
+            }
         }
 
         public List<UserDatabaseInformation> GetUserDatabasesInformation()
