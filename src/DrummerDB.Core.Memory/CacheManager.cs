@@ -316,7 +316,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _userDataCache.HasValueQuick(address, value);
         }
 
-        public CacheAddRowResult TryAddRow(IRow row, TreeAddress address, ITableSchema schema, out uint pageId)
+        public CacheAddRowResult TryAddRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId)
         {
             return _userDataCache.TryAddRow(row, address, out pageId);
         }

@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
 
@@ -15,6 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public uint RowId { get; init; }
         public uint RowOffset { get; init; }
         public Guid SchemaId { get; init; }
+        public RowType RowType { get; init; }
         public byte[] ToBinaryFormat()
         {
             var arrays = new List<byte[]>(5);
@@ -41,7 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public RowAddress ToRowAddress()
         {
-            return new RowAddress(PageId, RowId, RowOffset, Guid.Empty);
+            return new RowAddress(PageId, RowId, RowOffset, Guid.Empty, RowType);
         }
     }
 }

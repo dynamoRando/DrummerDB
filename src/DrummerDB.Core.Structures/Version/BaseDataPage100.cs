@@ -747,12 +747,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             {
                 if (row.ForwardedPageId == pageId)
                 {
-                    addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type, Row.HasLocalData(row.Type)));
+                    addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type));
                 }
             }
             else
             {
-                addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type, Row.HasLocalData(row.Type)));
+                addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type));
             }
         }
 

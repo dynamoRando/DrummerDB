@@ -356,7 +356,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     {
                         if (value.Length < Column.Length)
                         {
-                            value = value.PadRight(Column.Length);
+                            value = value.PadRight((int)Column.Length);
                         }
                     }
 

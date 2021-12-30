@@ -6,9 +6,9 @@ namespace Drummersoft.DrummerDB.Core.Structures
     {
         public readonly string Name;
         public readonly SQLColumnType DataType;
-        public readonly int Length;
-        public readonly int Ordinal;
-        public readonly int MaxLength;
+        public readonly uint Length;
+        public readonly uint Ordinal;
+        public readonly uint MaxLength;
         public readonly bool IsNullable;
 
         public bool IsFixedBinaryLength()
@@ -30,7 +30,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             }
         }
 
-        public ColumnSchemaStruct(string name, SQLColumnType type, int length, int ordinal, int maxLength, bool isNullable)
+        public ColumnSchemaStruct(string name, SQLColumnType type, uint length, uint ordinal, uint maxLength, bool isNullable)
         {
             {
                 Name = name;

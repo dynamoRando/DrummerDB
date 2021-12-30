@@ -56,7 +56,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
         public abstract uint TableId();
         public abstract uint TotalBytesUsed();
         public abstract uint TotalRows();
-        public abstract PageUpdateRowResult TryUpdateRowData(RowValueGroup row, out uint updatedOffset);
+        public abstract PageUpdateRowResult TryUpdateRowData(Row row, out uint updatedOffset);
         public abstract void UnDelete();
     }
 }

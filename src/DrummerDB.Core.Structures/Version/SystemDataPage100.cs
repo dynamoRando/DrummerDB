@@ -97,7 +97,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             _basePage.DeleteRow(rowId);
         }
 
-        public override PageUpdateRowResult TryUpdateRowData(RowValueGroup updatedRow, out uint updatedOffset)
+        public override PageUpdateRowResult TryUpdateRowData(Row updatedRow, out uint updatedOffset)
         {
             return _basePage.TryUpdateRowData(updatedRow, out updatedOffset);
         }

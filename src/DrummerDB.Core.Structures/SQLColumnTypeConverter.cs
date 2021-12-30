@@ -42,7 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             return (int)Convert(type, databaseVersion);
         }
 
-        public static ISQLType Convert(SQLColumnType type, int length)
+        public static ISQLType Convert(SQLColumnType type, uint length)
         {
             switch (type)
             {
