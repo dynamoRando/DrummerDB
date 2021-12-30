@@ -64,11 +64,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrummerDB.Core.Tests.Mocks"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrummerDB.Core.IdentityAccess.Structures", "src\DrummerDB.Core.IdentityAccess.Structures\DrummerDB.Core.IdentityAccess.Structures.csproj", "{134B3F07-91D6-4FF6-AF11-4C0F0C06AD6B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "offtopic", "offtopic", "{3315CABB-545D-416D-A394-BCDC51687DF4}"
-	ProjectSection(SolutionItems) = preProject
-		offtopic\Playlist.md = offtopic\Playlist.md
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{714208B3-8210-4BBA-912D-88ECADC95217}"
 	ProjectSection(SolutionItems) = preProject
 		tests\versions\100\doc\references.md = tests\versions\100\doc\references.md
