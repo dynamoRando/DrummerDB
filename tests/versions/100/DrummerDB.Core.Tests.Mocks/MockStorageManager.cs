@@ -60,7 +60,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
 
             if (!(file is null))
             {
-                int idToGet = file.PageIds().Except(pagesInMemory).FirstOrDefault();
+                var intPageIds = new List<int>();
+                foreach(var id in file.PageIds())
+                {
+                    intPageIds.Add((int)id);
+                }
+
+                int idToGet = intPageIds.Except(pagesInMemory).FirstOrDefault();
                 if (idToGet != 0)
                 {
                     result = file.Pages.Where(p => p.PageId() == idToGet && p.Type == type).FirstOrDefault();
@@ -77,7 +83,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
 
             if (!(file is null))
             {
-                int idToGet = file.PageIds().Except(pagesInMemory).FirstOrDefault();
+                var intPageIds = new List<int>();
+                foreach (var id in file.PageIds())
+                {
+                    intPageIds.Add((int)id);
+                }
+                int idToGet = intPageIds.Except(pagesInMemory).FirstOrDefault();
                 if (idToGet != 0)
                 {
                     result = file.Pages.Where(p => p.PageId() == idToGet).FirstOrDefault();
@@ -229,7 +240,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
 
             if (!(file is null))
             {
-                int idToGet = file.PageIds().Except(pagesInMemory).FirstOrDefault();
+                var intPageIds = new List<int>();
+                foreach (var id in file.PageIds())
+                {
+                    intPageIds.Add((int)id);
+                }
+
+                int idToGet = intPageIds.Except(pagesInMemory).FirstOrDefault();
                 if (idToGet != 0)
                 {
                     result = file.Pages.Where(p => p.PageId() == idToGet && p.TableId() == tableId).FirstOrDefault();
