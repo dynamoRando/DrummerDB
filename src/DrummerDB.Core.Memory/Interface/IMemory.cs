@@ -10,11 +10,11 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
     {
         void AddSystemDbSystemPage(ISystemPage page);
         void AddUserDbSystemPage(ISystemPage page);
-        int GetMaxRowIdForTree(TreeAddress address);
+        uint GetMaxRowIdForTree(TreeAddress address);
 
         TreeStatus GetTreeMemoryStatus(TreeAddress address);
 
-        TreeStatus GetTreeSizeStatus(TreeAddress address, int sizeOfDataToAdd);
+        TreeStatus GetTreeSizeStatus(TreeAddress address, uint sizeOfDataToAdd);
         bool HasUserDataAddress(TreeAddress address);
 
         bool HasUserDataPage(PageAddress address);
@@ -22,7 +22,7 @@ namespace Drummersoft.DrummerDB.Core.Memory.Interface
         void UserDataAddIntitalData(IBaseDataPage page, TreeAddress address, TreeAddressFriendly friendly);
         void UserDataAddPageToContainer(IBaseDataPage page, TreeAddress address);
         void UserDataAddPageToContainer(IBaseDataPage page, TreeAddress address, TreeAddressFriendly friendlyName);
-        int[] UserDataGetContainerPages(TreeAddress address);
+        uint[] UserDataGetContainerPages(TreeAddress address);
         IBaseDataPage UserDataGetPage(PageAddress address);
         bool UserSystemCacheHasDatabase(Guid dbId);
         List<PageAddress> GetPageAddressesForTree(TreeAddress address);

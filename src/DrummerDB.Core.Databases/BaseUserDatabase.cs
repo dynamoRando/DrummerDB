@@ -381,7 +381,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _metaData.HasSchema(schemaName);
         }
 
-        public override Table GetTable(int tableId)
+        public override Table GetTable(uint tableId)
         {
             Table result = null;
 
@@ -410,12 +410,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public override int GetMaxTableId()
+        public override uint GetMaxTableId()
         {
             return _metaData.GetMaxTableId();
         }
 
-        public override bool HasTable(int tableId)
+        public override bool HasTable(uint tableId)
         {
             return _metaData.HasTable(tableId);
         }
@@ -663,7 +663,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return new Table(schema, _metaData.CacheManager, _metaData.RemoteDataManager, _metaData.StorageManager, _xEntryManager, log);
         }
 
-        private TableSchema GetTableSchema(int tableId)
+        private TableSchema GetTableSchema(uint tableId)
         {
             return _metaData.GetTableSchema(tableId);
         }

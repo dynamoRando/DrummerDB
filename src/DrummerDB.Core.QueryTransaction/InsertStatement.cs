@@ -35,9 +35,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return Options.Length > 0;
         }
 
-        public int GetMaxColumnId()
+        public uint GetMaxColumnId()
         {
-            int max = 0;
+            uint max = 0;
             foreach (var column in Columns)
             {
                 if (column.ColumnIndex > max)

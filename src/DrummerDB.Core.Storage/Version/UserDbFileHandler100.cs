@@ -75,17 +75,17 @@ namespace Drummersoft.DrummerDB.Core.Storage
             _logFile.RemoveOpenTransactionOnDisk(transaction);
         }
 
-        public override int GetMaxPageId(in TreeAddress address)
+        public override uint GetMaxPageId(in TreeAddress address)
         {
             return _dataFile.GetMaxPageId(address);
         }
 
-        public override int GetTotalPages()
+        public override uint GetTotalPages()
         {
             return _dataFile.GetTotalPages();
         }
 
-        public override int GetTotalPages(TreeAddress address)
+        public override uint GetTotalPages(TreeAddress address)
         {
             return _dataFile.GetTotalPages(address);
         }
@@ -95,7 +95,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// </summary>
         /// <param name="id">The page to get from disk</param>
         /// <returns>The specified page</returns>
-        public override UserDataPage GetUserDataPage(int id)
+        public override UserDataPage GetUserDataPage(uint id)
         {
             return _dataFile.GetUserDataPage(id);
         }
@@ -105,7 +105,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
         /// </summary>
         /// <param name="pagesInMemory">A list of pages already in memory</param>
         /// <returns>The next page found on disk that is not already in memory</returns>
-        public override UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, int tableId)
+        public override UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, uint tableId)
         {
             return _dataFile.GetAnyUserDataPage(pagesInMemory, schema, tableId);
         }

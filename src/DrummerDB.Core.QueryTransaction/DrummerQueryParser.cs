@@ -132,6 +132,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForGenerateHostInfo(statement, out errorMessage);
                     }
+
+                    if (HasSetNotifyHostKeyword(statement))
+                    {
+                        return ParseForSetNotifyHost(statement, out errorMessage);
+                    }
                 }
             }
 
@@ -156,6 +161,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             errorMessage = string.Empty;
             return true;
+        }
+
+        private bool ParseForSetNotifyHost(string statement, out string errorMessage)
+        {
+            //SET NOTIFY HOST FOR {partialDatabaseName} TABLE {tableName} OPTION [on|off] 
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        private bool HasSetNotifyHostKeyword(string statement)
+        {
+            //SET NOTIFY HOST FOR {partialDatabaseName} TABLE {tableName} OPTION [on|off] 
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            return false;
         }
 
         private bool HasRejectContractByKeyword(string statement)
@@ -247,7 +285,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var hostTable = sysDb.GetTable(Tables.Hosts.TABLE_NAME);
 
                     var hostNameValue = RowValueMaker.Create(hostTable, Tables.Hosts.Columns.HostName, hostName);
-                    int resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
+                    uint resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
 
                     if (resultCount != 1)
                     {
@@ -256,7 +294,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        var hostsResults = hostTable.GetRowsWithValue(hostNameValue);
+                        var hostsResults = hostTable.GetLocalRowsWithValue(hostNameValue);
 
                         if (hostsResults.Count != 1)
                         {
@@ -339,7 +377,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     foreach (var row in rows)
                     {
-                        hostGuid = Guid.Parse(row.GetValueInString(Tables.Hosts.Columns.HostGUID));
+                        hostGuid = Guid.Parse(row.AsValueGroup().GetValueInString(Tables.Hosts.Columns.HostGUID));
                     }
 
                     if (hostGuid != Guid.Empty)

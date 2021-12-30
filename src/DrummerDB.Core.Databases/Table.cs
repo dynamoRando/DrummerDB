@@ -6,7 +6,6 @@ using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Storage.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Abstract;
-using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Exceptions;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
@@ -107,12 +106,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        public int CountOfRowsWithAllValues(IRowValue[] values)
+        public uint CountOfRowsWithAllValues(IRowValue[] values)
         {
             return _cache.CountOfRowsWithAllValues(Address, ref values);
         }
 
-        public int CountOfRowsWithValue(RowValue value)
+        public uint CountOfRowsWithValue(RowValue value)
         {
             if (!HasColumn(value.Column.Name))
             {
@@ -135,7 +134,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var row in rows)
             {
-                if (row.ParticipantId is null)
+                if (row.RemotableId is null)
                 {
                     ResultsetValue physicalValue = _cache.GetValueAtAddress(row, value.Column);
 
@@ -144,13 +143,13 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     byte[] expectedValue = value.GetValueInBinary(false, true);
                     if (ValueComparer.IsMatch(value.Column.DataType, actualValue, expectedValue, comparison))
                     {
-                        var rowAddress = new RowAddress(row.PageId, row.RowId, row.RowOffset, Guid.Empty);
+                        var rowAddress = new RowAddress(row.PageId, row.RowId, row.RowOffset, Guid.Empty, row.RowType);
                         result.Add(rowAddress);
                     }
                 }
                 else
                 {
-                    var rowAddress = new RowAddress(0, row.RowId, 0, row.ParticipantId.Value);
+                    var rowAddress = new RowAddress(0, row.RowId, 0, row.RemotableId.Value, row.RowType);
                     result.Add(rowAddress);
                 }
 
@@ -214,7 +213,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             throw new ColumnNotFoundException($"Column Id {id.ToString()} not found in table {_schema.Name}");
         }
 
-        public ColumnSchemaStruct GetColumnStruct(int id)
+        public ColumnSchemaStruct GetColumnStruct(uint id)
         {
             foreach (var column in _schema.Columns)
             {
@@ -255,9 +254,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// Creates a new row for the table's schema. Note that this does not set any values (they will be NULL). Defaults IsLocal = TRUE, and ParticipantId = NULL.
         /// </summary>
         /// <returns>A row representing the table's schema with no values set</returns>
-        public Row GetNewLocalRow()
+        public LocalRow GetNewLocalRow()
         {
-            var row = new Row(GetNextRowId(), true);
+            var preamble = new RowPreamble(GetNextRowId(), RowType.Local);
+            var row = new LocalRow(preamble);
+
             var values = new RowValue[_schema.Columns.Length];
             int i = 0;
 
@@ -274,9 +275,11 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return row;
         }
 
-        public Row GetNewRemoteRow(Participant participant)
+        public PartialRow GetNewPartialRow()
         {
-            var row = new Row(GetNextRowId(), false, participant);
+            var preamble = new RowPreamble(GetNextRowId(), RowType.RemotableAndLocal);
+            var row = new PartialRow(preamble);
+
             var values = new RowValue[_schema.Columns.Length];
             int i = 0;
 
@@ -293,9 +296,82 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return row;
         }
 
-        public IRow GetRow(int rowId)
+        public PartialRow GetNewPartialRow(uint rowId, Guid hostId)
+        {
+            var preamble = new RowPreamble(rowId, RowType.RemotableAndLocal);
+            var remoteData = new RemotableFixedData(hostId, false, DateTime.MinValue, RemoteType.Host, 0);
+            var row = new PartialRow(preamble);
+            row.SetRemotableFixedData(remoteData);
+
+            var values = new RowValue[_schema.Columns.Length];
+            int i = 0;
+
+            foreach (var column in _schema.Columns)
+            {
+                var value = new RowValue();
+                value.Column = column;
+                values[i] = value;
+                i++;
+            }
+
+            row.Values = values;
+
+            return row;
+        }
+
+        public TempParticipantRow GetNewTempParticipantRow(Participant participant)
+        {
+            var preamble = new RowPreamble(GetNextRowId(), RowType.TempParticipantRow);
+            var row = new TempParticipantRow(preamble, participant);
+            var values = new RowValue[_schema.Columns.Length];
+            int i = 0;
+
+            foreach (var column in _schema.Columns)
+            {
+                var value = new RowValue();
+                value.Column = column;
+                values[i] = value;
+                i++;
+            }
+
+            row.Values = values;
+
+            return row;
+        }
+
+        public TempParticipantRow GetNewTempParticipantRow(Participant participant, uint rowId)
+        {
+            var preamble = new RowPreamble(rowId, RowType.TempParticipantRow);
+            var row = new TempParticipantRow(preamble, participant);
+            var values = new RowValue[_schema.Columns.Length];
+            int i = 0;
+
+            foreach (var column in _schema.Columns)
+            {
+                var value = new RowValue();
+                value.Column = column;
+                values[i] = value;
+                i++;
+            }
+
+            row.Values = values;
+
+            return row;
+        }
+
+        public Row GetRow(uint rowId)
         {
             return _cache.GetRow(rowId, Address);
+        }
+
+        public PartialRow GetPartialRow(uint rowId)
+        {
+            var item = _cache.GetRow(rowId, Address);
+            if (item is PartialRow)
+            {
+                return item.AsPartial();
+            }
+            return null;
         }
 
         /// <summary>
@@ -303,22 +379,25 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <param name="address">The address of the row</param>
         /// <returns>The row with the specified address if found, otherwise <c>NULL.</c></returns>
-        public IRow GetRow(RowAddress address)
+        public Row GetRow(RowAddress address)
         {
-            IRow row = _cache.GetRow(address.RowId, Address);
+            return _cache.GetRow(address.RowId, Address);
+        }
 
-            // or alt
-            //IRow row = _cache.GetRow(address, Address);
+        /// <summary>
+        /// Gets the row.
+        /// </summary>
+        /// <param name="address">The address of the row</param>
+        /// <returns>The row with the specified address if found, otherwise <c>NULL.</c></returns>
+        public LocalRow GetLocalRow(RowAddress address)
+        {
+            var item = _cache.GetRow(address.RowId, Address);
+            if (item is LocalRow)
+            {
+                return item.AsLocal();
+            }
 
-            if (row.IsLocal)
-            {
-                return row;
-            }
-            else
-            {
-                row.Values = new IRowValue[0];
-                return row;
-            }
+            return null;
         }
 
         public List<RowAddress> GetRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)
@@ -343,7 +422,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _cache.GetRows(Address);
         }
 
-        public IRow[] GetRowsWithAllValues(IRowValue[] values)
+        public Row[] GetRowsWithAllValues(IRowValue[] values)
         {
             foreach (var value in values)
             {
@@ -358,14 +437,62 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public List<IRow> GetRowsWithValue(RowValue value)
+        public LocalRow[] GetLocalRowsWithAllValues(IRowValue[] values)
+        {
+            foreach (var value in values)
+            {
+                if (!HasColumn(value.Column.Name))
+                {
+                    throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
+                }
+            }
+
+            var items = _cache.GetRowsWithAllValues(Address, ref values);
+            var result = new LocalRow[items.Length];
+            int i = 0;
+
+            foreach (var item in items)
+            {
+                if (item is LocalRow)
+                {
+                    result[i] = item.AsLocal();
+                    i++;
+                }
+            }
+
+            return result;
+        }
+
+        public List<Row> GetRowsWithValue(RowValue value)
         {
             if (!HasColumn(value.Column.Name))
             {
                 throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
             }
 
+            // note: this will return both rows with data and rows that don't have data
             return _cache.GetRowsWithValue(Address, value, _schema);
+        }
+
+        public List<LocalRow> GetLocalRowsWithValue(RowValue value)
+        {
+            if (!HasColumn(value.Column.Name))
+            {
+                throw new ColumnNotFoundException(value.Column.Name, _schema.Name);
+            }
+            var items = _cache.GetRowsWithValue(Address, value, _schema);
+
+            var rows = new List<LocalRow>(items.Count);
+
+            foreach (var item in items)
+            {
+                if (item is LocalRow)
+                {
+                    rows.Add(item.AsLocal());
+                }
+            }
+
+            return rows;
         }
 
         public ResultsetValue GetValueAtAddress(ValueAddress address, TransactionRequest transaction)
@@ -378,7 +505,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 // need a corresponding method to mark the transaction as completed
                 TransactionEntry transactionEntry = GetTransactionSelectEntry(transaction);
 
-                if (address.ParticipantId is null)
+                if (address.RemotableId is null)
                 {
                     return _cache.GetValueAtAddress(address, column);
                 }
@@ -507,15 +634,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        public bool XactAddRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        public bool XactAddRow(Row row, TransactionRequest request, TransactionMode transactionMode)
         {
-            if (row.IsLocal)
+            if (!row.IsTempForParticipant())
             {
                 return XactAddLocalRow(row, request, transactionMode);
             }
             else
             {
-                return XactAddRemoteRow(row as Row, request, transactionMode);
+                return XactAddRemoteRow(row, request, transactionMode);
             }
         }
 
@@ -524,17 +651,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <param name="row">The row.</param>
         /// <remarks>This should eventually be deprecated, because we are doing this in a transactional manner.</remarks>
-        public bool XactAddRow(IRow row)
+        public bool XactAddRow(Row row)
         {
             return XactAddRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public bool XactDeleteRow(IRow row)
+        public bool XactDeleteRow(Row row)
         {
             return XactDeleteRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public bool XactDeleteRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        public bool XactDeleteRow(Row row, TransactionRequest request, TransactionMode transactionMode)
         {
             BringTreeOnline();
 
@@ -654,20 +781,20 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
         }
 
-        public bool XactUpdateRow(IRow row)
+        public bool XactUpdateRow(Row row)
         {
             return XactUpdateRow(row, new TransactionRequest(), TransactionMode.None);
         }
 
-        public bool XactUpdateRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        public bool XactUpdateRow(Row row, TransactionRequest request, TransactionMode transactionMode)
         {
             BringTreeOnline();
 
             TransactionEntry xact = null;
-            int pageId = 0;
-            IRow beforeRow = null;
+            uint pageId = 0;
+            Row beforeRow = null;
 
-            if (TreeHasRoom(row.Size()))
+            if (TreeHasRoom(row.TotalSize))
             {
                 switch (transactionMode)
                 {
@@ -749,7 +876,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return items;
         }
 
-        private int GetColumnId(string columnName)
+        private uint GetColumnId(string columnName)
         {
             foreach (var column in _schema.Columns)
             {
@@ -762,15 +889,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return 0;
         }
 
-        private int GetNextRowId()
+        private uint GetNextRowId()
         {
             BringTreeOnline();
-            int maxid = _cache.GetMaxRowIdForTree(Address);
+            uint maxid = _cache.GetMaxRowIdForTree(Address);
             maxid++;
             return maxid;
         }
 
-        private TransactionEntry GetTransactionDeleteEntry(TransactionRequest transaction, IRow rowToBeDeleted, RowAddress rowAddress)
+        private TransactionEntry GetTransactionDeleteEntry(TransactionRequest transaction, Row rowToBeDeleted, RowAddress rowAddress)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
             var tranDataAction = new DeleteTransaction(_schema.DatabaseId, _schema.Id, rowToBeDeleted.Id, rowAddress.PageId, rowAddress.RowOffset, rowToBeDeleted, _schema.Schema.SchemaGUID);
@@ -786,7 +913,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// <param name="row">The row being added</param>
         /// <returns>A transaction entry with an action of INSERT for this database, table, and row</returns>
         /// <remarks>This needs to be expanded to include the user issuing the transaction and the SQL plan.</remarks>
-        private TransactionEntry GetTransactionInsertEntry(TransactionRequest transaction, IRow row, int pageId)
+        private TransactionEntry GetTransactionInsertEntry(TransactionRequest transaction, Row row, uint pageId)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
             var tranDataAction = new InsertTransaction(_schema.DatabaseId, _schema.Id, row.Id, pageId, _schema.Schema.SchemaGUID, row.GetRowInTransactionBinaryFormat());
@@ -805,7 +932,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return entry;
         }
 
-        private TransactionEntry GetTransactionUpdateEntry(TransactionRequest transaction, IRow before, IRow after, int pageId)
+        private TransactionEntry GetTransactionUpdateEntry(TransactionRequest transaction, Row before, Row after, uint pageId)
         {
             var sequenceId = _xEntryManager.GetNextSequenceNumberForBatchId(transaction.TransactionBatchId);
             var tranDataAction = new UpdateTransaction(_schema.DatabaseId, _schema.Id, before.Id, pageId, before, after, _schema.Schema.SchemaGUID);
@@ -828,7 +955,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (isUserDatabase)
             {
-                UserDataPage page = _storage.GetAnyUserDataPage(new int[0], Address, _schema, _schema.Id);
+                UserDataPage page = _storage.GetAnyUserDataPage(new uint[0], Address, _schema, _schema.Id);
 
                 if (page is null)
                 {
@@ -875,7 +1002,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                UserDataPage page = _storage.GetAnySystemDataPage(new int[0], Address, _schema, _schema.Id);
+                UserDataPage page = _storage.GetAnySystemDataPage(new uint[0], Address, _schema, _schema.Id);
 
                 if (page is null)
                 {
@@ -903,7 +1030,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         private void HandleNoPagesOnTree()
         {
-            var page = _storage.GetAnyUserDataPage(new int[0], Address, _schema, _schema.Id);
+            var page = _storage.GetAnyUserDataPage(new uint[0], Address, _schema, _schema.Id);
 
             if (page is null)
             {
@@ -958,7 +1085,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         /// </summary>
         /// <param name="sizeOfDataToAdd">The row size to add to the cache</param>
         /// <returns><c>TRUE</c> if there is room available, otherwise <c>FALSE</c></returns>
-        private bool TreeHasRoom(int sizeOfDataToAdd)
+        private bool TreeHasRoom(uint sizeOfDataToAdd)
         {
             var sizeStatus = _cache.GetTreeSizeStatus(Address, sizeOfDataToAdd);
             if (sizeStatus == TreeStatus.Ready)
@@ -969,9 +1096,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return false;
         }
 
-        private bool XactAddLocalRow(IRow row, TransactionRequest request, TransactionMode transactionMode)
+        private bool XactAddLocalRow(Row row, TransactionRequest request, TransactionMode transactionMode)
         {
-            int pageId = 0;
+            uint pageId = 0;
             CacheAddRowResult addResult;
             TransactionEntry xact;
 
@@ -1074,9 +1201,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         xact.MarkComplete();
                         IBaseDataPage pageToSave = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
 
-                        var debug = new PageDebug(pageToSave.Data);
-                        string dataString = debug.DebugData();
-
                         _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
                             pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),
                             pageToSave.IsDeleted()
@@ -1097,7 +1221,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             // copy paste of local row actions
 
-            int pageId = 0;
+            uint pageId = 0;
             CacheAddRowResult addResult;
             TransactionEntry xact;
             bool remoteSaveIsSuccessful = false;
@@ -1112,7 +1236,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     // we then need to save the data at the participant.
 
                     remoteSaveIsSuccessful = _remoteManager.SaveRowAtParticipant(
-                        row,
+                        row.AsTempForParticipant(),
                         _schema.DatabaseName,
                         _schema.DatabaseId,
                         Name,
@@ -1129,7 +1253,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         // and also save this action to the transaction log
                         do
                         {
-                            addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
+                            addResult = _cache.TryAddRow(row.AsHost(), Address, _schema, out pageId);
 
                             var debugRow = row as Row;
                             string debugData = BitConverter.ToString(debugRow.GetRowInPageBinaryFormat());
@@ -1155,7 +1279,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                         if (addResult == CacheAddRowResult.Success && pageId != 0)
                         {
-                            xact = GetTransactionInsertEntry(request, row, pageId);
+                            xact = GetTransactionInsertEntry(request, row.AsTempForParticipant().ToHostRow(), pageId);
                             _xEntryManager.AddEntry(xact);
                             _storage.LogOpenTransaction(_schema.DatabaseId, xact);
 
@@ -1173,7 +1297,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 case TransactionMode.Try:
 
                     remoteSaveIsSuccessful = _remoteManager.SaveRowAtParticipant(
-                        row,
+                        row.AsTempForParticipant(),
                         _schema.DatabaseName,
                         _schema.DatabaseId,
                         Name,
@@ -1190,7 +1314,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         // and also save this action to the transaction log
                         do
                         {
-                            addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
+                            addResult = _cache.TryAddRow(row.AsTempForParticipant().ToHostRow(), Address, _schema, out pageId);
 
                             var debugRow = row as Row;
                             string debugData = BitConverter.ToString(debugRow.GetRowInPageBinaryFormat());
@@ -1216,7 +1340,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
                         if (addResult == CacheAddRowResult.Success && pageId != 0)
                         {
-                            xact = GetTransactionInsertEntry(request, row, pageId);
+                            xact = GetTransactionInsertEntry(request, row.AsTempForParticipant().ToHostRow(), pageId);
                             _xEntryManager.AddEntry(xact);
                             _storage.LogOpenTransaction(_schema.DatabaseId, xact);
 
@@ -1230,7 +1354,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     return false;
                 case TransactionMode.Rollback:
 
-                    removeRowIsSuccessful = _remoteManager.RemoveRowAtParticipant(row, _schema.DatabaseName, _schema.DatabaseId,
+                    removeRowIsSuccessful = _remoteManager.RemoveRowAtParticipant(row.AsTempForParticipant(), _schema.DatabaseName, _schema.DatabaseId,
                         Name, _schema.Id, out errorMessage);
 
                     if (removeRowIsSuccessful)
@@ -1271,9 +1395,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         var insertAction = xact.GetActionAsInsert();
                         xact.MarkComplete();
                         IBaseDataPage pageToSave = _cache.UserDataGetPage(insertAction.Address.ToPageAddress());
-
-                        var debug = new PageDebug(pageToSave.Data);
-                        string dataString = debug.DebugData();
 
                         _storage.SavePageDataToDisk(insertAction.Address.ToPageAddress(),
                             pageToSave.Data, pageToSave.Type, pageToSave.DataPageType(),

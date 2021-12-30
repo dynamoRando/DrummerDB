@@ -9,12 +9,13 @@ using structParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
 using structHost = Drummersoft.DrummerDB.Core.Structures.HostInfo;
 using structContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 using Google.Protobuf;
-using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
+using structRow = Drummersoft.DrummerDB.Core.Structures.TempParticipantRow;
 using structRowValue = Drummersoft.DrummerDB.Core.Structures.RowValue;
 using structColumnSchema = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using comRowValue = Drummersoft.DrummerDB.Common.Communication.RowValue;
 using comColumnSchema = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
 using comTableSchema = Drummersoft.DrummerDB.Common.Communication.TableSchema;
+using comHostInfo = Drummersoft.DrummerDB.Common.Communication.Host;
 using System.Net;
 using Drummersoft.DrummerDB.Common.Communication.Enum;
 using Drummersoft.DrummerDB.Core.Diagnostics;
@@ -70,7 +71,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             string dbName,
             Guid dbId,
             string tableName,
-            int tableId,
+            uint tableId,
             out string errorMessage)
         {
             throw new NotImplementedException();
@@ -81,7 +82,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             string dbName,
             Guid dbId,
             string tableName,
-            int tableId,
+            uint tableId,
             TransactionRequest transaction,
             TransactionMode transactionMode,
             out string errorMessage)
@@ -100,6 +101,8 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             var request = new InsertRowRequest();
             InsertRowResult? result = null;
+
+            request.HostInfo = GetHostInfo();
 
             // need authentication information to send
             request.Authentication = GetAuthRequest();
@@ -262,10 +265,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
         public bool RemoveRemoteRow(structParticipant participant,
             string tableName,
-            int tableId,
+            uint tableId,
             string databaseName,
             Guid dbId,
-            int rowId,
+            uint rowId,
             TransactionRequest transaction,
             TransactionMode transactionMode,
             out string errorMessage)
@@ -320,10 +323,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         public bool UpdateRemoteRow(
             structParticipant participant,
             string tableName,
-            int tableId,
+            uint tableId,
             string databaseName,
             Guid dbId,
-            int rowId,
+            uint rowId,
             RemoteValueUpdate updateValue,
             TransactionRequest transaction,
             TransactionMode transactionMode,
@@ -365,13 +368,13 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
         }
 
         // should probably include username/pw or token as a method of auth'd the request
-        public IRow GetRowFromParticipant(structParticipant participant, SQLAddress address, string databaseName, string tableName, out string errorMessage)
+        public TempParticipantRow GetRowFromParticipant(structParticipant participant, SQLAddress address, string databaseName, string tableName, out string errorMessage)
         {
             errorMessage = string.Empty;
             ParticipantSink sink;
             sink = GetOrAddParticipantSink(participant);
             GetRowFromPartialDatabaseResult? result = null;
-            IRow rowResult = null;
+            TempParticipantRow rowResult = null;
 
             if (!sink.IsOnline())
             {
@@ -532,6 +535,18 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             return xact;
         }
 
+        private comHostInfo GetHostInfo()
+        {
+            var host = new comHostInfo();
+            host.HostGUID = _hostInfo.HostGUID.ToString();
+            host.Token = ByteString.CopyFrom(_hostInfo.Token);
+            host.HostName = _hostInfo.HostName;
+            host.Ip4Address = _hostInfo.IP4Address;
+            host.Ip6Address = _hostInfo.IP6Address;
+
+            return host;
+        }
+
         private MessageInfo GetMessageInfo(MessageType type)
         {
             var info = new MessageInfo();
@@ -605,25 +620,27 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             _logger.Info(stringBuilder.ToString());
         }
 
-        private IRow ConvertRequestToRow(GetRowFromPartialDatabaseResult request, Guid? participantId)
+        private TempParticipantRow ConvertRequestToRow(GetRowFromPartialDatabaseResult request, Guid? participantId)
         {
-            var row = new structRow(Convert.ToInt32(request.Row.RowId), false, participantId);
+            var tempPreamble = new RowPreamble(request.Row.RowId, RowType.TempParticipantRow);
+            var tempRow = new TempParticipantRow(tempPreamble);
+
             var values = new List<structRowValue>(request.Row.Values.Count);
 
             foreach (var comValue in request.Row.Values)
             {
                 var comColumn = comValue.Column;
-                int enumType = Convert.ToInt32(comColumn.ColumnType);
-                var type = SQLColumnTypeConverter.Convert((SQLColumnType)enumType, Convert.ToInt32(comColumn.ColumnLength));
-                var col = new structColumnSchema(comColumn.ColumnName, type, Convert.ToInt32(comColumn.Ordinal));
+                uint enumType = comColumn.ColumnType;
+                var type = SQLColumnTypeConverter.Convert((SQLColumnType)enumType, comColumn.ColumnLength);
+                var col = new structColumnSchema(comColumn.ColumnName, type, Convert.ToUInt32(comColumn.Ordinal));
 
                 var structValue = new structRowValue(col, comValue.Value.ToByteArray());
                 values.Add(structValue);
             }
 
-            row.Values = values.ToArray();
+            tempRow.Values = values.ToArray();
 
-            return row;
+            return tempRow;
         }
         #endregion
 

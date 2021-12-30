@@ -227,7 +227,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             }
 
             var tbName = "TESTTABLE";
-            var tbId = 1;
+            uint tbId = 1;
             var dbId = Guid.NewGuid();
             var cols = new List<ColumnSchema>();
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
@@ -308,7 +308,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             }
 
             var tbName = "TESTTABLE";
-            var tbId = 1;
+            uint tbId = 1;
             var dbId = Guid.NewGuid();
             var cols = new List<ColumnSchema>();
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);
@@ -373,7 +373,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             }
 
             var tbName = "TESTTABLE";
-            var tbId = 1;
+            uint tbId = 1;
             var dbId = Guid.NewGuid();
             var cols = new List<ColumnSchema>();
             var col1 = new ColumnSchema("COL", new SQLInt(), 1);

@@ -21,9 +21,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.Unit.Structures
         public void Test_Create_User_Page()
         {
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
-            int pageId = 999;
+            uint pageId = 999;
 
             var address = new PageAddress(dbId, tableId, pageId, Guid.Parse(Constants.DBO_SCHEMA_GUID));
             var columns = new List<ColumnSchema>();
@@ -54,9 +54,9 @@ namespace Drummersoft.DrummerDB.Core.Tests.Unit.Structures
         public void Test_Delete_Page()
         {
             // --- ARRANGE
-            int tableId = 777;
+            uint tableId = 777;
             Guid dbId = Guid.NewGuid();
-            int pageId = 999;
+            uint pageId = 999;
 
             var address = new PageAddress(dbId, tableId, pageId, Guid.Parse(Constants.DBO_SCHEMA_GUID));
             var columns = new List<ColumnSchema>();

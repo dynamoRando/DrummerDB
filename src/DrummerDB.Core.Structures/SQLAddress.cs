@@ -1,4 +1,5 @@
 ﻿using Drummersoft.DrummerDB.Common;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
 
@@ -10,20 +11,21 @@ namespace Drummersoft.DrummerDB.Core.Structures
     internal record struct SQLAddress
     {
         public Guid DatabaseId { get; init; }
-        public int TableId { get; init; }
-        public int PageId { get; init; }
-        public int RowId { get; init; }
-        public int RowOffset { get; init; }
+        public uint TableId { get; init; }
+        public uint PageId { get; init; }
+        public uint RowId { get; init; }
+        public uint RowOffset { get; init; }
         public Guid SchemaId { get; init; }
+        public RowType RowType { get; init; }
         public byte[] ToBinaryFormat()
         {
             var arrays = new List<byte[]>(5);
 
             arrays.Add(DbBinaryConvert.GuidToBinary(DatabaseId));
-            arrays.Add(DbBinaryConvert.IntToBinary(TableId));
-            arrays.Add(DbBinaryConvert.IntToBinary(PageId));
-            arrays.Add(DbBinaryConvert.IntToBinary(RowId));
-            arrays.Add(DbBinaryConvert.IntToBinary(RowOffset));
+            arrays.Add(DbBinaryConvert.UIntToBinary(TableId));
+            arrays.Add(DbBinaryConvert.UIntToBinary(PageId));
+            arrays.Add(DbBinaryConvert.UIntToBinary(RowId));
+            arrays.Add(DbBinaryConvert.UIntToBinary(RowOffset));
             arrays.Add(DbBinaryConvert.GuidToBinary(SchemaId));
 
             return DbBinaryConvert.ArrayStitch(arrays);
@@ -41,7 +43,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public RowAddress ToRowAddress()
         {
-            return new RowAddress(PageId, RowId, RowOffset, Guid.Empty);
+            return new RowAddress(PageId, RowId, RowOffset, Guid.Empty, RowType);
         }
     }
 }

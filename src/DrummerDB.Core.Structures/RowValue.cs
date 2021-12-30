@@ -21,7 +21,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <summary>
         /// Indicates how far the byte value starts in the row (minus the preamble)
         /// </summary>
-        public int ParseValueLength { get; set; }
+        public uint ParseValueLength { get; set; }
         #endregion
 
         #region Constructors
@@ -67,6 +67,11 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public bool IsDataSet()
+        {
+            return _value is not null;
+        }
+
         public string DebugValue()
         {
             if (_value is not null)
@@ -356,7 +361,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     {
                         if (value.Length < Column.Length)
                         {
-                            value = value.PadRight(Column.Length);
+                            value = value.PadRight((int)Column.Length);
                         }
                     }
 
@@ -512,7 +517,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// Returns the binary array size of the value
         /// </summary>
         /// <returns>the binary array size of the value</returns>
-        public int BinarySize()
+        public uint BinarySize()
         {
             if (Column.IsFixedBinaryLength)
             {
@@ -527,7 +532,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             }
             else
             {
-                return _value.Length;
+                return (uint)_value.Length;
             }
         }
 

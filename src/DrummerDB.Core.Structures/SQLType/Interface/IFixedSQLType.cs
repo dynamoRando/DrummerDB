@@ -2,6 +2,6 @@
 {
     internal interface IFixedSQLType
     {
-        public int Size();
+        public uint Size();
     }
 }

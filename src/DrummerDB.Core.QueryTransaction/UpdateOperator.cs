@@ -66,7 +66,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             foreach (var rowAddress in targets.Item2)
                             {
-                                if (rowAddress.ParticipantId == Guid.Empty)
+                                if (rowAddress.RemotableId == Guid.Empty)
                                 {
                                     var row = table.GetRow(rowAddress);
                                     foreach (var source in _sources)
@@ -77,10 +77,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                                             if (table.HasColumn(updateValue.Column.ColumnName))
                                             {
-                                                row.SetValue(updateValue.Column.ColumnName, updateValue.Value);
-                                                if (!table.XactUpdateRow(row, transaction, transactionMode))
+                                                if (row.IsValueGroup())
                                                 {
-                                                    rowsUpdated = false;
+                                                    row.AsValueGroup().SetValue(updateValue.Column.ColumnName, updateValue.Value);
+                                                    if (!table.XactUpdateRow(row, transaction, transactionMode))
+                                                    {
+                                                        rowsUpdated = false;
+                                                    }
                                                 }
                                             }
                                             else
@@ -94,7 +97,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 else
                                 {
                                     HostDb hostDb = _db.GetHostDatabase(Address.DatabaseId);
-                                    var participant = hostDb.GetParticipant(rowAddress.ParticipantId);
+                                    var participant = hostDb.GetParticipant(rowAddress.RemotableId);
                                     foreach (var source in _sources)
                                     {
                                         if (source is UpdateTableValue)

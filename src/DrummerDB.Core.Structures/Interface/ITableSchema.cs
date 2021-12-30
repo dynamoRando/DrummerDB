@@ -13,7 +13,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// <value>
         /// The INT Id of the table.
         /// </value>
-        int Id { get; }
+        uint Id { get; }
 
         string Name { get; }
 

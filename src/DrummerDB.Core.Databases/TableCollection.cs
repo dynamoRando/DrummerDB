@@ -54,7 +54,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
-        public Table Get(int tableId)
+        public Table Get(uint tableId)
         {
             foreach (var table in _tables)
             {

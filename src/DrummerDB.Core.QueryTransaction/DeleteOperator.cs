@@ -58,7 +58,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             foreach (var rowAddress in targets.Item2)
                             {
-                                if (rowAddress.ParticipantId == Guid.Empty)
+                                if (rowAddress.RemotableId == Guid.Empty)
                                 {
                                     var row = table.GetRow(rowAddress);
                                     if (table.XactDeleteRow(row, transaction, transactionMode))
@@ -69,7 +69,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 else
                                 {
                                     // need to delete the remote row first
-                                    var participant = db.GetParticipant(rowAddress.ParticipantId);
+                                    var participant = db.GetParticipant(rowAddress.RemotableId);
                                     isSuccessful = db.XactRequestParticipantRemoveRow
                                         (
                                         participant,

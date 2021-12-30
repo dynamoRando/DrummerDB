@@ -1,5 +1,4 @@
 ﻿using Drummersoft.DrummerDB.Core.Structures.Abstract;
-using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Factory;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
@@ -58,26 +57,22 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         {
             return _basePage.GetRowAddressesWithAllValues(values);
         }
-        public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false)
+        public override List<uint> GetRowOffsets(uint rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false)
         {
             return _basePage.GetRowOffsets(rowId, stopAtFirstForward, includeDeletedRows);
         }
 
-        public override bool HasRow(int rowId)
+        public override bool HasRow(uint rowId)
         {
             return _basePage.HasRow(rowId);
         }
-        public override RowDebug GetDebugRow(int rowId)
-        {
-            return _basePage.GetDebugRow(rowId);
-        }
-
-        public override void ForwardRows(int rowId, int newPageId, int newPageOffset)
+    
+        public override void ForwardRows(uint rowId, uint newPageId, uint newPageOffset)
         {
             _basePage.ForwardRows(rowId, newPageId, newPageOffset);
         }
 
-        public override PageRowStatus GetRowStatus(int rowId)
+        public override PageRowStatus GetRowStatus(uint rowId)
         {
             return _basePage.GetRowStatus(rowId);
         }
@@ -87,7 +82,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         /// <param name="rowSize">The length of the row</param>
         /// <returns>True if there is room on the page, otherwise false</returns>
-        public override bool IsFull(int rowSize)
+        public override bool IsFull(uint rowSize)
         {
             return _basePage.IsFull(rowSize);
         }
@@ -97,12 +92,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         /// <param name="rowId">The row id to delete</param>
         /// <remarks>Note that deleting a row does not internally decrement the number of rows on a page nor the total bytes used. Those values are only reset if the page is rebuilt.</remarks>
-        public override void DeleteRow(int rowId)
+        public override void DeleteRow(uint rowId)
         {
             _basePage.DeleteRow(rowId);
         }
 
-        public override PageUpdateRowResult TryUpdateRowData(IRow updatedRow, out int updatedOffset)
+        public override PageUpdateRowResult TryUpdateRowData(Row updatedRow, out uint updatedOffset)
         {
             return _basePage.TryUpdateRowData(updatedRow, out updatedOffset);
         }
@@ -113,7 +108,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <param name="row">The row to be added</param>
         /// <exception cref="InvalidOperationException">Thrown if there is not enough room on the Page's data.</exception>
         /// <returns>The offset of where the row was added onto the page</returns>
-        public override int AddRow(IRow row)
+        public override uint AddRow(Row row)
         {
             return _basePage.AddRow(row);
         }
@@ -124,12 +119,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <param name="rowId">The row id to return</param>
         /// <returns>The specified row if found, otherwise NULL</returns>
         /// <remarks>Note that this function can be used to get rows forwarded to other pages.</remarks>
-        public override IRow GetRow(int rowId)
+        public override Row GetRow(uint rowId)
         {
             return _basePage.GetRow(rowId);
         }
 
-        public override IRow GetRow(RowAddress address)
+        public override Row GetRow(RowAddress address)
         {
             return _basePage.GetRow(address);
         }
@@ -138,7 +133,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// The Id of the Page, read from the Page's data
         /// </summary>
         /// <returns>The id of this page</returns>
-        public override int PageId()
+        public override uint PageId()
         {
             return _basePage.PageId();
         }
@@ -156,7 +151,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// The Table Id of the Page, read from the Page's data
         /// </summary>
         /// <returns></returns>
-        public override int TableId()
+        public override uint TableId()
         {
             return _basePage.TableId();
         }
@@ -165,7 +160,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// The total rows on the page, read from the Page's data
         /// </summary>
         /// <returns>The total rows on this page</returns>
-        public override int TotalRows()
+        public override uint TotalRows()
         {
             return _basePage.TotalRows();
         }
@@ -174,7 +169,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// The total bytes used on this page, read from the Page's data
         /// </summary>
         /// <returns>The total bytes on this page</returns>
-        public override int TotalBytesUsed()
+        public override uint TotalBytesUsed()
         {
             return _basePage.TotalBytesUsed();
         }
@@ -208,7 +203,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             throw new NotImplementedException();
         }
 
-        public override int GetCountOfRowIdsOnPage(bool includeDeletedRows = false)
+        public override uint GetCountOfRowIdsOnPage(bool includeDeletedRows = false)
         {
             throw new NotImplementedException();
         }
@@ -218,7 +213,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             throw new NotImplementedException();
         }
 
-        public override int GetCountOfRowsWithValue(IRowValue value)
+        public override uint GetCountOfRowsWithValue(IRowValue value)
         {
             return _basePage.GetCountOfRowsWithValue(value);
         }

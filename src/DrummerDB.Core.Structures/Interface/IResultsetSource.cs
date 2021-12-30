@@ -2,6 +2,6 @@
 {
     internal interface IResultsetSource
     {
-        int Order { get; set; }
+        uint Order { get; set; }
     }
 }

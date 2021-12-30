@@ -70,7 +70,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Integration
             dbManager.XactCreateNewHostDatabase(userDbName, out dbId);
 
             var tbName = "TableTestUsers";
-            var tbId = 1;
+            uint tbId = 1;
             Guid tableObjectId;
 
             var cols = new List<ColumnSchema>();

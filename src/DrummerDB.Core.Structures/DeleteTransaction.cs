@@ -16,7 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public override SQLAddress Address => _address;
         public IRow DeletedRow => _rowToBeDeleted;
 
-        public DeleteTransaction(Guid databaseId, int tableId, int rowId, int pageId, int rowOffset, IRow rowToBeDeleted, Guid schemaId) : base(databaseId, tableId)
+        public DeleteTransaction(Guid databaseId, uint tableId, uint rowId, uint pageId, uint rowOffset, IRow rowToBeDeleted, Guid schemaId) : base(databaseId, tableId)
         {
             _address = new SQLAddress { DatabaseId = databaseId, TableId = tableId, PageId = pageId, RowId = rowId, RowOffset = rowOffset, SchemaId = schemaId };
             _rowToBeDeleted = rowToBeDeleted;

@@ -30,7 +30,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var db = _db as DbManager;
                     UserDatabase targetDb = db.GetHostDatabase(DatabaseName);
 
-                    int id = targetDb.GetMaxTableId() + 1;
+                    uint id = targetDb.GetMaxTableId() + 1;
 
                     if (TableName.Contains('.'))
                     {

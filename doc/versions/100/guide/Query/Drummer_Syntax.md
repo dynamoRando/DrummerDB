@@ -51,6 +51,23 @@ Returns the logical storage policy for the specified table. This is interpreted 
 
 `SELECT LogicalStoragePolicy FROM sys.UserTables WHERE TableName = {tableName}`
 
+## Set Notify Host
+### Syntax
+`SET NOTIFY HOST FOR {partialDatabaseName} TABLE {tableName} OPTION [on|off]`
+
+### Description
+Configures the specified table in the specified partial database to notify it's remote counterpart (the host) of any data changes made to the table. By default when a contract is first generated this value is set to `TRUE`.
+
+### Context
+A Participant has full authority over their tables in the partial database. As data is inserted from the host and saved at the participant, the participant also has the option to update their data locally. 
+
+Whenever a row is saved at a participant, a data hash of the values is saved at the host. 
+
+Should the participant update the values locally in their database, this option determines if the database system will attempt to update the host
+of the changed data hash if the row is updated. 
+
+If the row is deleted locally at the participant, this option will determine if the database system will update the host to notify that the row was deleted remotely (from the host's perspective).
+
 ## Generate Host Info As
 ### Syntax
 `GENERATE HOST INFO AS HOSTNAME {alias}`

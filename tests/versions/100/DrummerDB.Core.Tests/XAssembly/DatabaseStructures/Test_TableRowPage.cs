@@ -1,7 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.Memory;
 using Drummersoft.DrummerDB.Core.Structures;
-using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Factory;
 using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Tests.Mocks;
@@ -34,7 +33,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
              */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -79,7 +78,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             page.AddRow(row);
 
             // --- ASSERT
-            Assert.Equal(1, page.TotalRows());
+            Assert.Equal(1, (int)page.TotalRows());
         }
 
         /// <summary>
@@ -102,7 +101,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
              */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -146,8 +145,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             // --- ACT
             page.AddRow(row);
-            int totalBytes = page.TotalBytesUsed();
-            int rowSize = row.Size();
+            uint totalBytes = page.TotalBytesUsed();
+            uint rowSize = row.Size();
 
             // --- ASSERT
             Assert.Equal(rowSize, totalBytes);
@@ -174,7 +173,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -206,7 +205,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
             var row = table.GetNewLocalRow();
-            int rowId = row.Id;
+            uint rowId = row.Id;
             row.SortBinaryOrder();
 
             row.SetValue("Name", "Randy");
@@ -221,7 +220,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             page.AddRow(row);
 
             var row2 = table.GetNewLocalRow();
-            int row2Id = row2.Id;
+            uint row2Id = row2.Id;
             row2.SortBinaryOrder();
 
             string row2NickName = "Way";
@@ -234,14 +233,14 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             page.AddRow(row2);
 
-            int rowSize = row.Size();
-            int row2Size = row2.Size();
+            uint rowSize = row.Size();
+            uint row2Size = row2.Size();
 
-            int totalBytes = page.TotalBytesUsed();
+            uint totalBytes = page.TotalBytesUsed();
 
 
             var row3 = table.GetNewLocalRow();
-            int row3Id = row3.Id;
+            uint row3Id = row3.Id;
             row3.SortBinaryOrder();
 
             string row3NickName = "Dad";
@@ -254,7 +253,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             page.AddRow(row3);
 
-            var returnedrow = page.GetRow(row3Id);
+            var returnedrow = page.GetRow(row3Id) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(row3NickName, returnedrow.GetValueInString("NickName"));
@@ -279,7 +278,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -311,7 +310,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
             var row = table.GetNewLocalRow();
-            int rowId = row.Id;
+            uint rowId = row.Id;
             row.SortBinaryOrder();
 
             row.SetValue("Name", "Randy");
@@ -326,7 +325,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             page.AddRow(row);
 
             var row2 = table.GetNewLocalRow();
-            int row2Id = row2.Id;
+            uint row2Id = row2.Id;
             row2.SortBinaryOrder();
 
             string row2NickName = "Way";
@@ -339,14 +338,14 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             page.AddRow(row2);
 
-            int rowSize = row.Size();
-            int row2Size = row2.Size();
+            uint rowSize = row.Size();
+            uint row2Size = row2.Size();
 
-            int totalBytes = page.TotalBytesUsed();
+            uint totalBytes = page.TotalBytesUsed();
 
 
             var row3 = table.GetNewLocalRow();
-            int row3Id = row3.Id;
+            uint row3Id = row3.Id;
             row3.SortBinaryOrder();
 
             string row3NickName = "Dad";
@@ -359,7 +358,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             page.AddRow(row3);
 
-            var returnedrow = page.GetRow(row2Id);
+            var returnedrow = page.GetRow(row2Id) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(row2NickName, returnedrow.GetValueInString("NickName"));
@@ -387,11 +386,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
-            int currentRowInterval = 0;
+            uint currentRowInterval = 0;
 
             var columns = new List<ColumnSchema>();
 
@@ -452,7 +451,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -483,7 +482,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
             var row = table.GetNewLocalRow();
-            int rowId = row.Id;
+            uint rowId = row.Id;
             row.SortBinaryOrder();
 
             row.SetValue("Name", "Randy");
@@ -497,7 +496,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             page.AddRow(row);
 
             var row2 = table.GetNewLocalRow();
-            int row2Id = row2.Id;
+            uint row2Id = row2.Id;
             row2.SortBinaryOrder();
 
             string row2NickName = "Way";
@@ -509,13 +508,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             page.AddRow(row2);
 
-            int rowSize = row.Size();
-            int row2Size = row2.Size();
+            uint rowSize = row.Size();
+            uint row2Size = row2.Size();
 
-            int totalBytes = page.TotalBytesUsed();
+            uint totalBytes = page.TotalBytesUsed();
 
             var row3 = table.GetNewLocalRow();
-            int row3Id = row3.Id;
+            uint row3Id = row3.Id;
             row3.SortBinaryOrder();
 
             string row3NickName = "Dad";
@@ -531,10 +530,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // delete row 2
             page.DeleteRow(row2Id);
 
-            var deletedRow = page.GetRow(row2Id);
+            var deletedRow = page.GetRow(row2Id) as LocalRow;
 
             // --- ASSERT
-            Assert.True(deletedRow.IsDeleted);
+            Assert.True(deletedRow.IsLogicallyDeleted);
         }
 
         /// <summary>
@@ -556,7 +555,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -587,7 +586,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
             var row = table.GetNewLocalRow();
-            int rowId = row.Id;
+            uint rowId = row.Id;
             row.SortBinaryOrder();
 
             row.SetValue("Name", "Randy");
@@ -601,7 +600,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             page.AddRow(row);
 
             var row2 = table.GetNewLocalRow();
-            int row2Id = row2.Id;
+            uint row2Id = row2.Id;
             row2.SortBinaryOrder();
 
             string row2NickName = "Way";
@@ -613,13 +612,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             page.AddRow(row2);
 
-            int rowSize = row.Size();
-            int row2Size = row2.Size();
+            uint rowSize = row.Size();
+            uint row2Size = row2.Size();
 
-            int totalBytes = page.TotalBytesUsed();
+            uint totalBytes = page.TotalBytesUsed();
 
             var row3 = table.GetNewLocalRow();
-            int row3Id = row3.Id;
+            uint row3Id = row3.Id;
             row3.SortBinaryOrder();
 
             string row3NickName = "Dad";
@@ -637,7 +636,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             // --- ACT
             page.TryUpdateRowData(row, out _);
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(nameFlip, updatedRow.GetValueInString("Name"));
@@ -661,7 +660,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
              */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -693,7 +692,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
             var row = table.GetNewLocalRow();
-            int rowId = row.Id;
+            uint rowId = row.Id;
             row.SortBinaryOrder();
 
             row.SetValue("Name", "Randy");
@@ -706,7 +705,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             page.AddRow(row);
 
             var row2 = table.GetNewLocalRow();
-            int row2Id = row2.Id;
+            uint row2Id = row2.Id;
             row2.SortBinaryOrder();
 
             string row2NickName = "Way";
@@ -718,13 +717,13 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             page.AddRow(row2);
 
-            int rowSize = row.Size();
-            int row2Size = row2.Size();
+            uint rowSize = row.Size();
+            uint row2Size = row2.Size();
 
-            int totalBytes = page.TotalBytesUsed();
+            uint totalBytes = page.TotalBytesUsed();
 
             var row3 = table.GetNewLocalRow();
-            int row3Id = row3.Id;
+            uint row3Id = row3.Id;
             row3.SortBinaryOrder();
 
             string row3NickName = "Dad";
@@ -741,7 +740,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // --- ACT
             row.SetValue("Name", newName);
             page.TryUpdateRowData(row, out _);
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(newName, updatedRow.GetValueInString("Name"));
@@ -765,7 +764,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
              */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -796,8 +795,8 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
-            var row = table.GetNewLocalRow();
-            int rowId = row.Id;
+            LocalRow row = table.GetNewLocalRow();
+            uint rowId = row.Id;
             row.SortBinaryOrder();
 
             row.SetValue("Name", "Randy");
@@ -810,7 +809,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             page.AddRow(row);
 
             var row2 = table.GetNewLocalRow();
-            int row2Id = row2.Id;
+            uint row2Id = row2.Id;
             row2.SortBinaryOrder();
 
             string row2NickName = "Way";
@@ -822,10 +821,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             page.AddRow(row2);
 
-            int totalBytes = page.TotalBytesUsed();
+            uint totalBytes = page.TotalBytesUsed();
 
             var row3 = table.GetNewLocalRow();
-            int row3Id = row3.Id;
+            uint row3Id = row3.Id;
             row3.SortBinaryOrder();
 
             string row3NickName = "Dad";
@@ -845,7 +844,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 1
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             var newName2 = "12345678901234567890";
 
@@ -854,7 +853,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 2
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
             var newName3 = "foobazbar";
@@ -862,7 +861,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 3
             page.TryUpdateRowData(row, out _);
 
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ASSERT
             Assert.Equal(newName3, updatedRow.GetValueInString("Name"));
@@ -884,7 +883,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -940,7 +939,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
            */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -976,7 +975,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
             var row = table.GetNewLocalRow();
-            int rowId = row.Id;
+            uint rowId = row.Id;
             row.SortBinaryOrder();
 
             row.SetValue("Name", "Randy");
@@ -990,7 +989,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             page.AddRow(row);
 
             var row2 = table.GetNewLocalRow();
-            int row2Id = row2.Id;
+            uint row2Id = row2.Id;
             row2.SortBinaryOrder();
 
             string row2NickName = "Way";
@@ -1003,10 +1002,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             page.AddRow(row2);
 
-            int totalBytes = page.TotalBytesUsed();
+            uint totalBytes = page.TotalBytesUsed();
 
             var row3 = table.GetNewLocalRow();
-            int row3Id = row3.Id;
+            uint row3Id = row3.Id;
             row3.SortBinaryOrder();
 
             string row3NickName = "Dad";
@@ -1027,7 +1026,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 1
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             var newName2 = "12345678901234567890";
 
@@ -1036,7 +1035,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 2
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
             var newName3 = "foobazbar";
@@ -1044,10 +1043,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 3
             page.TryUpdateRowData(row, out _);
 
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
-            var returnedRow = page.GetRow(rowId);
+            var returnedRow = page.GetRow(rowId) as LocalRow;
             bool nickNamevalueIsNull = returnedRow.IsValueNull("NickName");
             bool rankValueIsNotNull = returnedRow.IsValueNull("Rank");
 
@@ -1072,7 +1071,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
              */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -1100,7 +1099,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
             var row = table.GetNewLocalRow();
-            int rowId = row.Id;
+            uint rowId = row.Id;
             row.SortBinaryOrder();
 
             string rank = "1";
@@ -1120,7 +1119,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 1
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             var newName2 = "12345678901234567890";
 
@@ -1129,7 +1128,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 2
             page.TryUpdateRowData(row, out _);
 
-            row = page.GetRow(rowId) as Row;
+            row = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
             var newName3 = "foobazbar";
@@ -1137,10 +1136,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             // forward 3
             page.TryUpdateRowData(row, out _);
 
-            var updatedRow = page.GetRow(rowId);
+            var updatedRow = page.GetRow(rowId) as LocalRow;
 
             // --- ACT
-            var returnedRow = page.GetRow(rowId);
+            var returnedRow = page.GetRow(rowId) as LocalRow;
             bool nickNameValueIsNull = returnedRow.IsValueNull("NickName");
             bool rankValueIsNotNull = returnedRow.IsValueNull("Rank");
             var rankValue = returnedRow.GetValueInString("Rank");
@@ -1167,7 +1166,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
              */
 
             // --- ARRANGE
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -1208,7 +1207,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var table = new Table(tableSchema, mockCache, mockRemoteDataManager, mockStorage, xManager);
 
             var rowAllNull = table.GetNewLocalRow();
-            int rowIdAllNull = rowAllNull.Id;
+            uint rowIdAllNull = rowAllNull.Id;
             rowAllNull.SortBinaryOrder();
 
             rowAllNull.SetValueAsNullForColumn("Name");
@@ -1220,10 +1219,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
 
             var address = new PageAddress(table.Address.DatabaseId, table.Address.TableId, 1, Guid.Parse(Constants.DBO_SCHEMA_GUID));
             var page = UserDataPageFactory.GetUserDataPage100(address, tableSchema);
-            int rowAllNullOffset = page.AddRow(rowAllNull);
+            uint rowAllNullOffset = page.AddRow(rowAllNull);
 
             var rowNotNull = table.GetNewLocalRow();
-            int rowIdNotNull = rowNotNull.Id;
+            uint rowIdNotNull = rowNotNull.Id;
             rowNotNull.SortBinaryOrder();
 
             /*
@@ -1262,10 +1261,10 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             rowNotNull.SetValue("Birthday", "01-01-1990");
             rowNotNull.SetValue("Salary", "10.00");
 
-            int rowNotNullOffset = page.AddRow(rowNotNull);
+            uint rowNotNullOffset = page.AddRow(rowNotNull);
 
             var rowMixNull = table.GetNewLocalRow();
-            int rowIdMixNull = rowMixNull.Id;
+            uint rowIdMixNull = rowMixNull.Id;
             rowMixNull.SortBinaryOrder();
 
             rowMixNull.SetValue("Name", "John");
@@ -1275,12 +1274,12 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             rowMixNull.SetValue("IsEmployed", "false");
             rowMixNull.SetValueAsNullForColumn("Salary");
 
-            int rowMixNullOffset = page.AddRow(rowMixNull);
+            uint rowMixNullOffset = page.AddRow(rowMixNull);
 
             // --- ACT
-            var returnedNullRow = page.GetRow(rowIdAllNull);
-            var returnedNotNullRow = page.GetRow(rowIdNotNull);
-            var returnedMixRow = page.GetRow(rowIdMixNull);
+            var returnedNullRow = page.GetRow(rowIdAllNull) as LocalRow;
+            var returnedNotNullRow = page.GetRow(rowIdNotNull) as LocalRow;
+            var returnedMixRow = page.GetRow(rowIdMixNull) as LocalRow;
 
             // --- ASSERT
             Assert.Equal("Randy", returnedNotNullRow.GetValueInString("Name"));
@@ -1315,7 +1314,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
         [Fact]
         public void Test_Add_Row_Get_Value_At_Address()
         {
-            int tableId = 990;
+            uint tableId = 990;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 
@@ -1377,20 +1376,6 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
             var values = cache.GetValues(table.Address, "Name", table.Schema());
 
             nameValueAddress = values.First();
-
-            var pageDebug = new PageDebug(page.Data);
-
-            // entire byte array of the page
-            var pageDataDebugString = pageDebug.DebugData();
-
-            // row data on the page (this is basically minus the preamble)
-            var pageDataRowString = pageDebug.RowDataDebug();
-
-            var rowDebug = page.GetDebugRow(returnedRow.Id);
-
-            var rowPreambleDebug = rowDebug.RowPreambleDebug();
-            var rowSizeDebug = rowDebug.RowSizeDebug();
-            var rowDataDebug = rowDebug.RowDataDebug();
 
             var valueName = page.GetValueAtAddress(nameValueAddress, columnSchema);
             var returnedValue = valueName.GetValueInString();

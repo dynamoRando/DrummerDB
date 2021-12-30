@@ -10,7 +10,7 @@ using drumContract = Drummersoft.DrummerDB.Core.Structures.Contract;
 using drumTableSchema = Drummersoft.DrummerDB.Core.Structures.TableSchema;
 using drumColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using drumParticipant = Drummersoft.DrummerDB.Core.Structures.Participant;
-using structRow = Drummersoft.DrummerDB.Core.Structures.Row;
+using structRow = Drummersoft.DrummerDB.Core.Structures.PartialRow;
 using structColumn = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using comColumn = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
 using comRow = Drummersoft.DrummerDB.Common.Communication.Row;
@@ -56,7 +56,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             bool hasLogin;
             AuthResult result = null;
 
-            if (request.Pw is null || request.Pw == String.Empty)
+            if (request.Pw is null || request.Pw == string.Empty)
             {
                 hasLogin = _handler.SystemHasHost(request.UserName, request.Token.ToByteArray());
             }
@@ -215,8 +215,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
             {
                 // we should be checking to see if the host has authorizations to update the row in the database
                 Guid dbId = Guid.Parse(request.DatabaseId);
-                int tableId = Convert.ToInt32(request.TableId);
-                int rowId = Convert.ToInt32(request.WhereRowId);
+                uint tableId = request.TableId;
+                uint rowId = request.WhereRowId;
                 var updateValues = new RemoteValueUpdate {  ColumnName = request.UpdateColumn, Value = request.UpdateValue }; ;
 
                  isSuccessful = _handler.UpdateRowInPartialDb(
@@ -250,8 +250,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
             {
                 // we should be checking to see if the host has authorizations to update the row in the database
                 Guid dbId = Guid.Parse(request.RowAddress.DatabaseId);
-                int tableId = Convert.ToInt32(request.RowAddress.TableId);
-                int rowId = Convert.ToInt32(request.RowAddress.RowId);
+                uint tableId = request.RowAddress.TableId;
+                uint rowId = request.RowAddress.RowId;
                 
                 isSuccessful = _handler.DeleteRowInPartialDb(
                    dbId,
@@ -272,8 +272,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
         {
             var result = new GetRowFromPartialDatabaseResult();
             Guid dbId = Guid.Empty;
-            int tableId = 0;
-            int rowId = 0;
+            uint tableId = 0;
+            uint rowId = 0;
 
             if (request.MessageInfo is not null)
             {
@@ -284,8 +284,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
             if (hasLogin.Result.IsAuthenticated)
             {
                 dbId = Guid.Parse(request.RowAddress.DatabaseId);
-                tableId = Convert.ToInt32(request.RowAddress.TableId);
-                rowId = Convert.ToInt32(request.RowAddress.RowId);
+                tableId = request.RowAddress.TableId;
+                rowId = request.RowAddress.RowId;
 
                 var row = _handler.GetRowFromPartDb
                     (
@@ -325,7 +325,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             foreach (var table in request.Contract.Schema.Tables)
             {
-                int tableId = Convert.ToInt32(table.TableId);
+                uint tableId = table.TableId;
                 string tableName = table.TableName;
                 int logicalStoragePolicy = Convert.ToInt32(table.LogicalStoragePolicy);
 
@@ -333,8 +333,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
                 foreach (var column in table.Columns)
                 {
-                    int colOrdinal = Convert.ToInt32(column.Ordinal);
-                    int colLength = Convert.ToInt32(column.ColumnLength);
+                    uint colOrdinal = column.Ordinal;
+                    uint colLength = column.ColumnLength;
                     var enumColType = (SQLColumnType)column.ColumnType;
                     var colType = SQLColumnTypeConverter.Convert(enumColType, colLength);
                     var dColumn = new drumColumn(column.ColumnName, colType, colOrdinal);

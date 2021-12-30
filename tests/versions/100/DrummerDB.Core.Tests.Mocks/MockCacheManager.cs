@@ -1,6 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Core.Memory.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
 {
     internal class MockCacheManager : ICacheManager
     {
-        int _rowId = 0;
+        uint _rowId = 0;
 
         public void AddSystemDbSystemPage(ISystemPage page)
         {
@@ -46,6 +47,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public bool DeleteRow(uint rowId, TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<RowAddress> FindRowAddressesWithValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
             throw new NotImplementedException();
@@ -76,7 +82,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public int GetMaxRowIdForTree(TreeAddress address)
+        public uint GetMaxRowIdForTree(TreeAddress address)
         {
             _rowId++;
             return _rowId;
@@ -87,7 +93,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public IRow GetRow(int rowId, TreeAddress address)
+        public IRow GetRow(uint rowId, TreeAddress address)
         {
             throw new NotImplementedException();
         }
@@ -98,6 +104,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         }
 
         public RowAddress GetRowAddress(TreeAddress treeAddress, int rowId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public RowAddress GetRowAddress(TreeAddress treeAddress, uint rowId)
         {
             throw new NotImplementedException();
         }
@@ -133,6 +144,11 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         }
 
         public TreeStatus GetTreeSizeStatus(TreeAddress address, int sizeOfDataToAdd)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TreeStatus GetTreeSizeStatus(TreeAddress address, uint sizeOfDataToAdd)
         {
             throw new NotImplementedException();
         }
@@ -187,12 +203,22 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public CacheAddRowResult TryAddRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool TryRemoveTree(TreeAddress address)
         {
             throw new NotImplementedException();
         }
 
         public void UpdateRow(IRow row, TreeAddress address, ITableSchema schema, out int pageId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId)
         {
             throw new NotImplementedException();
         }
@@ -228,6 +254,46 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
         }
 
         public bool UserSystemCacheHasDatabase(Guid dbId)
+        {
+            throw new NotImplementedException();
+        }
+
+        uint IMemoryData.CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        uint IMemoryData.CountOfRowsWithValue(TreeAddress address, IRowValue value)
+        {
+            throw new NotImplementedException();
+        }
+
+        Row IMemoryData.GetRow(uint rowId, TreeAddress address)
+        {
+            throw new NotImplementedException();
+        }
+
+        Row IMemoryData.GetRow(RowAddress address, TreeAddress treeAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        Row[] IMemoryData.GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        {
+            throw new NotImplementedException();
+        }
+
+        List<Row> IMemoryData.GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        Row[] IMemoryData.GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        uint[] IMemory.UserDataGetContainerPages(TreeAddress address)
         {
             throw new NotImplementedException();
         }

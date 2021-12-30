@@ -184,9 +184,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public bool DeleteRowInPartialDb(
             Guid dbId,
             string dbName,
-            int tableId,
+            uint tableId,
             string tableName,
-            int rowId
+            uint rowId
             )
         {
             // note: we didn't leverage a database action here, should we?
@@ -218,9 +218,9 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public bool UpdateRowInPartialDb(
             Guid dbId,
             string dbName,
-            int tableId,
+            uint tableId,
             string tableName,
-            int rowId,
+            uint rowId,
             RemoteValueUpdate updateValues)
         {
 
@@ -244,7 +244,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 table = db.GetTable(tableName);
             }
 
-            var row = table.GetRow(rowId);
+            var row = table.GetPartialRow(rowId);
             if (row is not null)
             {
                 row.SetValue(updateValues.ColumnName, updateValues.Value);
@@ -254,7 +254,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return isSuccessful;
         }
 
-        public IRow GetRowFromPartDb(Guid databaseId, int tableId, int rowId, string dbName, string tableName)
+        public IRow GetRowFromPartDb(Guid databaseId, uint tableId, uint rowId, string dbName, string tableName)
         {
 
             // we should be checking against the database contract to make sure that the host has
@@ -302,22 +302,21 @@ namespace Drummersoft.DrummerDB.Core.Communication
         /// <exception cref="NotImplementedException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
         /// <remarks>This function serves as the inverse of the <see cref="RowValue.GetValueInBinary(bool, bool)"/> function.</remarks>
-        private Row GetRowFromInsertRequest(InsertRowRequest request)
+        private PartialRow GetRowFromInsertRequest(InsertRowRequest request)
         {
             string dbName = request.Table.DatabaseName;
             string tableName = request.Table.TableName;
 
             var partDb = _dbManager.GetPartialDb(dbName);
             var table = partDb.GetTable(tableName);
-            var localRow = table.GetNewLocalRow();
-            localRow.Id = Convert.ToInt32(request.RowId);
+            var partialRow = table.GetNewPartialRow(request.RowId, Guid.Parse(request.HostInfo.HostGUID));
 
             foreach (var value in request.Values)
             {
                 var binaryData = value.Value.ToByteArray();
                 var colType = (SQLColumnType)value.Column.ColumnType;
 
-                foreach (var rowValue in localRow.Values)
+                foreach (var rowValue in partialRow.Values)
                 {
                     if (string.Equals(rowValue.Column.Name, value.Column.ColumnName))
                     {
@@ -374,7 +373,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 }
             }
 
-            return localRow;
+            return partialRow;
         }
         #endregion
     }

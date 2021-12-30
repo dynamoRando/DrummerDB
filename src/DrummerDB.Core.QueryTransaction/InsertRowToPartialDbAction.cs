@@ -1,6 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;

@@ -9,7 +9,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
     internal class ResultsetSourceTable : IResultsetSource
     {
         public TreeAddress Table { get; set; }
-        public int ColumnId { get; set; }
-        public int Order { get; set; }
+        public uint ColumnId { get; set; }
+        public uint Order { get; set; }
     }
 }

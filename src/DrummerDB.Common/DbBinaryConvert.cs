@@ -25,6 +25,11 @@ namespace Drummersoft.DrummerDB.Common
             return BitConverter.GetBytes(i);
         }
 
+        public static byte[] UIntToBinary(uint ui)
+        {
+            return BitConverter.GetBytes(ui);
+        }
+        
         public static byte[] IntToBinary(string value)
         {
             int i;
@@ -117,6 +122,11 @@ namespace Drummersoft.DrummerDB.Common
         public static int BinaryToInt(ReadOnlySpan<byte> span)
         {
             return BitConverter.ToInt32(span);
+        }
+
+        public static uint BinaryToUInt(ReadOnlySpan<byte> span)
+        {
+            return BitConverter.ToUInt32(span);
         }
 
         /// <summary>

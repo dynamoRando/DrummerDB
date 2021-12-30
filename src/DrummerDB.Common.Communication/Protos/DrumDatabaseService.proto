@@ -87,6 +87,7 @@ message InsertRowRequest {
 	Drum.MessageInfo messageInfo = 4; 
 	Drum.TransactionInfo transaction = 5;
 	uint32 rowId = 6;
+	DrumDB.Host hostInfo = 7;
 }
 
 // a message for describing the result of a InsertRowRequest

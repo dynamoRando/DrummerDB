@@ -8,14 +8,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     /// </summary>
     class BoolPredicate : IPredicate
     {
-        private int _id;
+        private uint _id;
         public BooleanComparisonOperator ComparisonOperator { get; set; }
         public IPredicate Left { get; set; }
         public IPredicate Right { get; set; }
-        public int Id => _id;
+        public uint Id => _id;
         public Interval Interval => GetInterval();
 
-        public BoolPredicate(int id)
+        public BoolPredicate(uint id)
         {
             _id = id;
         }

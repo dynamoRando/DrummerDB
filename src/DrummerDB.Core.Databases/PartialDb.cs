@@ -69,17 +69,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.HasSchema(schemaName);
         }
 
-        public override Table GetTable(int tableId)
+        public override Table GetTable(uint tableId)
         {
             return _baseDb.GetTable(tableId);
         }
 
-        public override int GetMaxTableId()
+        public override uint GetMaxTableId()
         {
             return _baseDb.GetMaxTableId();
         }
 
-        public override bool HasTable(int tableId)
+        public override bool HasTable(uint tableId)
         {
             return _baseDb.HasTable(tableId);
         }

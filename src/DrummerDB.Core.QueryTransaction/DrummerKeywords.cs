@@ -8,6 +8,7 @@
 
         public const string GENERATE_HOST_INFO_AS_HOSTNAME = "GENERATE HOST INFO AS HOSTNAME";
         public const string SET_LOGICAL_STORAGE = "SET LOGICAL STORAGE";
+        public const string SET_NOTIFY_HOST_FOR = "SET NOTIFY HOST FOR";
         public const string REVIEW_LOGICAL_STORAGE = "REVIEW LOGICAL STORAGE";
         public const string REVIEW_PENDING_CONTRACTS = "REVIEW PENDING CONTRACTS";
         public const string REVIEW_ACCEPTED_CONTRACTS = "REVIEW ACCEPTED CONTRACTS";

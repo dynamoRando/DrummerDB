@@ -16,7 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.XAssembly
         [Fact]
         public void Test_Create_Table()
         {
-            int tableId = 1;
+            uint tableId = 1;
             Guid dbId = Guid.NewGuid();
             string tableName = "Test";
 

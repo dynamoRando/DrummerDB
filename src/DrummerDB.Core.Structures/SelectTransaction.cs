@@ -8,7 +8,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
     {
         private SQLAddress _addresss;
 
-        public SelectTransaction(Guid databaseId, int tableId) : base(databaseId, tableId)
+        public SelectTransaction(Guid databaseId, uint tableId) : base(databaseId, tableId)
         {
             _addresss = new SQLAddress { DatabaseId = databaseId, TableId = tableId, PageId = 0, RowId = 0, RowOffset = 0 };
         }
