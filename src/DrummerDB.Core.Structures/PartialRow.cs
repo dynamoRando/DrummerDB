@@ -73,9 +73,34 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public new void SetValue(string columnName, string value) 
+        {
+            base.SetValue(columnName, value);
+            SetSizes();
+        }
+
+        public new void SetValue(string columnName, byte[] value)
+        {
+            base.SetValue(columnName, value);
+            SetSizes();
+        }
+
+        public new void SetRowData(ITableSchema schema, ReadOnlySpan<byte> span)
+        {
+            base.SetRowData(schema, span);
+            SetSizes();
+        }
+
+        public new void SetValueAsNullForColumn(string columnName)
+        {
+            base.SetValueAsNullForColumn(columnName);
+            SetSizes();
+        }
+
         public void SetRemotableFixedData(ReadOnlySpan<byte> data)
         {
             _remotableFixedData = new RemotableFixedData(data);
+            SetRemotableSize();
         }
 
         public void SetRemotableFixedData(RemotableFixedData data)
@@ -92,6 +117,12 @@ namespace Drummersoft.DrummerDB.Core.Structures
         {
             return GetRowInBinaryFormat();
         }
+
+        public bool HasRemotableDataSet()
+        {
+            return _remotableFixedData is not null;
+        }
+
         #endregion
 
         #region Private Methods
@@ -101,19 +132,10 @@ namespace Drummersoft.DrummerDB.Core.Structures
             _preamble.Type = Type;
             _preamble.RowValueSize = (uint)valueData.Length;
 
-            var arrays = new List<byte[]>(5);
-            var bRemoteId = DbBinaryConvert.GuidToBinary(RemoteId);
-            arrays.Add(bRemoteId);
+            _remotableFixedData.DataHashLength = (uint)DataHashLength;
 
-            var bIsRemoteDeleted = DbBinaryConvert.BooleanToBinary(IsRemoteDeleted);
-            arrays.Add(bIsRemoteDeleted);
-
-            var bRemoteDeletedUTC = DbBinaryConvert.DateTimeToBinary(RemoteDeletionUTC.ToString());
-            arrays.Add(bRemoteDeletedUTC);
-
-            var bDataHashLength = DbBinaryConvert.UIntToBinary(DataHashLength);
-            arrays.Add(bDataHashLength);
-
+            var arrays = new List<byte[]>(2);
+            arrays.Add(_remotableFixedData.ToBinaryFormat());
             arrays.Add(DataHash);
 
             var bRemoteData = DbBinaryConvert.ArrayStitch(arrays);
@@ -126,9 +148,9 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
             var finalArrays = new List<byte[]>(3);
             finalArrays.Add(_preamble.ToBinaryFormat());
-            finalArrays.Add(valueData);
             finalArrays.Add(bRemoteData);
-
+            finalArrays.Add(valueData);
+            
             return DbBinaryConvert.ArrayStitch(finalArrays);
         }
 
@@ -144,6 +166,45 @@ namespace Drummersoft.DrummerDB.Core.Structures
             }
 
             return DbBinaryConvert.ArrayStitch(arrays);
+        }
+
+
+        private void SetTotalSize()
+        {
+            _preamble.RowTotalSize = (uint)_preamble.ToBinaryFormat().Length + _preamble.RowRemotableSize + _preamble.RowValueSize;
+        }
+
+        private void SetRemotableSize()
+        {
+            _preamble.RowRemotableSize = 
+                (uint)_remotableFixedData.ToBinaryFormat().Length +
+                (uint)DataHash.Length
+                ;
+        }
+
+        private void SetValueSize()
+        {
+            SortBinaryOrder();
+            List<byte[]> arrays = new List<byte[]>();
+
+            foreach (var value in Values)
+            {
+                if (value.IsDataSet())
+                {
+                    var bytes = value.GetValueInBinary();
+                    arrays.Add(bytes);
+                }
+            }
+
+            var totalArrays = DbBinaryConvert.ArrayStitch(arrays);
+            _preamble.RowValueSize = (uint)totalArrays.Length;
+        }
+
+        private void SetSizes()
+        {
+            SetRemotableSize();
+            SetValueSize();
+            SetTotalSize();
         }
         #endregion
     }

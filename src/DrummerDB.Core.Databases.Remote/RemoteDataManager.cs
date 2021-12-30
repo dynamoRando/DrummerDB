@@ -15,6 +15,7 @@ using structColumnSchema = Drummersoft.DrummerDB.Core.Structures.ColumnSchema;
 using comRowValue = Drummersoft.DrummerDB.Common.Communication.RowValue;
 using comColumnSchema = Drummersoft.DrummerDB.Common.Communication.ColumnSchema;
 using comTableSchema = Drummersoft.DrummerDB.Common.Communication.TableSchema;
+using comHostInfo = Drummersoft.DrummerDB.Common.Communication.Host;
 using System.Net;
 using Drummersoft.DrummerDB.Common.Communication.Enum;
 using Drummersoft.DrummerDB.Core.Diagnostics;
@@ -100,6 +101,8 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             var request = new InsertRowRequest();
             InsertRowResult? result = null;
+
+            request.HostInfo = GetHostInfo();
 
             // need authentication information to send
             request.Authentication = GetAuthRequest();
@@ -530,6 +533,18 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             xact.TransactionBatchId = request.TransactionBatchId.ToString();
             xact.TransactionMode = Convert.ToUInt32(mode);
             return xact;
+        }
+
+        private comHostInfo GetHostInfo()
+        {
+            var host = new comHostInfo();
+            host.HostGUID = _hostInfo.HostGUID.ToString();
+            host.Token = ByteString.CopyFrom(_hostInfo.Token);
+            host.HostName = _hostInfo.HostName;
+            host.Ip4Address = _hostInfo.IP4Address;
+            host.Ip6Address = _hostInfo.IP6Address;
+
+            return host;
         }
 
         private MessageInfo GetMessageInfo(MessageType type)

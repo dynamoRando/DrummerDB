@@ -47,16 +47,25 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     break;
                 }
 
-                if (item.Type == RowType.Local) //  the next item is the row size, get the size of the row to add to the running total
-                {
-                    // we've read the preample, so add it to our total
-                    runningTotal += (uint)RowConstants.Preamble.Length();
+                runningTotal += item.RowTotalSize;
 
-                    // the remainder is the size of the row minus what we've already read
-                    uint remainder = item.RowTotalSize - (uint)RowConstants.Preamble.Length();
+                /*
+                    switch (item.Type)
+                    {
+                        case RowType.Local:
+                            // we've read the preample, so add it to our total
+                            runningTotal += (uint)RowConstants.Preamble.Length();
 
-                    runningTotal += remainder;
-                }
+                            // the remainder is the size of the row minus what we've already read
+                            uint remainder = item.RowTotalSize - (uint)RowConstants.Preamble.Length();
+
+                            runningTotal += remainder;
+                            break;
+                        default:
+                            throw new InvalidOperationException("Unknown row type");
+                    }
+                 */
+
             }
             while (true);
         }

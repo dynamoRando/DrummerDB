@@ -44,7 +44,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             var sha256Hash = SHA256.Create();
             return sha256Hash.ComputeHash(sourceData);
         }
-     
+
         public override void Delete()
         {
             _preamble.IsLogicallyDeleted = true;
@@ -569,7 +569,15 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         private void SetTotalSize()
         {
-            _preamble.RowTotalSize = (uint)_preamble.ToBinaryFormat().Length + _preamble.RowValueSize;
+            _preamble.RowTotalSize = 
+                (uint)_preamble.ToBinaryFormat().Length + 
+                _preamble.RowRemotableSize + 
+                _preamble.RowValueSize;
+        }
+
+        private void SetRemotableSize()
+        {
+            _preamble.RowRemotableSize = 0;
         }
 
         private void SetValueSize()
@@ -592,6 +600,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         private void SetSizes()
         {
+            SetRemotableSize();
             SetValueSize();
             SetTotalSize();
         }

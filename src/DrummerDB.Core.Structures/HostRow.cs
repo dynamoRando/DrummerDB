@@ -72,15 +72,19 @@ namespace Drummersoft.DrummerDB.Core.Structures
         {
             _preamble = preamble;
         }
-
-        public HostRow(RowPreamble preamble, byte[] dataHash) : base(preamble)
-        {
-            _preamble = preamble;
-            _dataHash = dataHash;
-        }
         #endregion
 
         #region Public Methods
+        public bool HasRemotableDataSet()
+        {
+            return _remotableFixedData is not null;
+        }
+
+        public bool HasDataHashSet()
+        {
+            return _dataHash is not null;
+        }
+
         public override void Delete()
         {
             _preamble.IsLogicallyDeleted = true;
@@ -99,6 +103,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public void SetDataHash(byte[] dataHash)
         {
             _dataHash = dataHash;
+            _remotableFixedData.DataHashLength = (uint)dataHash.Length;
         }
         #endregion
 

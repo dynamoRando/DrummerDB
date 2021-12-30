@@ -309,7 +309,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             var partDb = _dbManager.GetPartialDb(dbName);
             var table = partDb.GetTable(tableName);
-            var partialRow = table.GetNewPartialRow(request.RowId);
+            var partialRow = table.GetNewPartialRow(request.RowId, Guid.Parse(request.HostInfo.HostGUID));
 
             foreach (var value in request.Values)
             {

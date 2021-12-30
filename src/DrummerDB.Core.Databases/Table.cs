@@ -296,10 +296,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return row;
         }
 
-        public PartialRow GetNewPartialRow(uint rowId)
+        public PartialRow GetNewPartialRow(uint rowId, Guid hostId)
         {
             var preamble = new RowPreamble(rowId, RowType.RemotableAndLocal);
+            var remoteData = new RemotableFixedData(hostId, false, DateTime.MinValue, RemoteType.Host, 0);
             var row = new PartialRow(preamble);
+            row.SetRemotableFixedData(remoteData);
 
             var values = new RowValue[_schema.Columns.Length];
             int i = 0;

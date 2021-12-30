@@ -798,6 +798,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                             LocalRow localRow = new LocalRow(item);
                             runningTotal += RowConstants.Preamble.Length();
                             localRow.SetRowData(_schema, span.Slice((int)runningTotal, (int)item.RowValueSize));
+                            runningTotal += item.RowValueSize;
 
                             row = localRow;
 
@@ -805,10 +806,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                         case RowType.Remoteable:
                         case RowType.RemotableAndLocal:
+
+                            runningTotal += RowConstants.Preamble.Length();
+
                             // determine type of remotable row
-                            ReadOnlySpan<byte> remotableData = span.Slice((int)(runningTotal + RowConstants.Preamble.Length()), (int)RowConstants.RemotableFixedData.Length());
+                            ReadOnlySpan<byte> remotableData = span.Slice((int)runningTotal, (int)RowConstants.RemotableFixedData.Length());
                             var remotePrefix = new RemotableFixedData(remotableData);
-                            runningTotal += (uint)RowConstants.RemotableFixedData.Length();
+                            runningTotal += RowConstants.RemotableFixedData.Length();
 
                             switch (remotePrefix.RemoteType)
                             {
@@ -819,7 +823,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                                 case RemoteType.Host:
                                     PartialRow partialRow = new PartialRow(item);
                                     partialRow.SetRemotableFixedData(remotePrefix);
+
+                                    // subtract the remotable size from the fixed length
+                                    // this is because the remainder is the lenght of the saved data hash, which we want to skip
+                                    runningTotal += item.RowRemotableSize - RowConstants.RemotableFixedData.Length();
                                     partialRow.SetRowData(_schema, span.Slice((int)runningTotal, (int)item.RowValueSize));
+                                    runningTotal += item.RowValueSize;
 
                                     row = partialRow;
 
@@ -829,9 +838,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                                 // then it's a host row (because host rows only have references to the participant
                                 // that they point to, and no actual values)
                                 case RemoteType.Participant:
+
+                                    runningTotal += RowConstants.Preamble.Length();
+
                                     HostRow hostRow = new HostRow(item);
                                     hostRow.SetRemotableFixedData(remotePrefix);
+                                    runningTotal += RowConstants.RemotableFixedData.Length();
+
                                     hostRow.SetDataHash(span.Slice((int)runningTotal, (int)remotePrefix.DataHashLength).ToArray());
+                                    runningTotal += item.RowRemotableSize;
 
                                     row = hostRow;
 
