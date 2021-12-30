@@ -502,6 +502,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     public const string DatabaseName = "DatabaseName";
                     public const string DatabaseId = "DatabaseId";
                     public const string LogicalStoragePolicy = "LogicalStoragePolicy";
+                    public const string NotifyHostOfChanges = "NotifyHost";
                 }
 
                 public static ColumnSchemaCollection GetColumns()
@@ -518,7 +519,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(5);
+                        _columns = new ColumnSchemaCollection(6);
 
                         var tableId = new ColumnSchema(Columns.TableId, new SQLInt(), 1);
                         _columns.Add(tableId);
@@ -534,6 +535,9 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
 
                         var storagePolicy = new ColumnSchema(Columns.LogicalStoragePolicy, new SQLInt(), 5);
                         _columns.Add(storagePolicy);
+
+                        var notifyHost = new ColumnSchema(Columns.NotifyHostOfChanges, new SQLBit(), 6, true);
+                        _columns.Add(notifyHost);
                     }
                 }
             }

@@ -837,5 +837,17 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             Assert.False(selectUpdatedCustomerNameAtParticipant.Results.First().IsError);
             Assert.InRange(selectUpdatedCustomerNameAtParticipant.Results.First().Rows.Count, 0, 0);
         }
+
+        [Fact(Skip ="Set Notify Host Syntax Not Implemented")]
+        public void Test_Remote_Insert_Local_Update_Notify_Host()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Fact(Skip = "Set Notify Host Syntax Not Implemented")]
+        public void Test_Remote_Insert_Local_Ignore_Update_Notify_Host()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

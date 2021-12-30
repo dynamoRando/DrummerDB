@@ -71,6 +71,15 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             EvaluteForReviewAcceptedContract(line, database, dbManager, ref plan);
             EvaluateForGenerateHostInfo(line, database, dbManager, ref plan);
             EvaluateForReviewHostInfo(line, database, dbManager, ref plan);
+            EvaluateForSetNotifyHost(line, database, dbManager, ref plan);
+        }
+
+        private void EvaluateForSetNotifyHost(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            if (line.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private void EvaluateForReviewHostInfo(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)

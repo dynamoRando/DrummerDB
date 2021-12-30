@@ -936,6 +936,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 coopTableRow.SetValue(CooperativeTables.Columns.DatabaseName, contract.DatabaseName);
                 coopTableRow.SetValue(CooperativeTables.Columns.DatabaseId, contract.DatabaseId.ToString());
                 coopTableRow.SetValue(CooperativeTables.Columns.LogicalStoragePolicy, Convert.ToInt32(table.StoragePolicy).ToString());
+                coopTableRow.SetValue(CooperativeTables.Columns.NotifyHostOfChanges, true.ToString());
                 coopTable.XactAddRow(coopTableRow, transaction, transactionMode);
 
                 foreach (var column in table.Columns)

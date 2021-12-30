@@ -132,6 +132,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForGenerateHostInfo(statement, out errorMessage);
                     }
+
+                    if (HasSetNotifyHostKeyword(statement))
+                    {
+                        return ParseForSetNotifyHost(statement, out errorMessage);
+                    }
                 }
             }
 
@@ -156,6 +161,39 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             errorMessage = string.Empty;
             return true;
+        }
+
+        private bool ParseForSetNotifyHost(string statement, out string errorMessage)
+        {
+            //SET NOTIFY HOST FOR {partialDatabaseName} TABLE {tableName} OPTION [on|off] 
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        private bool HasSetNotifyHostKeyword(string statement)
+        {
+            //SET NOTIFY HOST FOR {partialDatabaseName} TABLE {tableName} OPTION [on|off] 
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            return false;
         }
 
         private bool HasRejectContractByKeyword(string statement)
