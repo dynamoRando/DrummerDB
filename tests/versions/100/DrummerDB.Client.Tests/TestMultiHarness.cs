@@ -23,6 +23,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
         private string _userName = "Test";
         private string _password = "Test";
         private Guid _userSessionId = Guid.NewGuid();
+        private bool _usePortManager = false;
         #endregion
 
         #region Public Properties
@@ -38,6 +39,15 @@ namespace Drummersoft.DrummerDB.Client.Tests
             _rootTempDirectory = Path.Combine(TestConstants.TEST_TEMP_FOLDER, testFolderName);
             TestProcessList = new List<TestProcess>();
             SetupBaseDirectory();
+            _usePortManager = false;
+        }
+
+        public TestMultiHarness(string testFolderName)
+        {
+            _rootTempDirectory = Path.Combine(TestConstants.TEST_TEMP_FOLDER, testFolderName);
+            TestProcessList = new List<TestProcess>();
+            SetupBaseDirectory();
+            _usePortManager = true;
         }
         #endregion
 
@@ -72,8 +82,18 @@ namespace Drummersoft.DrummerDB.Client.Tests
 
             process.DatabaseFolder = directoryPath;
             process.Process = new drummer.Process(directoryPath, true, true);
-            process.SQLPort = GetMaxSQLPort() + 1;
-            process.DatabasePort = GetMaxDbPort() + 1;
+
+            if (_usePortManager)
+            {
+                process.SQLPort = TestPortManager.GetNextAvailablePortNumber();
+                process.DatabasePort = TestPortManager.GetNextAvailablePortNumber();
+            }
+            else
+            {
+                process.SQLPort = GetMaxSQLPort() + 1;
+                process.DatabasePort = GetMaxDbPort() + 1;
+            }
+
             process.UserName = _userName;
             process.Password = _password;
             process.UserSessionId = _userSessionId;
@@ -84,7 +104,6 @@ namespace Drummersoft.DrummerDB.Client.Tests
             process.Process.StartDbServer(process.DatabasePort, false);
             process.SQLClient = new DrummerSQLClient(_url, process.SQLPort);
            
-
             TestProcessList.Add(process);
 
             return process.GetTestProcessInfo();
@@ -157,6 +176,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
 
             return 0;
         }
+
         #endregion
 
         #region Private Methods

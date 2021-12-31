@@ -19,7 +19,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.DataDefinitionLanguage
             string pw = "XUnit4321";
             Guid loginGuid = Guid.NewGuid();
             Guid userSessionId = Guid.NewGuid();
-            int portNumber = TestPortNumbers.SQL_CREATE_DB;
+            int portNumber = TestPortManager.GetNextAvailablePortNumber();
             string sql = $"CREATE DATABASE {dbName}";
 
             string storageFolder = Path.Combine(TestConstants.TEST_TEMP_FOLDER, "TestSQLDb");

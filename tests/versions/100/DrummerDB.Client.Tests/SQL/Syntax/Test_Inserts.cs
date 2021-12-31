@@ -20,7 +20,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -72,7 +72,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME2);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -125,7 +125,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME3);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -173,7 +173,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Syntax
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.INSERT_DATETIME4);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();

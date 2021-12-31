@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
-using static Drummersoft.DrummerDB.Client.Tests.TestConstants.TestPortNumbers;
 using Xunit;
 using Drummersoft.DrummerDB.Core.Databases.Version;
 using Drummersoft.DrummerDB.Common;
@@ -21,7 +20,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // --- ARRANGE
             string sysDbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
             string rootFolder = "TestGenAccept";
-            var harness = new TestMultiHarness(rootFolder, COOP_SQL_MULTI_TEST, COOP_DB_MULTI_TEST);
+            var harness = new TestMultiHarness(rootFolder);
 
             var company = harness.InstantiateNewProcess("Company");
             var customer = harness.InstantiateNewProcess("Customer");
@@ -191,6 +190,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             , systemDbName);
 
             Assert.False(acceptedContracts.Results.First().IsError);
+
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
-using static Drummersoft.DrummerDB.Client.Tests.TestConstants.TestPortNumbers;
 using Xunit;
 using Drummersoft.DrummerDB.Core.Databases.Version;
 using Drummersoft.DrummerDB.Common;
@@ -48,7 +47,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // --- ARRANGE
             string sysDbName = Databases.DRUM_SYSTEM;
             string rootFolder = "TestRemoteCrud";
-            var harness = new TestMultiHarness(rootFolder, COOP_DB_SQL_CRUD_TEST, COOP_DB_DB_CRUD_TEST);
+            var harness = new TestMultiHarness(rootFolder);
 
             var company = harness.InstantiateNewProcess("Company");
             var customer = harness.InstantiateNewProcess("Customer1");
@@ -289,7 +288,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // --- ARRANGE
             string sysDbName = Databases.DRUM_SYSTEM;
             string rootFolder = "TestRemoteCrud";
-            var harness = new TestMultiHarness(rootFolder, COOP_DB_SQL_CRUD_TEST_UPDATE, COOP_DB_DB_CRUD_TEST_UPDATE);
+            var harness = new TestMultiHarness(rootFolder);
 
             var company = harness.InstantiateNewProcess("Company");
             var customer = harness.InstantiateNewProcess("Customer1");
@@ -581,7 +580,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // --- ARRANGE
             string sysDbName = Databases.DRUM_SYSTEM;
             string rootFolder = "TestRemoteCrud";
-            var harness = new TestMultiHarness(rootFolder, COOP_DB_SQL_CRUD_TEST_DELETE, COOP_DB_DB_CRUD_TEST_DELETE);
+            var harness = new TestMultiHarness(rootFolder);
 
             var company = harness.InstantiateNewProcess("Company");
             var customer = harness.InstantiateNewProcess("Customer1");

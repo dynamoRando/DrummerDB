@@ -16,7 +16,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.Database
             string userName = "TestSystemLogin";
             string pw = "PwTestSystemLogin";
             Guid guid = Guid.NewGuid();
-            int portNumber = TestPortNumbers.SYSTEM_LOGIN;
+            int portNumber = TestPortManager.GetNextAvailablePortNumber();
 
             string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestSysLog");
 

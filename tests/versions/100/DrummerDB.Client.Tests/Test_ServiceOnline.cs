@@ -26,7 +26,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
                 file.Delete();
             }
 
-            int portNumber = TestPortNumbers.SQL_ONLINE;
+            int portNumber = TestPortManager.GetNextAvailablePortNumber();
             var process = new Process(storageFolder, true, true);
             process.Start();
             process.StartSQLServer(portNumber, false);
@@ -60,7 +60,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
                 file.Delete();
             }
 
-            int portNumber = TestPortNumbers.INFO_ONLINE;
+            int portNumber = TestPortManager.GetNextAvailablePortNumber();
             var process = new Process(storageFolder, true, true);
             process.Start();
             process.StartInfoServer(portNumber, false);
@@ -96,7 +96,7 @@ namespace Drummersoft.DrummerDB.Client.Tests
                 file.Delete();
             }
 
-            int portNumber = TestPortNumbers.DATABASE_ONLINE;
+            int portNumber = TestPortManager.GetNextAvailablePortNumber();
             var process = new Process(storageFolder, true, true);
             process.Start();
             process.StartDbServer(portNumber, false);

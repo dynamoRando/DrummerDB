@@ -21,6 +21,7 @@ service DatabaseService {
 	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
 	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
 	rpc RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest) returns (RemoveRowFromPartialDatabaseResult);
+	rpc UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest) returns (UpdateRowDataHashForHostResponse);
 }
 
 // A message for creating a user database
@@ -112,6 +113,7 @@ message UpdateRowInTableRequest{
 	uint32 whereRowId = 7;
 	string updateColumn = 8;
 	string updateValue = 9; 
+	bytes existingDataHash = 10;
 }
 
 message UpdateRowInTableResult {
@@ -196,4 +198,21 @@ message RemoveRowFromPartialDatabaseResult {
 	Drum.AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
 	string resultMessage = 3;
+}
+
+message UpdateRowDataHashForHostRequest {
+	Drum.AuthRequest authentication = 1;
+	Drum.MessageInfo MessageInfo = 2;
+	DrumDB.Host hostInfo = 3;
+	string databaseName = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	string tableId = 7;
+	uint32 rowId = 8;
+	bytes updatedHashValue = 9;
+}
+
+message UpdateRowDataHashForHostResponse {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
 }

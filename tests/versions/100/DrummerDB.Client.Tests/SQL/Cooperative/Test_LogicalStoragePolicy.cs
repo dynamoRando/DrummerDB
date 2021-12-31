@@ -7,7 +7,6 @@ using Xunit;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static Drummersoft.DrummerDB.Client.Tests.TestConstants;
-using static Drummersoft.DrummerDB.Client.Tests.TestConstants.TestPortNumbers;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
@@ -31,7 +30,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, SET_STORAGE_POLICY);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -136,7 +135,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // --- ARRANGE
             // ------------ Same as Test_Set_Review_LogicalStoragePolicy, ensure that we can set a policy on all tables) ------------
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TEST_GEN_CONTRACT);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();

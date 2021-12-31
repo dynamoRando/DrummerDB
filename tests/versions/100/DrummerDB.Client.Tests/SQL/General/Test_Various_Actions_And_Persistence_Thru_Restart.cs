@@ -51,7 +51,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.General
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.LOAD_RESTART);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -268,7 +268,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.General
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.ACT_RESTART);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
@@ -353,7 +353,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.General
             var test = new TestHarness();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.RESTART_MODIFY_RESTART);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();
