@@ -113,7 +113,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     var columns = new List<IUpdateColumnSource>();
 
-                    // create value object that we're going to update the contract guid to
+                    // create value object that we're going to update the value to
                     var column = new UpdateTableValue();
                     var tableColumn = CooperativeTables.GetColumn(CooperativeTables.Columns.NotifyHostOfChanges);
 
@@ -123,10 +123,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     columns.Add(column);
                     var updateOp = new UpdateOperator(dbManager, address, columns);
 
-                    // we need to create a read table operator to specify to update all the columns in the user table with the contract
+                    // we need to create a read table operator to specify to update all the columns in the target table
                     // and set it as the previous operation
 
-                    // only reading 1 column from the table that we want to update, the contract GUID column in sys.UserTables
+                    // only reading 1 column from the table that we want to update
                     string[] colNames = new string[1] { CooperativeTables.Columns.NotifyHostOfChanges };
 
                     var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
