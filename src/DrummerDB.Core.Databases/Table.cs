@@ -364,6 +364,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _cache.GetRow(rowId, Address);
         }
 
+        public Row GetHostRow(uint rowId)
+        {
+            var item = _cache.GetRow(rowId, Address);
+            if (item is HostRow)
+            {
+                return item.AsHost();
+            }
+
+            return null;
+        }
+
         public PartialRow GetPartialRow(uint rowId)
         {
             var item = _cache.GetRow(rowId, Address);
@@ -398,6 +409,24 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             return null;
+        }
+
+        public HostRow GetHostRow(RowAddress address)
+        {
+            var item = _cache.GetRow(address.RowId, Address);
+            if (item is HostRow)
+            {
+                return item.AsHost();
+            }
+
+            return null;
+        }
+
+        public void UpdateDataHashForHostRow(HostRow row, byte[] newHash)
+        {
+            var physicalRow = _cache.GetRow(row.Id, Address).AsHost();
+            physicalRow.SetDataHash(newHash);
+            XactUpdateRow(row);
         }
 
         public List<RowAddress> GetRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)

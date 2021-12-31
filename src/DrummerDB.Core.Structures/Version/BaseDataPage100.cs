@@ -369,6 +369,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 existingRow = returnedRow as RowValueGroup;
             }
 
+            if (returnedRow is HostRow)
+            {
+                existingRow = returnedRow as HostRow;
+            }
+
             if (updatedRow.TotalSize == existingRow.TotalSize)
             {
                 // update in place

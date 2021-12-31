@@ -75,6 +75,11 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
+        public Row AsRow()
+        {
+            return this as Row;
+        }
+
         public bool HasRemotableDataSet()
         {
             return _remotableFixedData is not null;

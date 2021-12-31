@@ -330,8 +330,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             RemoteValueUpdate updateValue,
             TransactionRequest transaction,
             TransactionMode transactionMode,
-            out string errorMessage)
+            byte[] currentDataHash,
+            out string errorMessage,
+            out byte[] newDataHash)
         {
+            newDataHash = new byte[0];
             errorMessage = string.Empty;
             ParticipantSink sink;
             sink = GetOrAddParticipantSink(participant);
@@ -347,6 +350,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             request.WhereRowId = Convert.ToUInt32(rowId);
             request.UpdateColumn = updateValue.ColumnName;
             request.UpdateValue = updateValue.Value;
+            request.ExistingDataHash = ByteString.CopyFrom(currentDataHash);
 
             try
             {
@@ -361,6 +365,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
 
             if (result is not null)
             {
+                newDataHash = result.NewDataHash.ToByteArray();
                 return result.IsSuccessful;
             }
 

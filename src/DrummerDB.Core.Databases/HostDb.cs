@@ -383,6 +383,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             RemoteValueUpdate updateValue,
             TransactionRequest transaction,
             TransactionMode transactionMode,
+            byte[] currentDataHash,
+            out byte[] newDataHash,
             out string errorMessage)
         {
             errorMessage = string.Empty;
@@ -397,7 +399,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 updateValue,
                 transaction,
                 transactionMode,
-                out errorMessage
+                currentDataHash,
+                out errorMessage,
+                out newDataHash
                 );
 
             return result;

@@ -221,8 +221,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
             uint tableId,
             string tableName,
             uint rowId,
-            RemoteValueUpdate updateValues)
+            RemoteValueUpdate updateValues,
+            out byte[] newDataHash)
         {
+
+            newDataHash = new byte[0];
 
             // note: we didn't leverage a database action here, should we?
             // this is different from how we implemented the insert row action
@@ -249,6 +252,12 @@ namespace Drummersoft.DrummerDB.Core.Communication
             {
                 row.SetValue(updateValues.ColumnName, updateValues.Value);
                 isSuccessful = table.XactUpdateRow(row);
+            }
+
+            if (isSuccessful)
+            {
+                var updatedRow = table.GetPartialRow(rowId);
+                newDataHash = updatedRow.DataHash;
             }
 
             return isSuccessful;

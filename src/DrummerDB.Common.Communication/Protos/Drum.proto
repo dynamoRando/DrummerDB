@@ -1,4 +1,5 @@
 ﻿syntax = "proto3";
+import "google/protobuf/timestamp.proto";
 package Drum;
 option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication";
 
@@ -51,6 +52,8 @@ message Row {
 	uint32 tableId = 2;
 	string databaseId = 3;
 	repeated RowValue values = 4;
+	bool isRemoteable = 5;
+	RowRemoteMetadata remoteMetadata = 6;
 }
 
 // an object for storing values for a row in a table. used for returning data
@@ -61,6 +64,15 @@ message RowValue {
 	// note: this value does not include the 4 byte INT length prefix for variable length fields
 	// to ease conversion refer to the Drummersoft.DrummerDB.Common library, in particular the `DbBinaryConvert` class
 	bytes value = 3; 
+}
+
+message RowRemoteMetadata {
+	bool isRemoteOutOfSyncWithHost = 1;
+	bytes localDataHash = 2;
+	bytes remoteDataHash = 3;
+	bool isRemoteDeleted = 4;
+	google.protobuf.Timestamp remoteDeletedDate = 5;
+	bool isLocalDeleted = 6;
 }
 
 // a message for identifying the location of a row in a partial database

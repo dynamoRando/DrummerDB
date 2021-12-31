@@ -204,6 +204,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         {
             var result = new UpdateRowInTableResult();
             bool isSuccessful = false;
+            byte[] newDataHash = new byte[0];
 
             if (request.MessageInfo is not null)
             {
@@ -225,11 +226,13 @@ namespace Drummersoft.DrummerDB.Core.Communication
                     tableId,
                     request.TableName,
                     rowId,
-                    updateValues);
+                    updateValues,
+                    out newDataHash);
             }
 
             result.AuthenticationResult = hasLogin.Result;
             result.IsSuccessful = isSuccessful;
+            result.NewDataHash = ByteString.CopyFrom(newDataHash);
 
             return Task.FromResult(result);
         }

@@ -125,6 +125,7 @@ message UpdateRowInTableResult {
 	string tableId = 6;
 	uint32 numberOfRowsAffected = 7;
 	string resultMessage = 8;
+	bytes newDataHash = 9;
 }
 
 message GetRowsFromTableRequest {

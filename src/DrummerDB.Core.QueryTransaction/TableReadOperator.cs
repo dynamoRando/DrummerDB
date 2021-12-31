@@ -158,7 +158,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             RemotableId = row.RemotableId,
                             SchemaId = table.Schema().Schema.SchemaGUID,
                             ParseLength = 0,
-                            ValueOffset = 0
+                            ValueOffset = 0,
+                            RowType = row.RowType
                         };
 
                         result.Add(address);
