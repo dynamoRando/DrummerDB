@@ -361,18 +361,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             PageUpdateRowResult result = PageUpdateRowResult.Unknown;
             uint rowId = updatedRow.Id;
             uint existingRowOffset = (uint)GetRowOffsets(rowId).Max();
-            Row existingRow = null;
-            var returnedRow = GetRow(rowId);
-
-            if (returnedRow is RowValueGroup)
-            {
-                existingRow = returnedRow as RowValueGroup;
-            }
-
-            if (returnedRow is HostRow)
-            {
-                existingRow = returnedRow as HostRow;
-            }
+            Row existingRow = GetRow(rowId);
 
             if (updatedRow.TotalSize == existingRow.TotalSize)
             {
