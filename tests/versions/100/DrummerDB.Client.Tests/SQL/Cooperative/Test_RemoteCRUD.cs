@@ -1127,7 +1127,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // configure local data changes to be notified upstream
             var configureRemoteNotification = harness.ExecuteSQL(customer,
             $@"DRUMMER BEGIN;
-            SET HOST NOTIFY FOR {dbName} TABLE {customerTableName} OPTION ON;
+            SET NOTIFY HOST FOR {dbName} TABLE {customerTableName} OPTION ON;
             DRUMMER END;
             ", dbName, DatabaseType.Partial);
 

@@ -21,6 +21,8 @@
         public const string GENERATE_CONTRACT_WITH_DESCRIPTION = "GENERATE CONTRACT WITH DESCRIPTION";
         public const string DESCRIPTION = "DESCRIPTION";
         public const string AT = "AT";
+        public const string ON = "ON";
+        public const string OFF = "OFF";
 
         // prefix denotes anything that will perform network communication with a participant
         public const string REQUEST_PARTICIPANT = "REQUEST PARTICIPANT";

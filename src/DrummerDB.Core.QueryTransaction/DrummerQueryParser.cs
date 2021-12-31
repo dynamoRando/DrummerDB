@@ -172,7 +172,48 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
                 {
-                    throw new NotImplementedException();
+                    //{partialDatabaseName} TABLE {tableName} OPTION [on|off]
+                    string databaseName = trimmedLine.Replace(DrummerKeywords.SET_NOTIFY_HOST_FOR, string.Empty).Trim();
+                    var items = databaseName.Split(" ");
+
+                    if (items.Length != 4)
+                    {
+                        errorMessage = "Unable to parse SET NOTIFY HOST FOR statement";
+                        return false;
+                    }
+
+                    var dbName = items[0].Trim();
+                    var tableName = items[2].Trim();
+                    var option = items[4].Trim();
+
+                    if (_dbManager.HasDatabase(dbName))
+                    {
+                        var db = _dbManager.GetPartialDb(dbName);
+                        if (db.HasTable(tableName))
+                        {
+                            if (string.Equals(option, DrummerKeywords.ON, StringComparison.OrdinalIgnoreCase) || string.Equals(option, DrummerKeywords.OFF, StringComparison.OrdinalIgnoreCase))
+                            {
+                                errorMessage = string.Empty;
+                                return true;
+                            }
+                            else
+                            {
+                                errorMessage = $"Unknown option type {option}";
+                                return false;
+                            }
+                            
+                        }
+                        else
+                        {
+                            errorMessage = $"Table {tableName} was not found";
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        errorMessage = $"Database {dbName} was not found";
+                        return false;
+                    }
                 }
             }
 
@@ -189,7 +230,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
                 {
-                    throw new NotImplementedException();
+                    return true;
                 }
             }
 

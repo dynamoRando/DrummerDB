@@ -17,6 +17,7 @@ using System.Net;
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100;
 using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
+using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -78,7 +79,62 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         {
             if (line.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
             {
-                throw new NotImplementedException();
+                var trimmedLine = line.Trim();
+
+                //{partialDatabaseName} TABLE {tableName} OPTION [on|off]
+                string databaseName = trimmedLine.Replace(DrummerKeywords.SET_NOTIFY_HOST_FOR, string.Empty).Trim();
+                var items = databaseName.Split(" ");
+
+                if (items.Length != 4)
+                {
+                    string errorMessage = "Unable to parse SET NOTIFY HOST FOR statement";
+                    throw new InvalidOperationException(errorMessage);
+                }
+
+                var dbName = items[0].Trim();
+                var tableName = items[2].Trim();
+                var option = items[4].Trim();
+
+                bool notifyHost = string.Equals(option, DrummerKeywords.ON, StringComparison.OrdinalIgnoreCase);
+
+                if (!plan.HasPart(PlanPartType.Update))
+                {
+                    plan.AddPart(new UpdateQueryPlanPart());
+                }
+
+                var systemDb = dbManager.GetSystemDatabase();
+                var coopTable = systemDb.GetTable(CooperativeTables.TABLE_NAME);
+
+                var part = plan.GetPart(PlanPartType.Update);
+                if (part is UpdateQueryPlanPart)
+                {
+                    var address = coopTable.Address;
+                    // need to create update column sources
+
+                    var columns = new List<IUpdateColumnSource>();
+
+                    // create value object that we're going to update the contract guid to
+                    var column = new UpdateTableValue();
+                    var tableColumn = CooperativeTables.GetColumn(CooperativeTables.Columns.NotifyHostOfChanges);
+
+                    column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
+                    column.Value = notifyHost.ToString();
+
+                    columns.Add(column);
+                    var updateOp = new UpdateOperator(dbManager, address, columns);
+
+                    // we need to create a read table operator to specify to update all the columns in the user table with the contract
+                    // and set it as the previous operation
+
+                    // only reading 1 column from the table that we want to update, the contract GUID column in sys.UserTables
+                    string[] colNames = new string[1] { CooperativeTables.Columns.NotifyHostOfChanges };
+
+                    var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
+                    updateOp.PreviousOperation = readTableOp;
+
+                    part.AddOperation(readTableOp);
+                    part.AddOperation(updateOp);
+                }
             }
         }
 
