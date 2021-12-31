@@ -176,7 +176,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     string databaseName = trimmedLine.Replace(DrummerKeywords.SET_NOTIFY_HOST_FOR, string.Empty).Trim();
                     var items = databaseName.Split(" ");
 
-                    if (items.Length != 4)
+                    if (items.Length != 5)
                     {
                         errorMessage = "Unable to parse SET NOTIFY HOST FOR statement";
                         return false;

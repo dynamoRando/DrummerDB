@@ -210,7 +210,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                         schema.SortBinaryOrder();
 
                                         uint valueOffset = 0;
-                                        
+
                                         if (physicalRow.IsRemotable())
                                         {
                                             valueOffset = RowConstants.Preamble.Length() + physicalRow.RemoteSize;
@@ -219,8 +219,8 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                         {
                                             valueOffset = RowConstants.Preamble.Length();
                                         }
-                                        
-                                        
+
+
                                         foreach (var value in rowValueGroup.Values)
                                         {
                                             if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
@@ -261,7 +261,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                                 }
                                             }
                                         }
-                                    }   
+                                    }
                                 }
                                 else
                                 {
@@ -281,7 +281,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                                     SchemaId = address.SchemaId,
                                                     RemotableId = remotableRow.RemoteId,
                                                     RowType = row.RowType
-                                                    
+
                                                 };
                                     result.Add(valueAddress);
 
@@ -817,25 +817,50 @@ namespace Drummersoft.DrummerDB.Core.Memory
                     schema.SortBinaryOrder();
 
                     uint valueOffset = (uint)RowConstants.Preamble.Length();
-                    
+
                     foreach (var value in physicalRow.AsValueGroup().Values)
                     {
                         if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
                         {
-                            var valueAddress =
-                                new ValueAddress
-                                {
-                                    PageId = row.PageId,
-                                    RowId = row.RowId,
-                                    RowOffset = row.RowOffset,
-                                    ValueOffset = valueOffset,
-                                    ParseLength = value.ParseValueLength,
-                                    DatabaseId = address.DatabaseId,
-                                    TableId = address.TableId,
-                                    ColumnName = columnName,
-                                    SchemaId = address.SchemaId,
-                                    ColumnId = value.Column.Id
-                                };
+                            ValueAddress valueAddress;
+                            if (physicalRow.IsRemotable())
+                            {
+                               valueAddress =
+                               new ValueAddress
+                               {
+                                   PageId = row.PageId,
+                                   RowId = row.RowId,
+                                   RowOffset = row.RowOffset,
+                                   ValueOffset = valueOffset,
+                                   ParseLength = value.ParseValueLength,
+                                   DatabaseId = address.DatabaseId,
+                                   TableId = address.TableId,
+                                   ColumnName = columnName,
+                                   SchemaId = address.SchemaId,
+                                   ColumnId = value.Column.Id,
+                                   RowType = physicalRow.Type,
+                                   RemotableId = (physicalRow as IRowRemotable).RemoteId
+                               };
+                            }
+                            else
+                            {
+                               valueAddress =
+                               new ValueAddress
+                               {
+                                   PageId = row.PageId,
+                                   RowId = row.RowId,
+                                   RowOffset = row.RowOffset,
+                                   ValueOffset = valueOffset,
+                                   ParseLength = value.ParseValueLength,
+                                   DatabaseId = address.DatabaseId,
+                                   TableId = address.TableId,
+                                   ColumnName = columnName,
+                                   SchemaId = address.SchemaId,
+                                   ColumnId = value.Column.Id,
+                                   RowType = physicalRow.Type
+                               };
+                            }
+
                             result.Add(valueAddress);
                         }
                         else
