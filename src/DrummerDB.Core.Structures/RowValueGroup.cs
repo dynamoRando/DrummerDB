@@ -643,6 +643,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             
         }
 
+        [Conditional("DEBUG")]
         private void DebugByteArray(byte[] array)
         {
             bool debug = false;
