@@ -6,6 +6,7 @@ using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -83,13 +84,27 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                         // first, update the row in the local database
                                         rowsUpdated = UpdateLocalRow(transaction, transactionMode, errorMessages, table, rowsUpdated, rowAddress);
 
-                                        // next need to determine if we are configured to notify the host of upstream changes
-                                        // code goes here
+                                        if (rowsUpdated)
+                                        {
+                                            byte[] rowDataHash = null;
+                                            // next need to determine if we are configured to notify the host of upstream changes
+                                            // code goes here
+                                            var sysDb = _db.GetSystemDatabase();
+                                            var shouldNotifyHost = sysDb.ShouldNotifyHostOfDataChanges(DatabaseName, table.Name);
+                                            if (shouldNotifyHost)
+                                            {
+                                                // need to write function to notify host of data hash change
+                                                rowDataHash = table.GetDataHashFromRow(rowAddress.RowId);
+                                                Guid hostId = table.GetRemotableRow(rowAddress.RowId).RemoteId;
 
-                                        // for each row that we changed, notify the host of the new data hash
-                                        // first, use table.getrow(rowAddress)
-                                        // and then cast to the appropriate row type
-                                        // and then get the data hash to send back to the host
+                                                var db = _db.GetDatabase(DatabaseName, DatabaseType.Partial) as PartialDb;
+                                                var hostInfo = sysDb.GetCooperatingHost(hostId);
+
+                                                db.NotifyHostOfRowDataHashChange(rowAddress.RowId, table.Name, rowDataHash, hostInfo);
+
+                                                throw new NotImplementedException();
+                                            }
+                                        }
 
 
                                         throw new NotImplementedException();

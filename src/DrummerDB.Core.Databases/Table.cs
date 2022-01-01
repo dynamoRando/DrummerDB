@@ -411,6 +411,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
+        public IRowRemotable GetRemotableRow(uint rowId)
+        {
+            var item = _cache.GetRow(rowId, Address);
+            if (item is IRowRemotable)
+            {
+                return item as IRowRemotable;
+            }
+
+            return null;
+        }
+
         public HostRow GetHostRow(RowAddress address)
         {
             var item = _cache.GetRow(address.RowId, Address);
@@ -808,6 +819,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var schema = _schema as TableSchema;
                 schema.SetStoragePolicy(policy);
             }
+        }
+
+        public byte[] GetDataHashFromRow(uint rowId)
+        {
+            var row = _cache.GetRow(rowId, Address);
+            if (row.IsRemotable())
+            {
+                return (row as IRowRemotable).DataHash;
+            }
+
+            return new byte[0];
         }
 
         public bool XactUpdateRow(Row row)

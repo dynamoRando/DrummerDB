@@ -164,6 +164,21 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             }
         }
 
+        public bool NotifyHostRowDataHashChanged(string dbName, string tableName, uint rowId, byte[] newDataHash, HostInfo host)
+        {
+            string errorMessage = string.Empty;
+            HostSink sink;
+            sink = GetOrAddHostSink(host);
+
+            if (!sink.IsOnline())
+            {
+                errorMessage = $"Host {host.HostName} is not online";
+                return false;
+            }
+
+            throw new NotImplementedException();
+        }
+
         public bool NotifyAcceptContract(structContract contract, out string errorMessage)
         {
             errorMessage = string.Empty;

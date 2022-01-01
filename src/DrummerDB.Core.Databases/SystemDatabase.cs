@@ -20,6 +20,7 @@ using login = Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstan
 using Drummersoft.DrummerDB.Core.Structures.SQLType.Interface;
 using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Structures.Abstract;
+using structHost = Drummersoft.DrummerDB.Core.Structures.HostInfo;
 
 namespace Drummersoft.DrummerDB.Core.Databases
 {
@@ -161,6 +162,76 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             // in the system database, this will always be false becuase we don't store cooperative tables
             // in the system database, only in user databases
+            return false;
+        }
+
+        public structHost GetCooperatingHost(Guid hostId)
+        {
+            structHost returnItem = new structHost();
+            var cooperativeHostTable = GetTable(Hosts.TABLE_NAME);
+
+            var searchItem = RowValueMaker.Create(cooperativeHostTable,
+                Hosts.Columns.HostGUID, hostId.ToString());
+
+            var results = cooperativeHostTable.GetLocalRowsWithValue(searchItem);
+
+            if (results.Count() == 0)
+            {
+                throw new InvalidOperationException($"No hosts found with id {hostId}");
+            }
+
+            if (results.Count() > 1)
+            {
+                throw new InvalidOperationException($"Multiple hosts found with id {hostId}");
+            }
+
+            foreach (var result in results)
+            {
+                returnItem.HostName = result.GetValueInString(Hosts.Columns.HostName);
+                returnItem.HostGUID = hostId;
+                returnItem.IP4Address = result.GetValueInString(Hosts.Columns.IP4Address);
+                returnItem.IP4Address = result.GetValueInString(Hosts.Columns.IP4Address);
+                returnItem.DatabasePortNumber = Convert.ToInt32(result.GetValueInString(Hosts.Columns.PortNumber));
+                returnItem.Token = result.GetValueInByte(Hosts.Columns.Token);
+                break;
+            }
+
+            return returnItem;
+        }
+
+        public bool ShouldNotifyHostOfDataChanges(string partialDbName, string tableName)
+        {
+            var cooperativeTable = GetTable(CooperativeTables.TABLE_NAME);
+
+            var rowValueDbName = RowValueMaker.Create(cooperativeTable,
+                CooperativeTables.Columns.DatabaseName, partialDbName);
+
+            var rowValueTableName = RowValueMaker.Create(cooperativeTable,
+                CooperativeTables.Columns.TableName, tableName);
+
+            var searchItems = new IRowValue[2] { rowValueDbName, rowValueTableName };
+            var searchResults = cooperativeTable.GetLocalRowsWithAllValues(searchItems);
+
+            if (searchResults.Count() == 0)
+            {
+                throw new InvalidOperationException($"" +
+                    $"Partial Database {partialDbName} and table " +
+                    $"{tableName} was not found");
+            }
+
+            if (searchResults.Count() > 1)
+            {
+                throw new InvalidOperationException($"" +
+                    $"Partial Database {partialDbName} and table " +
+                    $"{tableName} has multiple records");
+            }
+
+            foreach (var result in searchResults)
+            {
+                var value = result.GetValueInString(CooperativeTables.Columns.NotifyHostOfChanges);
+                return Convert.ToBoolean(value);
+            }
+
             return false;
         }
 
