@@ -164,11 +164,15 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             }
         }
 
-        public bool NotifyHostRowDataHashChanged(string dbName, string tableName, uint rowId, byte[] newDataHash, HostInfo host)
+        public bool NotifyHostRowDataHashChanged(string dbName, string tableName, uint rowId, byte[] newDataHash, structHost host)
         {
             string errorMessage = string.Empty;
             HostSink sink;
             sink = GetOrAddHostSink(host);
+            UpdateRowDataHashForHostRequest request = null;
+
+            request.MessageInfo = GetMessageInfo(MessageType.DataHashChanged);
+            request.Authentication = GetAuthRequest();
 
             if (!sink.IsOnline())
             {
