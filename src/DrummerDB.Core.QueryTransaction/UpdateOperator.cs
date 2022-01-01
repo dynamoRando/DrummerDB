@@ -100,7 +100,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                                 var db = _db.GetDatabase(DatabaseName, DatabaseType.Partial) as PartialDb;
                                                 var hostInfo = sysDb.GetCooperatingHost(hostId);
 
-                                                db.NotifyHostOfRowDataHashChange(rowAddress.RowId, table.Name, rowDataHash, hostInfo);
+                                                db.NotifyHostOfRowDataHashChange(
+                                                    rowAddress.RowId,
+                                                    table.Name,
+                                                    rowDataHash,
+                                                    hostInfo,
+                                                    db.Id,
+                                                    table.Address.TableId);
 
                                                 throw new NotImplementedException();
                                             }

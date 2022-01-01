@@ -164,15 +164,31 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             }
         }
 
-        public bool NotifyHostRowDataHashChanged(string dbName, string tableName, uint rowId, byte[] newDataHash, structHost host)
+        public bool NotifyHostRowDataHashChanged(
+            string dbName,
+            string tableName,
+            uint rowId,
+            byte[] newDataHash,
+            structHost host,
+            Guid databaseId,
+            uint tableId
+            )
         {
             string errorMessage = string.Empty;
             HostSink sink;
             sink = GetOrAddHostSink(host);
-            UpdateRowDataHashForHostRequest request = null;
+            UpdateRowDataHashForHostRequest request = new UpdateRowDataHashForHostRequest();
+            UpdateRowDataHashForHostResponse result = new UpdateRowDataHashForHostResponse(); ;
 
             request.MessageInfo = GetMessageInfo(MessageType.DataHashChanged);
             request.Authentication = GetAuthRequest();
+            request.TableName = tableName;
+            request.DatabaseName = dbName;
+            request.RowId = rowId;
+            request.UpdatedHashValue = ByteString.CopyFrom(newDataHash);
+            request.HostInfo = GetHostInfo();
+            request.TableId = tableId;
+            request.DatabaseId = databaseId.ToString();
 
             if (!sink.IsOnline())
             {
@@ -180,7 +196,24 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
                 return false;
             }
 
-            throw new NotImplementedException();
+            try
+            {
+                LogMessageInfo(request.MessageInfo, sink);
+                result = sink.Client.UpdateRowDataHashForHost(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+
+            if (result is null)
+            {
+                return false;
+            }
+            else
+            {
+                return result.IsSuccessful;
+            }
         }
 
         public bool NotifyAcceptContract(structContract contract, out string errorMessage)

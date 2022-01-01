@@ -208,7 +208,7 @@ message UpdateRowDataHashForHostRequest {
 	string databaseName = 4;
 	string databaseId = 5;
 	string tableName = 6;
-	string tableId = 7;
+	uint32 tableId = 7;
 	uint32 rowId = 8;
 	bytes updatedHashValue = 9;
 }

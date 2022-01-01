@@ -49,9 +49,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _remote.NotifyAcceptContract(contract, out errorMessage);
         }
 
-        public bool NotifyHostOfRowDataHashChange(uint rowId, string tableName, byte[] newDataHash, HostInfo hostInfo)
+        public bool NotifyHostOfRowDataHashChange(uint rowId, string tableName, byte[] newDataHash, HostInfo hostInfo, Guid dbId, uint tableId)
         {
-            return _remote.NotifyHostRowDataHashChanged(_baseDb.Name, tableName, rowId, newDataHash, hostInfo);
+            return _remote.NotifyHostRowDataHashChanged(_baseDb.Name, tableName, rowId, newDataHash, hostInfo, dbId, tableId);
         }
 
         public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
