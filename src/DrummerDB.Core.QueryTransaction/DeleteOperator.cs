@@ -69,7 +69,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 else
                                 {
                                     // need to delete the remote row first
-                                    var participant = db.GetParticipant(rowAddress.RemotableId);
+                                    var participant = db.GetParticipant(rowAddress.RemotableId, true);
                                     isSuccessful = db.XactRequestParticipantRemoveRow
                                         (
                                         participant,

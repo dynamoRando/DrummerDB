@@ -513,7 +513,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static class Columns
                 {
-                    public const string ParticpantGUID = "ParticpantGUID";
+                    /// <summary>
+                    /// The unique identifier generated when a record is entered into the Participant table
+                    /// </summary>
+                    public const string InternalParticpantGUID = "InternalParticpantGUID";
+
                     public const string Alias = "Alias";
                     public const string IP4Address = "IP4Address";
                     public const string IP6Address = "IP6Address";
@@ -523,6 +527,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string AcceptedContractVersion = "AcceptedContractVersion";
                     public const string AcceptedContractDateTimeUTC = "AcceptedContractDateTimeUTC";
                     public const string Token = "Token";
+
+                    /// <summary>
+                    /// The identifer that the participant gives to us (for the participant, this is their own "HostId")
+                    /// </summary>
+                    public const string ParticpantGUID = "ParticpantGUID";
                 }
 
                 public static ColumnSchemaCollection GetColumns()
@@ -549,10 +558,10 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(10);
+                        _columns = new ColumnSchemaCollection(11);
 
-                        var participantId = new ColumnSchema(Columns.ParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                        _columns.Add(participantId);
+                        var internalParticipantId = new ColumnSchema(Columns.InternalParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(internalParticipantId);
 
                         var alias = new ColumnSchema(Columns.Alias, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
                         _columns.Add(alias);
@@ -580,6 +589,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                         var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 10, true);
                         _columns.Add(token);
+
+                        var participantId = new ColumnSchema(Columns.ParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 11);
+                        _columns.Add(participantId);
                     }
                 }
             }

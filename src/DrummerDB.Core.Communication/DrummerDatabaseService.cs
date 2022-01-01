@@ -51,6 +51,47 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return Task.FromResult(reply);
         }
 
+        public override Task<UpdateRowDataHashForHostResponse> UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest request, ServerCallContext context)
+        {
+            bool isSuccessfulHashUpdate = false;
+            var result = new UpdateRowDataHashForHostResponse();
+
+            if (request.MessageInfo is not null)
+            {
+                LogMessageInfo(request.MessageInfo);
+            }
+
+            Guid participantId = Guid.Parse(request.HostInfo.HostGUID);
+            string dbName = request.DatabaseName;
+            string tableName = request.TableName;
+            uint rowId = request.RowId;
+            byte[] hash = request.UpdatedHashValue.ToByteArray();
+
+            var hasLogin = IsLoginValid(request.Authentication, context);
+            if (hasLogin.Result.IsAuthenticated)
+            {
+                isSuccessfulHashUpdate = _handler.UpdateDataHashForRow(
+                    participantId,
+                    dbName,
+                    tableName,
+                    rowId,
+                    hash);
+            }
+            else
+            {
+                throw new InvalidOperationException("The requestor has not been authenticated");
+            }
+
+            result.IsSuccessful = isSuccessfulHashUpdate;
+
+            if (!isSuccessfulHashUpdate)
+            {
+                throw new NotImplementedException("Need to fill out failure details");
+            }
+
+            return Task.FromResult(result);
+        }
+
         public override Task<AuthResult> IsLoginValid(AuthRequest request, ServerCallContext context)
         {
             bool hasLogin;
@@ -58,7 +99,14 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             if (request.Pw is null || request.Pw == string.Empty)
             {
-                hasLogin = _handler.SystemHasHost(request.UserName, request.Token.ToByteArray());
+                if (request.HostDbName is null || request.HostDbName == string.Empty)
+                {
+                    hasLogin = _handler.SystemHasHost(request.UserName, request.Token.ToByteArray());
+                }
+                else
+                {
+                    hasLogin = _handler.SystemHasParticipant(request.UserName, request.Token.ToByteArray(), request.HostDbName);
+                }
             }
             else
             {
@@ -186,6 +234,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             participant.PortNumber = Convert.ToInt32(request.Participant.DatabasePortNumber);
             participant.Id = Guid.Parse(request.Participant.ParticipantGUID);
             participant.Url = string.Empty;
+            participant.Token = request.Participant.Token.ToByteArray();
 
             var contract = new drumContract();
             contract.ContractGUID = Guid.Parse(request.ContractGUID);

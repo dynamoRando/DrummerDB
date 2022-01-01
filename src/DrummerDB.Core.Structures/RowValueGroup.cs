@@ -5,6 +5,7 @@ using Drummersoft.DrummerDB.Core.Structures.SQLType;
 using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -41,8 +42,16 @@ namespace Drummersoft.DrummerDB.Core.Structures
             // may later change the dependency layout, but for now leaving this here
             // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
             var sourceData = GetRowDataInBinary();
+
+            Debug.WriteLine("Source Data Before Hash:");
+            DebugByteArray(sourceData);
             var sha256Hash = SHA256.Create();
-            return sha256Hash.ComputeHash(sourceData);
+            var hash = sha256Hash.ComputeHash(sourceData);
+
+            Debug.WriteLine("Hashed Value:");
+            DebugByteArray(hash);
+
+            return hash;
         }
 
         public override void Delete()
@@ -547,6 +556,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
             foreach (var value in Values)
             {
+                DebugValue(value as RowValue);
                 var bytes = value.GetValueInBinary();
                 arrays.Add(bytes);
             }
@@ -603,6 +613,28 @@ namespace Drummersoft.DrummerDB.Core.Structures
             SetRemotableSize();
             SetValueSize();
             SetTotalSize();
+        }
+
+        [Conditional("DEBUG")]
+        private void DebugValue(RowValue value)
+        {
+            Debug.WriteLine("RowValue:");
+            if (!value.IsNull())
+            {
+                Debug.WriteLine(value.GetValueInString());
+            }
+            else
+            {
+                Debug.WriteLine("NULL");
+            }
+        }
+
+        private void DebugByteArray(byte[] array)
+        {
+            Debug.WriteLine("DebugByteArray:");
+            string callingMethod = new StackFrame(1, true).GetMethod().Name;
+            Debug.WriteLine($"Called by {callingMethod}");
+            Debug.WriteLine($"Bytes: {BitConverter.ToString(array)}");
         }
         #endregion
     }

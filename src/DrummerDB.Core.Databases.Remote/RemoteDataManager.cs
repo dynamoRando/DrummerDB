@@ -181,7 +181,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             UpdateRowDataHashForHostResponse result = new UpdateRowDataHashForHostResponse(); ;
 
             request.MessageInfo = GetMessageInfo(MessageType.DataHashChanged);
-            request.Authentication = GetAuthRequest();
+            request.Authentication = GetAuthRequest(dbName);
             request.TableName = tableName;
             request.DatabaseName = dbName;
             request.RowId = rowId;
@@ -462,7 +462,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             if (result is not null)
             {
                 // do something with the result
-                rowResult = ConvertRequestToRow(result, participant.Id);
+                rowResult = ConvertRequestToRow(result, participant.InternalId);
                 return rowResult;
             }
 
@@ -545,7 +545,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             return sink;
         }
 
-        private AuthRequest GetAuthRequest()
+        private AuthRequest GetAuthRequest(bool useOriginalTokenValue = false)
         {
             var request = new AuthRequest();
             request.UserName = _hostInfo.HostName;
@@ -558,25 +558,39 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             // on the other side in cache/storage, we save off the leading isNull byte (which is always false)
             // with the data itself, so we need to match that on this side
 
-            var tokenOriginalValue = _hostInfo.Token;
+            if (useOriginalTokenValue)
+            {
+                request.Token = ByteString.CopyFrom(_hostInfo.Token);
+            }
+            else
+            {
+                var tokenOriginalValue = _hostInfo.Token;
 
-            var newTokenValue = new byte[tokenOriginalValue.Length + Constants.SIZE_OF_BOOL];
-            Array.Copy(bIsTokenNull, 0, newTokenValue, 0, bIsTokenNull.Length);
-            Array.Copy(tokenOriginalValue, 0, newTokenValue, bIsTokenNull.Length, tokenOriginalValue.Length);
+                var newTokenValue = new byte[tokenOriginalValue.Length + Constants.SIZE_OF_BOOL];
+                Array.Copy(bIsTokenNull, 0, newTokenValue, 0, bIsTokenNull.Length);
+                Array.Copy(tokenOriginalValue, 0, newTokenValue, bIsTokenNull.Length, tokenOriginalValue.Length);
 
-            int tokenLength = newTokenValue.Length;
+                int tokenLength = newTokenValue.Length;
 
-            var bTokenLength = DbBinaryConvert.IntToBinary(tokenLength);
+                var bTokenLength = DbBinaryConvert.IntToBinary(tokenLength);
 
-            byte[] messageToken;
+                byte[] messageToken;
 
-            messageToken = new byte[bIsTokenNull.Length + bTokenLength.Length + newTokenValue.Length];
-            Array.Copy(bIsTokenNull, 0, messageToken, 0, bIsTokenNull.Length);
-            Array.Copy(bTokenLength, 0, messageToken, bIsTokenNull.Length, bTokenLength.Length);
-            Array.Copy(newTokenValue, 0, messageToken, bIsTokenNull.Length + bTokenLength.Length, newTokenValue.Length);
+                messageToken = new byte[bIsTokenNull.Length + bTokenLength.Length + newTokenValue.Length];
+                Array.Copy(bIsTokenNull, 0, messageToken, 0, bIsTokenNull.Length);
+                Array.Copy(bTokenLength, 0, messageToken, bIsTokenNull.Length, bTokenLength.Length);
+                Array.Copy(newTokenValue, 0, messageToken, bIsTokenNull.Length + bTokenLength.Length, newTokenValue.Length);
 
-            request.Token = ByteString.CopyFrom(messageToken);
+                request.Token = ByteString.CopyFrom(messageToken);
+            }
 
+            return request;
+        }
+
+        private AuthRequest GetAuthRequest(string hostDbName)
+        {
+            var request = GetAuthRequest(true);
+            request.HostDbName = hostDbName;
             return request;
         }
 

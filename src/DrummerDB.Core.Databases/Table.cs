@@ -364,7 +364,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _cache.GetRow(rowId, Address);
         }
 
-        public Row GetHostRow(uint rowId)
+        public HostRow GetHostRow(uint rowId)
         {
             var item = _cache.GetRow(rowId, Address);
             if (item is HostRow)
@@ -437,7 +437,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
         {
             var physicalRow = _cache.GetRow(row.Id, Address).AsHost();
             physicalRow.SetDataHash(newHash);
-            XactUpdateRow(row);
+            XactUpdateRow(physicalRow);
         }
 
         public List<RowAddress> GetRowAddressesWithValue(RowValue value, TransactionRequest transaction, TransactionMode transactionMode)
@@ -1279,6 +1279,12 @@ namespace Drummersoft.DrummerDB.Core.Databases
             bool removeRowIsSuccessful = false;
             string errorMessage = string.Empty;
 
+            TempParticipantRow tempRow = null;
+            if (row is TempParticipantRow)
+            {
+                tempRow = row as TempParticipantRow; 
+            }
+
             switch (transactionMode)
             {
                 case TransactionMode.None:
@@ -1287,7 +1293,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                     // we then need to save the data at the participant.
 
                     remoteSaveIsSuccessful = _remoteManager.SaveRowAtParticipant(
-                        row.AsTempForParticipant(),
+                        tempRow,
                         _schema.DatabaseName,
                         _schema.DatabaseId,
                         Name,
@@ -1304,7 +1310,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         // and also save this action to the transaction log
                         do
                         {
-                            addResult = _cache.TryAddRow(row.AsHost(), Address, _schema, out pageId);
+                            addResult = _cache.TryAddRow(tempRow.ToHostRow(), Address, _schema, out pageId);
 
                             var debugRow = row as Row;
                             string debugData = BitConverter.ToString(debugRow.GetRowInPageBinaryFormat());
@@ -1348,7 +1354,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 case TransactionMode.Try:
 
                     remoteSaveIsSuccessful = _remoteManager.SaveRowAtParticipant(
-                        row.AsTempForParticipant(),
+                        tempRow,
                         _schema.DatabaseName,
                         _schema.DatabaseId,
                         Name,
@@ -1365,7 +1371,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                         // and also save this action to the transaction log
                         do
                         {
-                            addResult = _cache.TryAddRow(row.AsTempForParticipant().ToHostRow(), Address, _schema, out pageId);
+                            addResult = _cache.TryAddRow(tempRow.ToHostRow(), Address, _schema, out pageId);
 
                             var debugRow = row as Row;
                             string debugData = BitConverter.ToString(debugRow.GetRowInPageBinaryFormat());

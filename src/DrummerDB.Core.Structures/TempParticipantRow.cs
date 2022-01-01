@@ -17,7 +17,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public RowType RowType => RowType.TempParticipantRow;
         public Participant Participant { get; set; }
-        public Guid ParticipantId => Participant.Id;
+        public Guid ParticipantInternalId => Participant.InternalId;
 
         public TempParticipantRow(RowPreamble preamble) : base(preamble)
         {
@@ -42,7 +42,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             dt = DateTime.MinValue;
             var rowHashData = GetRowHash();
 
-            var remotableData = new RemotableFixedData(ParticipantId, false, dt, RemoteType.Participant, (uint)rowHashData.Length);
+            var remotableData = new RemotableFixedData(ParticipantInternalId, false, dt, RemoteType.Participant, (uint)rowHashData.Length);
             row.SetRemotableFixedData(remotableData);
             row.SetDataHash(rowHashData);
 

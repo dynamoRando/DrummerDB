@@ -172,14 +172,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var results = participants.GetLocalRowsWithValue(searchItem);
                 foreach (var row in results)
                 {
-                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+                    result.InternalId = Guid.Parse(row.GetValueInString(Participants.Columns.InternalParticpantGUID));
                     result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
                     result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
                     result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
                     result.Alias = row.GetValueInString(Participants.Columns.Alias);
-
+                    result.Token = row.GetValueInByte(Participants.Columns.Token);
                     result.Url = string.Empty;
                     result.UseHttps = false;
+                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
                 }
             }
 
@@ -218,36 +219,75 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
-        public Participant GetParticipant(Guid participantId)
+        public Participant GetParticipant(Guid participantId, bool isInternalId)
         {
             Participant result = new();
             var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
-            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.ParticpantGUID, participantId.ToString());
-            uint resultCount = participants.CountOfRowsWithValue(searchItem);
 
-            if (resultCount > 1)
+            if (isInternalId)
             {
-                throw new InvalidOperationException($"There exists multiple participants with the same id {participantId}");
-            }
+                var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.InternalParticpantGUID, participantId.ToString());
+                uint resultCount = participants.CountOfRowsWithValue(searchItem);
 
-            if (resultCount == 0)
-            {
-                throw new InvalidOperationException($"There are no participants with the id {participantId}");
-            }
-
-            if (resultCount == 1)
-            {
-                var results = participants.GetLocalRowsWithValue(searchItem);
-                foreach (var row in results)
+                if (resultCount > 1)
                 {
-                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
-                    result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
-                    result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
-                    result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
-                    result.Alias = row.GetValueInString(Participants.Columns.Alias);
+                    throw new InvalidOperationException($"There exists multiple participants with the same internal id {participantId}");
+                }
 
-                    result.Url = string.Empty;
-                    result.UseHttps = false;
+                if (resultCount == 0)
+                {
+                    throw new InvalidOperationException($"There are no participants with the internal id {participantId}");
+                }
+
+                if (resultCount == 1)
+                {
+                    var results = participants.GetLocalRowsWithValue(searchItem);
+                    foreach (var row in results)
+                    {
+                        result.InternalId = Guid.Parse(row.GetValueInString(Participants.Columns.InternalParticpantGUID));
+                        result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
+                        result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
+                        result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
+                        result.Alias = row.GetValueInString(Participants.Columns.Alias);
+                        result.Token = row.GetValueInByte(Participants.Columns.Token);
+                        result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+
+                        result.Url = string.Empty;
+                        result.UseHttps = false;
+                    }
+                }
+            }
+            else
+            {
+                var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.ParticpantGUID, participantId.ToString());
+                uint resultCount = participants.CountOfRowsWithValue(searchItem);
+
+                if (resultCount > 1)
+                {
+                    throw new InvalidOperationException($"There exists multiple participants with the same id {participantId}");
+                }
+
+                if (resultCount == 0)
+                {
+                    throw new InvalidOperationException($"There are no participants with the id {participantId}");
+                }
+
+                if (resultCount == 1)
+                {
+                    var results = participants.GetLocalRowsWithValue(searchItem);
+                    foreach (var row in results)
+                    {
+                        result.InternalId = Guid.Parse(row.GetValueInString(Participants.Columns.InternalParticpantGUID));
+                        result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
+                        result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
+                        result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
+                        result.Alias = row.GetValueInString(Participants.Columns.Alias);
+                        result.Token = row.GetValueInByte(Participants.Columns.Token);
+                        result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+
+                        result.Url = string.Empty;
+                        result.UseHttps = false;
+                    }
                 }
             }
 
@@ -415,7 +455,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var isSaved = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
 
             var participantTable = GetTable(Participants.TABLE_NAME);
-            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.ParticpantGUID, participant.Id.ToString());
+            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.InternalParticpantGUID, participant.InternalId.ToString());
             uint totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
 
             if (totalParticipants > 1)
@@ -493,6 +533,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(Participants.Columns.AcceptedContractVersion, contractGuid.ToString());
                 row.SetValue(Participants.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
                 row.SetValue(Participants.Columns.AcceptedContractDateTimeUTC, DateTime.UtcNow.ToString());
+                row.SetValue(Participants.Columns.Token, participant.Token);
+                row.SetValue(Participants.Columns.ParticpantGUID, participant.Id.ToString());
                 participantTable.XactUpdateRow(row, transaction, transactionMode);
             }
 

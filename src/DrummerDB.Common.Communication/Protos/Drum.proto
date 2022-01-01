@@ -90,6 +90,7 @@ message AuthRequest{
   string pw = 2;
   bytes pwHash = 3;
   bytes token = 4;
+  string hostDbName = 5;
 }
 
 // A message describing the results of an authentication attempt

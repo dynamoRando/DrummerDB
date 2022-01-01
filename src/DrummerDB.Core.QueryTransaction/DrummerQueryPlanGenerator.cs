@@ -675,7 +675,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     insertOp.TableSchemaName = Constants.SYS_SCHEMA;
 
                     // get columns to insert values into
-                    var colParticipantGuid = Participants.GetColumn(Participants.Columns.ParticpantGUID);
+                    var colParticipantGuidInternal = Participants.GetColumn(Participants.Columns.InternalParticpantGUID);
                     var colAlias = Participants.GetColumn(Participants.Columns.Alias);
                     var colIp4 = Participants.GetColumn(Participants.Columns.IP4Address);
                     var colIp6 = Participants.GetColumn(Participants.Columns.IP6Address);
@@ -685,13 +685,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var colContractVersion = Participants.GetColumn(Participants.Columns.AcceptedContractVersion);
                     var colContractVersionDate = Participants.GetColumn(Participants.Columns.AcceptedContractDateTimeUTC);
                     var colToken = Participants.GetColumn(Participants.Columns.Token);
+                    var colParticipantGuid = Participants.GetColumn(Participants.Columns.ParticpantGUID);
 
                     var participantId = Guid.NewGuid();
 
                     // need to create a row to insert
                     var insertRow = new InsertRow(1);
 
-                    var valueParticipantId = new InsertValue(1, colParticipantGuid.Name, participantId.ToString());
+                    var valueParticipantIdInternal = new InsertValue(1, colParticipantGuidInternal.Name, participantId.ToString());
                     var valueAlias = new InsertValue(2, colAlias.Name, participantAlias);
                     var valueIp4 = new InsertValue(3, colIp4.Name, stringIP4);
                     var valueIp6 = new InsertValue(4, colIp6.Name, stringIP6);
@@ -701,8 +702,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var valueContractVersion = new InsertValue(8, colContractVersion.Name);
                     var valueContractVersionDate = new InsertValue(9, colContractVersionDate.Name);
                     var valueToken = new InsertValue(10, colToken.Name);
+                    var valueParticipantId = new InsertValue(11, colParticipantGuid.Name, Guid.Empty.ToString());
 
-                    insertRow.AddValue(valueParticipantId);
+                    insertRow.AddValue(valueParticipantIdInternal);
                     insertRow.AddValue(valueAlias);
                     insertRow.AddValue(valueIp4);
                     insertRow.AddValue(valueIp6);
@@ -712,6 +714,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     insertRow.AddValue(valueContractVersion);
                     insertRow.AddValue(valueContractVersionDate);
                     insertRow.AddValue(valueToken);
+                    insertRow.AddValue(valueParticipantId);
 
                     insertOp.Rows.Add(insertRow);
 

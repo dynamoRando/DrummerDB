@@ -87,6 +87,22 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return _authenticationManager.SystemHasHost(hostName, token);
         }
 
+        public bool SystemHasParticipant(string participantAlias, byte[] token, string hostDbName)
+        {
+            var hostDb = _dbManager.GetHostDatabase(hostDbName);
+            var participant = hostDb.GetParticipant(participantAlias);
+
+            if (participant.InternalId != Guid.Empty)
+            {
+                if (DbBinaryConvert.BinaryEqual(participant.Token, token))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public bool SystemHasLogin(string userName, string pw)
         {
             return _authenticationManager.SystemHasLogin(userName, pw);
@@ -148,6 +164,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public bool AcceptContract(Participant participant, Contract contract, out string errorMessage)
         {
             errorMessage = string.Empty;
+            participant.InternalId = _dbManager.GetHostDatabase(contract.DatabaseName).GetParticipant(participant.Alias).InternalId;
             var acceptContractAction = new AcceptContractDbAction(participant, contract, _dbManager as DbManager);
             return _queryManager.ExecuteDatabaseServiceAction(acceptContractAction, out errorMessage);
         }
@@ -211,8 +228,53 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             var row = table.GetRow(rowId);
             isSuccessful = table.XactDeleteRow(row);
-           
+
             return isSuccessful;
+        }
+
+        public bool UpdateDataHashForRow(
+            Guid participantId,
+            string databaseName,
+            string tableName,
+            uint rowId,
+            byte[] dataHash)
+        {
+
+            var db = _dbManager.GetHostDatabase(databaseName);
+            var participant = db.GetParticipant(participantId, false);
+
+            if (participant.InternalId != Guid.Empty)
+            {
+                var table = db.GetTable(tableName);
+                var row = table.GetHostRow(rowId);
+
+                if (row.RemoteId == participant.InternalId)
+                {
+                    if (!DbBinaryConvert.BinaryEqual(dataHash, row.DataHash))
+                    {
+                        row.SetDataHash(dataHash);
+                        table.XactUpdateRow(row);
+                        return true;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Data hashes are the same:");
+                        Debug.WriteLine(BitConverter.ToString(dataHash));
+                        Debug.WriteLine(BitConverter.ToString(row.DataHash));
+                        throw new InvalidOperationException();
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Row Remote Id does not match");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Participant not found");
+            }
+
+            return false;
         }
 
         public bool UpdateRowInPartialDb(

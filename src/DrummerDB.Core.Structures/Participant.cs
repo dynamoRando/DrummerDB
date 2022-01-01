@@ -7,6 +7,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 {
     internal record struct Participant
     {
+        public Guid InternalId { get; set; }
         public Guid Id { get; set; }
         public string IP4Address { get; set; }
         public string IP6Address { get; set; }
@@ -14,10 +15,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public string Url { get; set; }
         public bool UseHttps { get; set; }
         public string Alias { get; set; }
+        public byte[] Token { get; set; }
 
         public byte[] ToBinaryFormat()
         {
-            var arrays = new List<byte[]>(11);
+            var arrays = new List<byte[]>(13);
+
+            var bInternalId = DbBinaryConvert.GuidToBinary(InternalId);
+            arrays.Add(bInternalId);
 
             var bId = DbBinaryConvert.GuidToBinary(Id);
             arrays.Add(bId);
@@ -56,6 +61,13 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
             arrays.Add(bAliasLength);
             arrays.Add(bAlias);
+
+            if (Token is null)
+            {
+                Token = new byte[0];
+            }
+
+            arrays.Add(Token);
 
             return DbBinaryConvert.ArrayStitch(arrays);
         }

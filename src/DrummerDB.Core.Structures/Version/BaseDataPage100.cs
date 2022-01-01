@@ -833,12 +833,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                                 // that they point to, and no actual values)
                                 case RemoteType.Participant:
 
-                                    runningTotal += RowConstants.Preamble.Length();
-
                                     HostRow hostRow = new HostRow(item);
                                     hostRow.SetRemotableFixedData(remotePrefix);
-                                    runningTotal += RowConstants.RemotableFixedData.Length();
-
                                     hostRow.SetDataHash(span.Slice((int)runningTotal, (int)remotePrefix.DataHashLength).ToArray());
                                     runningTotal += item.RowRemotableSize;
 

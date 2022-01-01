@@ -1142,6 +1142,22 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             Assert.False(updateLocalValue.Results.First().IsError);
 
+            // check to see if we can read the customer name at the participant
+            var selectOldNameAtCustomer = harness.ExecuteSQL(customer,
+            $@"
+            SELECT * FROM {customerTableName};
+            ", dbName, DatabaseType.Partial);
+
+            Assert.False(selectOldNameAtCustomer.Results.First().IsError);
+            Assert.InRange(selectOldNameAtCustomer.Results.First().Rows.Count, 1, 1);
+
+            // test to make sure we got customer name back
+            var bCustValue = selectOldNameAtCustomer.Results.First().Rows[0].Values[1].Value.ToByteArray();
+            var spanCustValue = new ReadOnlySpan<byte>(bCustValue);
+
+            var actualValue = DbBinaryConvert.BinaryToString(spanCustValue);
+            Assert.NotEqual(newCustomerName, actualValue);
+
             // read the value back from the host
             // this should not return any metadata information errors
             var selectCNameAtHost = harness.ExecuteSQL(company,

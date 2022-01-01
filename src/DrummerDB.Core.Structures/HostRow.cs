@@ -26,6 +26,10 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #region Public Properties
         public override RowType Type => RowType.Remoteable;
 
+        /// <summary>
+        /// The id of the remote object that has associated data for this row.
+        /// </summary>
+        /// <remarks>For host databases, this is the internal participant id, not the id by which the participant identifies itself.</remarks>
         public Guid RemoteId
         {
             get

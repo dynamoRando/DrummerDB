@@ -22,6 +22,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #region Private Fields
         private IDbManager _db;
         private List<IUpdateColumnSource> _sources;
+        private bool _alreadySuccessfullyUpdated = false;
         #endregion
 
         #region Public Properties
@@ -46,6 +47,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             Table table = _db.GetTable(Address);
 
             bool rowsUpdated = true;
+            bool hostNotified = false;
 
             // if we have a WHERE clause that we need to specify
             if (PreviousOperation is not null)
@@ -87,8 +89,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                         if (rowsUpdated)
                                         {
                                             byte[] rowDataHash = null;
+
                                             // next need to determine if we are configured to notify the host of upstream changes
-                                            // code goes here
                                             var sysDb = _db.GetSystemDatabase();
                                             var shouldNotifyHost = sysDb.ShouldNotifyHostOfDataChanges(DatabaseName, table.Name);
                                             if (shouldNotifyHost)
@@ -100,26 +102,45 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                                 var db = _db.GetDatabase(DatabaseName, DatabaseType.Partial) as PartialDb;
                                                 var hostInfo = sysDb.GetCooperatingHost(hostId);
 
-                                                db.NotifyHostOfRowDataHashChange(
-                                                    rowAddress.RowId,
-                                                    table.Name,
-                                                    rowDataHash,
-                                                    hostInfo,
-                                                    db.Id,
-                                                    table.Address.TableId);
+                                                if (!_alreadySuccessfullyUpdated && (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None))
+                                                {
+                                                    hostNotified = db.NotifyHostOfRowDataHashChange(
+                                                 rowAddress.RowId,
+                                                 table.Name,
+                                                 rowDataHash,
+                                                 hostInfo,
+                                                 db.Id,
+                                                 table.Address.TableId);
+                                                }
 
-                                                throw new NotImplementedException();
+                                                if (hostNotified)
+                                                {
+                                                    if (transactionMode == TransactionMode.None || transactionMode == TransactionMode.Try)
+                                                    {
+                                                        _alreadySuccessfullyUpdated = true;
+                                                        messages.Add($"{targets.Item2.Count.ToString()} rows updated in table {table.Name} " +
+                                                       $"and host {hostInfo} notified of data change");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (!_alreadySuccessfullyUpdated)
+                                                    {
+                                                        errorMessages.Add("Rows were updated but unable to notify host of data change");
+                                                    }
+                                                }
                                             }
                                         }
-
-
-                                        throw new NotImplementedException();
+                                        else
+                                        {
+                                            errorMessages.Add($"Unable to update row");
+                                        }
                                     }
                                     else
                                     {
                                         // this is a pure remote update
                                         HostDb hostDb = _db.GetHostDatabase(Address.DatabaseId);
-                                        var participant = hostDb.GetParticipant(rowAddress.RemotableId);
+                                        var participant = hostDb.GetParticipant(rowAddress.RemotableId, true);
                                         foreach (var source in _sources)
                                         {
                                             if (source is UpdateTableValue)
