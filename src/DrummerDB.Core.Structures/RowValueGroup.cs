@@ -43,14 +43,23 @@ namespace Drummersoft.DrummerDB.Core.Structures
             // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
             var sourceData = GetRowDataInBinary();
 
-            Debug.WriteLine("Source Data Before Hash:");
-            DebugByteArray(sourceData);
+            bool debug = false;
+
+            if (debug)
+            {
+                Debug.WriteLine("Source Data Before Hash:");
+                DebugByteArray(sourceData);
+            }
+           
             var sha256Hash = SHA256.Create();
             var hash = sha256Hash.ComputeHash(sourceData);
 
-            Debug.WriteLine("Hashed Value:");
-            DebugByteArray(hash);
-
+            if (debug)
+            {
+                Debug.WriteLine("Hashed Value:");
+                DebugByteArray(hash);
+            }
+       
             return hash;
         }
 
@@ -618,23 +627,32 @@ namespace Drummersoft.DrummerDB.Core.Structures
         [Conditional("DEBUG")]
         private void DebugValue(RowValue value)
         {
-            Debug.WriteLine("RowValue:");
-            if (!value.IsNull())
+            bool debug = false;
+            if (debug)
             {
-                Debug.WriteLine(value.GetValueInString());
+                Debug.WriteLine("RowValue:");
+                if (!value.IsNull())
+                {
+                    Debug.WriteLine(value.GetValueInString());
+                }
+                else
+                {
+                    Debug.WriteLine("NULL");
+                }
             }
-            else
-            {
-                Debug.WriteLine("NULL");
-            }
+            
         }
 
         private void DebugByteArray(byte[] array)
         {
-            Debug.WriteLine("DebugByteArray:");
-            string callingMethod = new StackFrame(1, true).GetMethod().Name;
-            Debug.WriteLine($"Called by {callingMethod}");
-            Debug.WriteLine($"Bytes: {BitConverter.ToString(array)}");
+            bool debug = false;
+            if (debug)
+            {
+                Debug.WriteLine("DebugByteArray:");
+                string callingMethod = new StackFrame(1, true).GetMethod().Name;
+                Debug.WriteLine($"Called by {callingMethod}");
+                Debug.WriteLine($"Bytes: {BitConverter.ToString(array)}");
+            }
         }
         #endregion
     }
