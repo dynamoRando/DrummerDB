@@ -207,7 +207,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 CooperativeTables.Columns.DatabaseName, partialDbName);
 
             var rowValueTableName = RowValueMaker.Create(cooperativeTable,
-                CooperativeTables.Columns.TableName, tableName);
+                CooperativeTables.Columns.TableName, tableName, true);
 
             var searchItems = new IRowValue[2] { rowValueDbName, rowValueTableName };
             var searchResults = cooperativeTable.GetLocalRowsWithAllValues(searchItems);
