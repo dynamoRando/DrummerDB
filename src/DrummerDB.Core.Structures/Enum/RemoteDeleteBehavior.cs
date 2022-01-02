@@ -8,7 +8,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Enum
 {
 
     /// <summary>
-    /// Determines how a host will response to a participant's delete
+    /// Determines how a host will will respond to a participant's delete
     /// action
     /// </summary>
     internal enum RemoteDeleteBehavior
