@@ -671,7 +671,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string Version = "Version";
 
                     /// <summary>
-                    /// Determines how we (the host) respond when a participant deletes a row on its side
+                    /// Determines how we (the host) respond when a participant deletes a row on its side.
+                    /// See <see cref="Enum.RemoteDeleteBehavior"/> enum.
                     /// </summary>
                     public const string RemoteDeleteBehavior = "RemoteDeleteBehavior";
                 }
