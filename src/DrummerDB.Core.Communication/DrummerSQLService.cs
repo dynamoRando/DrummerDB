@@ -3,6 +3,7 @@ using Drummersoft.DrummerDB.Common.Communication;
 using Drummersoft.DrummerDB.Common.Communication.SQLService;
 using Drummersoft.DrummerDB.Core.Structures;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using System;
@@ -82,18 +83,37 @@ namespace Drummersoft.DrummerDB.Core.Communication
                         foreach (var rRow in result.Rows)
                         {
                             var row = new Common.Communication.Row();
+                            var rowMetaData = new Common.Communication.RowRemoteMetadata();
+                            row.RemoteMetadata = rowMetaData;
 
                             for (int i = 0; i < numberOfColumns; i++)
                             {
-                                var rowValue = new Common.Communication.RowValue();
-                                rowValue.Value = ByteString.CopyFrom(rRow[i].Value);
-                                rowValue.IsNullValue = rRow[i].IsNullValue;
-                                rowValue.Column = new Common.Communication.ColumnSchema();
-                                rowValue.Column.ColumnName = result.Columns[i].Name;
-                                rowValue.Column.ColumnType = Convert.ToUInt32(result.Columns[i].DataType);
-                                rowValue.Column.IsNullable = result.Columns[i].IsNullable;
-                                rowValue.Column.ColumnLength = Convert.ToUInt32(result.Columns[i].Length);
-                                row.Values.Add(rowValue);
+                                var currentValue = rRow[i];
+
+                                if (currentValue.IsRemotable)
+                                {
+                                    row.IsRemoteable = true;
+                                    row.RemoteMetadata.IsHashOutOfSyncWithHost = currentValue.IsHashOutOfSyncWithHost;
+                                    row.RemoteMetadata.IsRemoteOutOfSyncWithHost = currentValue.IsRemoteOutOfSyncWithHost;
+                                }
+
+                                if (!currentValue.IsRemoteDeleted)
+                                {
+                                    var rowValue = new Common.Communication.RowValue();
+                                    rowValue.Value = ByteString.CopyFrom(currentValue.Value);
+                                    rowValue.IsNullValue = currentValue.IsNullValue;
+                                    rowValue.Column = new Common.Communication.ColumnSchema();
+                                    rowValue.Column.ColumnName = result.Columns[i].Name;
+                                    rowValue.Column.ColumnType = Convert.ToUInt32(result.Columns[i].DataType);
+                                    rowValue.Column.IsNullable = result.Columns[i].IsNullable;
+                                    rowValue.Column.ColumnLength = Convert.ToUInt32(result.Columns[i].Length);
+                                    row.Values.Add(rowValue);
+                                }
+                                else
+                                {
+                                    row.RemoteMetadata.IsRemoteDeleted = true;
+                                    row.RemoteMetadata.RemoteDeletedDate = Timestamp.FromDateTime(currentValue.RemoteDeletedDateUTC);
+                                }
                             }
 
                             resultSet.Rows.Add(row);

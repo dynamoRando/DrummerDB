@@ -198,21 +198,46 @@ namespace Drummersoft.DrummerDB.Core.Databases
             // this is because the api for com's was partially started before the api for queries
             // will need to revisit so that the com api exposes a way to get a single value from a participant
 
-            var data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), Name, table.Name, out errorMessage);
+            TempParticipantRow data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), Name, table.Name, out errorMessage);
 
-            // filter out by the value we're interested in
-            foreach (var value in data.Values)
+            if (!data.IsRemoteDeleted)
             {
-                if (string.Equals(value.Column.Name, address.ColumnName, StringComparison.OrdinalIgnoreCase))
+                // filter out by the value we're interested in
+                foreach (var value in data.Values)
                 {
-                    if (value.IsNull())
+                    if (string.Equals(value.Column.Name, address.ColumnName, StringComparison.OrdinalIgnoreCase))
                     {
-                        result.IsNullValue = true;
+                        if (value.IsNull())
+                        {
+                            result.IsNullValue = true;
+                        }
+                        else
+                        {
+                            result.Value = value.GetValueInBinary(false, value.Column.IsNullable);
+                        }
                     }
-                    else
-                    {
-                        result.Value = value.GetValueInBinary(false, value.Column.IsNullable);
-                    }
+                }
+            }
+           
+            result.IsRemotable = true;
+            result.IsRemoteDeleted = data.IsRemoteDeleted;
+
+            if (data.IsRemoteDeleted)
+            {
+                result.RemoteDeletedDateUTC = data.RemoteDeletedUTC;
+                result.IsRemoteOutOfSyncWithHost = true;
+                result.IsLocalDeleted = false;
+            }
+            else
+            {
+                var localRow = table.GetHostRow(address.RowId);
+                var localHash = localRow.DataHash;
+                var remoteHash = data.GetRowHash();
+                result.IsHashOutOfSyncWithHost = DbBinaryConvert.BinaryEqual(localHash, remoteHash);
+
+                if (result.IsHashOutOfSyncWithHost)
+                {
+                    result.IsRemoteOutOfSyncWithHost = true;
                 }
             }
 

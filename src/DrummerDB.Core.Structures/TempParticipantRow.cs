@@ -18,6 +18,8 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public RowType RowType => RowType.TempParticipantRow;
         public Participant Participant { get; set; }
         public Guid ParticipantInternalId => Participant.InternalId;
+        public bool IsRemoteDeleted { get; set; }
+        public DateTime RemoteDeletedUTC { get; set; }
 
         public TempParticipantRow(RowPreamble preamble) : base(preamble)
         {

@@ -1,6 +1,7 @@
 syntax = "proto3";
 import "Drum.proto";
 import "DrumDB.proto";
+import "google/protobuf/timestamp.proto";
 option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication.DatabaseService";
 package DrummerDatabaseService;
 
@@ -161,7 +162,9 @@ message GetRowFromPartialDatabaseResult {
 	Drum.AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
 	string resultMessage = 3;
-	Drum.Row row = 4;
+	bool isDeleted = 4;
+	google.protobuf.Timestamp remoteDeletedDateUTC = 5;
+	Drum.Row row = 6;
 }
 
 // a message from a host to a participant to save a contract

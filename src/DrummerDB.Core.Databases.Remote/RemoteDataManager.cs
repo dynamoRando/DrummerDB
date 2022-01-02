@@ -696,20 +696,28 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             var tempPreamble = new RowPreamble(request.Row.RowId, RowType.TempParticipantRow);
             var tempRow = new TempParticipantRow(tempPreamble);
 
-            var values = new List<structRowValue>(request.Row.Values.Count);
-
-            foreach (var comValue in request.Row.Values)
+            if (!request.IsDeleted)
             {
-                var comColumn = comValue.Column;
-                uint enumType = comColumn.ColumnType;
-                var type = SQLColumnTypeConverter.Convert((SQLColumnType)enumType, comColumn.ColumnLength);
-                var col = new structColumnSchema(comColumn.ColumnName, type, Convert.ToUInt32(comColumn.Ordinal));
+                var values = new List<structRowValue>(request.Row.Values.Count);
 
-                var structValue = new structRowValue(col, comValue.Value.ToByteArray());
-                values.Add(structValue);
+                foreach (var comValue in request.Row.Values)
+                {
+                    var comColumn = comValue.Column;
+                    uint enumType = comColumn.ColumnType;
+                    var type = SQLColumnTypeConverter.Convert((SQLColumnType)enumType, comColumn.ColumnLength);
+                    var col = new structColumnSchema(comColumn.ColumnName, type, Convert.ToUInt32(comColumn.Ordinal));
+
+                    var structValue = new structRowValue(col, comValue.Value.ToByteArray());
+                    values.Add(structValue);
+                }
+
+                tempRow.Values = values.ToArray();
             }
-
-            tempRow.Values = values.ToArray();
+            else
+            {
+                tempRow.IsRemoteDeleted = true;
+                tempRow.RemoteDeletedUTC = request.RemoteDeletedDateUTC.ToDateTime();
+            }
 
             return tempRow;
         }
