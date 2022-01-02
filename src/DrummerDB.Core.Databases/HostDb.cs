@@ -233,7 +233,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 var localRow = table.GetHostRow(address.RowId);
                 var localHash = localRow.DataHash;
                 var remoteHash = data.GetRowHash();
-                result.IsHashOutOfSyncWithHost = DbBinaryConvert.BinaryEqual(localHash, remoteHash);
+                result.IsHashOutOfSyncWithHost = !DbBinaryConvert.BinaryEqual(localHash, remoteHash);
 
                 if (result.IsHashOutOfSyncWithHost)
                 {
