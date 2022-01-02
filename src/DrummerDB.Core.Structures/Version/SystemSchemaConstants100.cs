@@ -669,6 +669,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string Description = "Description";
                     public const string RetiredDate = "RetiredDate";
                     public const string Version = "Version";
+
+                    /// <summary>
+                    /// Determines how we (the host) respond when a participant deletes a row on its side
+                    /// </summary>
+                    public const string RemoteDeleteBehavior = "RemoteDeleteBehavior";
                 }
 
                 public static ColumnSchema GetColumn(string columName)
@@ -695,7 +700,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(5);
+                        _columns = new ColumnSchemaCollection(6);
 
                         var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
                         _columns.Add(contractGuid);
@@ -711,6 +716,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                         var version = new ColumnSchema(Columns.Version, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 5);
                         _columns.Add(version);
+
+                        var deleteBehavior = new ColumnSchema(Columns.RemoteDeleteBehavior, new SQLInt(), 6);
+                        _columns.Add(deleteBehavior);
                     }
                 }
             }

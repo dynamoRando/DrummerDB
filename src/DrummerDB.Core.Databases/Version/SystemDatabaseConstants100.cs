@@ -422,10 +422,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     public const string Version = "Version";
                     public const string GeneratedDate = "GeneratedDate";
                     public const string Status = "Status";
-
-                    // we need supporting tables to handle the table schema
-                    // we will need to flatten the table structure for a list of table names
-                    // and then the columns for each table
                 }
 
                 public static ColumnSchemaCollection GetColumns()
@@ -502,6 +498,10 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     public const string DatabaseName = "DatabaseName";
                     public const string DatabaseId = "DatabaseId";
                     public const string LogicalStoragePolicy = "LogicalStoragePolicy";
+
+                    /// <summary>
+                    /// Determines if we make changes locally, if we should notify the host of changes, usually in the case of UPDATE or DELETE
+                    /// </summary>
                     public const string NotifyHostOfChanges = "NotifyHost";
                 }
 

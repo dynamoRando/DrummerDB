@@ -927,6 +927,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
                         var retiredColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RetiredDate);
                         var versionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Version);
+                        var remoteDeleteBehaviorColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RemoteDeleteBehavior);
 
                         // need to create a row to insert
                         var insertRow = new InsertRow(1);
@@ -936,12 +937,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var insertValueDescription = new InsertValue(3, descriptionColumn.Name, description);
                         var insertValueRetiredDate = new InsertValue(4, retiredColumn.Name, DateTime.MinValue.ToString());
                         var insertValueVersion = new InsertValue(5, versionColumn.Name, contractVersion.ToString());
+                        var insertRemoteDeleteBehavior = new InsertValue(6, remoteDeleteBehaviorColumn.Name, Convert.ToInt32(RemoteDeleteBehavior.Ignore).ToString());
 
                         insertRow.Values.Add(insertValueContractGuid);
                         insertRow.Values.Add(insertValueGeneratedDate);
                         insertRow.Values.Add(insertValueDescription);
                         insertRow.Values.Add(insertValueRetiredDate);
                         insertRow.Values.Add(insertValueVersion);
+                        insertRow.Values.Add(insertRemoteDeleteBehavior);
 
                         insertDatabaseContractsOp.Rows.Add(insertRow);
 

@@ -1508,5 +1508,23 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             Assert.True(row.RemoteMetadata.IsRemoteOutOfSyncWithHost);
             Assert.True(row.RemoteMetadata.IsHashOutOfSyncWithHost);
         }
+
+        [Fact(Skip ="Design needs to be completed")]
+        public void Test_Remote_Insert_Local_Delete_Notify_Host_Accept_Changes()
+        {
+            // participant deletes row
+            // based on data contract we also follow suit
+            // and delete the row locally
+            throw new NotImplementedException();
+        }
+
+        [Fact(Skip = "Design needs to be completed")]
+        public void Test_Remote_Insert_Local_Delete_Notify_Host_Ignore_Changes()
+        {
+            // participant deletes row
+            // based on data contract we do not delete
+            // but instead update the record to show that it is remote deleted
+            throw new NotImplementedException();
+        }
     }
 }
