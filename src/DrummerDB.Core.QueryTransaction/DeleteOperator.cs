@@ -68,6 +68,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 }
                                 else
                                 {
+                                    if (rowAddress.HasDataLocally)
+                                    {
+                                        // need to handle deleting locally
+                                        // then notifying the host of the deletion
+                                        // and then letting the host what it wants to do with the deletion action
+                                        throw new NotImplementedException("Need to handle the deletion in the partial database");
+                                    }
+
                                     // need to delete the remote row first
                                     var participant = db.GetParticipant(rowAddress.RemotableId, true);
                                     isSuccessful = db.XactRequestParticipantRemoveRow

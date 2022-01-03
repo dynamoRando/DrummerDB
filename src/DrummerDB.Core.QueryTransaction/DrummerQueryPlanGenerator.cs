@@ -18,6 +18,7 @@ using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstant
 using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -73,6 +74,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             EvaluateForGenerateHostInfo(line, database, dbManager, ref plan);
             EvaluateForReviewHostInfo(line, database, dbManager, ref plan);
             EvaluateForSetNotifyHost(line, database, dbManager, ref plan);
+            EvaluateForRemoteDeleteBehavior(line, database, dbManager, ref plan);
         }
 
         private void EvaluateForSetNotifyHost(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -880,6 +882,89 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             part.Operations.Add(op);
                         }
                     }
+                }
+            }
+        }
+
+        private void EvaluateForRemoteDeleteBehavior(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            // SET REMOTE DELETE BEHAVIOR FOR {hostDatabaseName} OPTION [option]
+            if (line.StartsWith(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR))
+            {
+                var trimmedLine = line.Trim();
+
+                // {hostDatabaseName} OPTION [option]
+                string dbNameLine = trimmedLine.Replace(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR + " ", string.Empty);
+
+                var values = dbNameLine.Split(" ");
+
+                if (values.Length != 3)
+                {
+                    throw new InvalidOperationException("Unable to parse Remote Delete Behavior");
+                }
+
+                var dbName = values[0].Trim();
+                var option = values[2].Trim();
+
+                HostDb hostDb = dbManager.GetHostDatabase(dbName);
+                var table = hostDb.GetTable(DatabaseContracts.TABLE_NAME);
+                var activeContractId = hostDb.GetCurrentContractGUID();
+
+                RemoteDeleteBehavior behavior = RemoteDeleteBehavior.Unknown;
+
+                if (string.Equals(option, DrummerKeywords.RemoteDeleteBehaviorKeywords.AUTO_DELETE, StringComparison.OrdinalIgnoreCase))
+                {
+                    behavior = RemoteDeleteBehavior.Auto_Delete;
+                }
+
+                if (string.Equals(option, DrummerKeywords.RemoteDeleteBehaviorKeywords.IGNORE, StringComparison.OrdinalIgnoreCase))
+                {
+                    behavior = RemoteDeleteBehavior.Ignore;
+                }
+
+                if (string.Equals(option, DrummerKeywords.RemoteDeleteBehaviorKeywords.UPDATE_STATUS_ONLY, StringComparison.OrdinalIgnoreCase))
+                {
+                    behavior = RemoteDeleteBehavior.Update_Status_Only;
+                }
+
+                // need to generate an update statement
+
+                if (!plan.HasPart(PlanPartType.Update))
+                {
+                    plan.AddPart(new UpdateQueryPlanPart());
+                }
+
+                var part = plan.GetPart(PlanPartType.Update);
+                if (part is UpdateQueryPlanPart)
+                {
+                    var address = new TreeAddress { DatabaseId = hostDb.Id, TableId = table.Address.TableId, SchemaId = table.Schema().Schema.SchemaGUID };
+                    // need to create update column sources
+
+                    var columns = new List<IUpdateColumnSource>();
+
+                    // create value object that we're going to update the contract guid to
+                    var column = new UpdateTableValue();
+                    var tableColumn = UserTable.GetColumn(DatabaseContracts.Columns.RemoteDeleteBehavior);
+
+                    column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
+                    column.Value = Convert.ToInt32(behavior).ToString();
+
+                    columns.Add(column);
+                    var updateOp = new UpdateOperator(dbManager, address, columns);
+
+                    // specify the column that we're interested in reading + updating
+                    string[] colNames = new string[2] { DatabaseContracts.Columns.ContractGUID, DatabaseContracts.Columns.RemoteDeleteBehavior };
+
+                    // filter by the host name
+                    var value = RowValueMaker.Create(table, DatabaseContracts.Columns.ContractGUID, activeContractId.ToString(), true);
+                    var trv = new TableRowValue(value, table.Address.TableId, hostDb.Id, table.Address.SchemaId);
+                    TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
+
+                    var readTableOp = new TableReadOperator(dbManager, table.Address, colNames, filter, _log);
+                    updateOp.PreviousOperation = readTableOp;
+
+                    part.AddOperation(readTableOp);
+                    part.AddOperation(updateOp);
                 }
             }
         }

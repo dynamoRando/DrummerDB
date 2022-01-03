@@ -23,6 +23,8 @@
         public const string AT = "AT";
         public const string ON = "ON";
         public const string OFF = "OFF";
+        public const string SET_REMOTE_DELETE_BEHAVIOR_FOR = "SET REMOTE DELETE BEHAVIOR FOR";
+        public const string OPTION = "OPTION";
 
         // prefix denotes anything that will perform network communication with a participant
         public const string REQUEST_PARTICIPANT = "REQUEST PARTICIPANT";
@@ -39,6 +41,16 @@
             public const string MIRROR = "Mirror";
 
             public static string[] StoragePolicies = new string[] { NONE, HOST_ONLY, PARTICIPANT_OWNED, SHARED, MIRROR };
+        }
+
+        internal static class RemoteDeleteBehaviorKeywords
+        {
+            public const string UNKNOWN = "Unknown";
+            public const string IGNORE = "Ignore";
+            public const string AUTO_DELETE = "Auto_Delete";
+            public const string UPDATE_STATUS_ONLY = "Update_Status_Only";
+
+            public static string[] Behaviors = new string[] { UNKNOWN, IGNORE, AUTO_DELETE, UPDATE_STATUS_ONLY };
         }
     }
 }

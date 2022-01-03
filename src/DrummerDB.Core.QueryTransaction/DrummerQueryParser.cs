@@ -137,6 +137,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForSetNotifyHost(statement, out errorMessage);
                     }
+
+                    if (HasSetRemoteDeleteBehaviorKeyword(statement))
+                    {
+                        return ParseForSetRemoteDeleteBehavior(statement, out errorMessage);
+                    }
                 }
             }
 
@@ -201,7 +206,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 errorMessage = $"Unknown option type {option}";
                                 return false;
                             }
-                            
+
                         }
                         else
                         {
@@ -219,6 +224,62 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             errorMessage = string.Empty;
             return true;
+        }
+
+        private bool ParseForSetRemoteDeleteBehavior(string statement, out string errorMessage)
+        {
+            //SET REMOTE DELETE BEHAVIOR FOR {hostDatabaseName} OPTION [option]
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR))
+                {
+                    // {hostDatabaseName} OPTION [option]
+                    var dbNameLine = trimmedLine.Replace(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR + " ", string.Empty);
+                    var values = dbNameLine.Split(" ");
+
+                    if (values.Length != 3)
+                    {
+                        errorMessage = "Unable to parse remote options";
+                        return false;
+                    }
+
+                    var dbName = values[0].Trim();
+                    var option = values[2].Trim();
+
+                    if (!DrummerKeywords.RemoteDeleteBehaviorKeywords.Behaviors.Any(i => string.Equals(i, option, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        errorMessage = $"Unable to parse remote option {option}";
+                        return false;
+                    }
+
+                    if (!_dbManager.HasDatabase(dbName, DatabaseType.Host))
+                    {
+                        errorMessage = $"Host database {dbName} was not found";
+                        return false;
+                    }
+                }
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        private bool HasSetRemoteDeleteBehaviorKeyword(string statement)
+        {
+            //SET REMOTE DELETE BEHAVIOR FOR {hostDatabaseName} OPTION [option]
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool HasSetNotifyHostKeyword(string statement)
