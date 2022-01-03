@@ -942,9 +942,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     var columns = new List<IUpdateColumnSource>();
 
-                    // create value object that we're going to update the contract guid to
+                    // create value object that we're going to update the behavior to
                     var column = new UpdateTableValue();
-                    var tableColumn = UserTable.GetColumn(DatabaseContracts.Columns.RemoteDeleteBehavior);
+                    var tableColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RemoteDeleteBehavior);
 
                     column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
                     column.Value = Convert.ToInt32(behavior).ToString();
