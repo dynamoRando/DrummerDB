@@ -26,7 +26,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Enum
         /// then update the reference row with the delete data
         /// then logically delete the row 
         /// </summary>
-        AutoDelete,
+        Auto_Delete,
 
         /// <summary>
         /// If the host discovers that the participant has deleted the row
@@ -35,6 +35,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Enum
         /// (Note: The row still can be manually deleted on the host side
         /// at a later time)
         /// </summary>
-        UpdateStatusOnly
+        Update_Status_Only
     }
 }

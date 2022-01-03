@@ -17,6 +17,8 @@ SET LOGICAL STORAGE FOR dbo.Customer Participant_Owned;
 DRUMMER END;
 ```
 
+The command _must be wrapped_ by the keywords `DRUMMER BEGIN` and `DRUMMER END`.
+
 Internally, Drummer commands are handled seperately from regular SQL commands, as SQL commands are handled by [Antr](https://www.antlr.org/) generated code provided by [this](https://github.com/antlr/grammars-v4/tree/master/sql/tsql) grammar.
 
 > Note:
@@ -24,6 +26,14 @@ In the hopeful future, it would be nice to have all grammars handled by one Antl
 
 > Note:
 This document is updated as commands are expanded upon. It does not yet fully go into each system internals for each command.
+
+For any code example, items wrapped in curly braces `{example}` are values that are to be specified by the author, for example a database name or a table name. 
+
+For items wrapped in square braces `[example]` these are specific expected values, usually described in the command itself (for example, setting an option `ON` or `OFF`) or described in a table in the same section.
+
+For Drummer commands, specify the end of the line by closing it with a semicolon.
+
+# Drummer Syntax Commands
 
 ## Set Logical Storage
 ### Syntax
@@ -153,4 +163,25 @@ Returns all contracts that have been accepted.
 
 ### Description
 Generates a network request to notify the host that the participant has accepted the latest contract with the specified alias.
+
+## Set Remote Delete Behavior For 
+### Syntax
+`SET REMOTE DELETE BEHAVIOR FOR {hostDatabaseName} OPTION [option]`
+
+### Description
+Sets the remote deletion behavior for a host database based on the option provided. 
+
+### Context
+A participant has full authority of the data on their side - including deleting the data from their partial database. When this situation happens, there is a reference row at the host database that now points to a remote data row at the participant that no longer exists.
+
+When the host discovers that the reference to the data the participant has is no longer valid (i.e. the row data has been deleted) the options the host can take are:
+
+
+| Option             | Description                                                                                                                                                                                                      |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unknown            | Default if no value is set. This is a default programming setting.                                                                                                                                               |
+| Ignore             | Take no action.                                                                                                                                                                                                  |
+| Auto_Delete        | Updates the local reference row in the host database with the deletion information (updates the row as remotely deleted, the deletion date and time in UTC), and then actually deletes the row on it's side.     |
+| Update_Status_Only | Updates the local reference row in the host database with the deletion informaiton (updates the row as remotely deleted, the deletion date and time in UTC), but does not delete the row from the host database. |
+
 
