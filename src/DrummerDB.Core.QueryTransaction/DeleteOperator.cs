@@ -72,7 +72,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                     {
                                         // need to handle deleting locally
                                         // then notifying the host of the deletion
-                                        // and then letting the host what it wants to do with the deletion action
+                                        // and then letting the host decide what it wants to do with the deletion action
                                         throw new NotImplementedException("Need to handle the deletion in the partial database");
                                     }
 

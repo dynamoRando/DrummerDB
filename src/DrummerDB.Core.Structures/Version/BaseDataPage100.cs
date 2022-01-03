@@ -254,9 +254,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         public override List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false)
         {
             var addresses = new List<RowAddress>();
-            var action = new ParsePageAction<List<RowAddress>>(AddToRowAddresses);
+            var action = new ParsePageRemotableAction<List<RowAddress>>(AddToRowAddresses);
 
-            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, 0, false, includeDeletedRows, ref addresses);
+            ParsePageDataRemotable(new ReadOnlySpan<byte>(_data), PageId(), action, 0, false, includeDeletedRows, ref addresses);
             return addresses;
         }
 
@@ -747,6 +747,21 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             else
             {
                 addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type));
+            }
+        }
+
+        private void AddToRowAddresses(uint pageId, RowPreamble row, uint offset, uint targetRowId, Guid remoteId, ref List<RowAddress> addresses)
+        {
+            if (row.IsForwarded)
+            {
+                if (row.ForwardedPageId == pageId)
+                {
+                    addresses.Add(new RowAddress(pageId, row.Id, offset, remoteId, row.Type));
+                }
+            }
+            else
+            {
+                addresses.Add(new RowAddress(pageId, row.Id, offset, remoteId, row.Type));
             }
         }
 

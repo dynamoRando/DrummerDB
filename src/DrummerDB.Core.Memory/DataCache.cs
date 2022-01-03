@@ -239,6 +239,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                                         ColumnId = GetColumnId(schema, columnName),
                                                         SchemaId = address.SchemaId,
                                                         RowType = row.RowType,
+                                                        RemotableId = row.RemotableId
                                                     };
                                                 result.Add(valueAddress);
                                             }

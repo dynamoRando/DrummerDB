@@ -177,7 +177,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         if (value.ColumnId == value.ColumnId)
                         {
-                            if (value.RemotableId is null)
+                            if (value.HasDataLocally)
                             {
                                 // this may not be correct
                                 rsRow[rsi] = table.GetValueAtAddress(value, transaction);

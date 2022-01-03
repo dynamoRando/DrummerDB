@@ -134,7 +134,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             foreach (var row in rows)
             {
-                if (row.RemotableId is null)
+                if (row.RemotableId is null || row.RemotableId == Guid.Empty)
                 {
                     ResultsetValue physicalValue = _cache.GetValueAtAddress(row, value.Column);
 
@@ -545,7 +545,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 // need a corresponding method to mark the transaction as completed
                 TransactionEntry transactionEntry = GetTransactionSelectEntry(transaction);
 
-                if (address.RemotableId is null)
+                if (address.HasDataLocally)
                 {
                     return _cache.GetValueAtAddress(address, column);
                 }
@@ -1158,6 +1158,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 case TransactionMode.None:
                     do
                     {
+                        
+
                         addResult = _cache.TryAddRow(row, Address, _schema, out pageId);
 
                         var debugRow = row as Row;
