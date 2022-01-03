@@ -1512,17 +1512,11 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
         [Fact]
         public void Test_Remote_Insert_Local_Delete_Notify_Host_Accept_Changes()
         {
-            // participant deletes row
-            // based on data contract we also follow suit
-            // and delete the row locally
-
-
             // the first half of this test is a copy of Test_Remote_Insert_Local_Update_Notify_Host
             // to ensure that the setup between a participant and host is still working
 
-            // this test then attempts to update a record locally at a participant
-            // but ignores the change upstream
-            // this should result in the row metadata reporting that it is out of sync
+            // this test then attempts to delete a record locally at the participant
+            // the host when discovering this accepts the change and also removes the row
 
             // -- BEGIN REPEAT OF TEST Test_Remote_Insert_Local_Update_Notify_Host
             // -------------------------------------------------------------
@@ -1884,19 +1878,14 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
         [Fact]
         public void Test_Remote_Insert_Local_Delete_Notify_Host_Ignore_Changes()
         {
-            // participant deletes row
-            // based on data contract we also follow suit
-            // and delete the row locally
 
-
-            // the first half of this test is a copy of Test_Remote_Insert_Local_Update_Notify_Host
+            // the first half of this test is a copy of Test_Remote_Insert_Local_Delete_Notify_Host_Accept_Changes
             // to ensure that the setup between a participant and host is still working
 
-            // this test then attempts to update a record locally at a participant
-            // but ignores the change upstream
-            // this should result in the row metadata reporting that it is out of sync
+            // this test then attempts to delete a record locally at the participant
+            // the host when discovering this ignores the change and leaves the reference row to the participant
 
-            // -- BEGIN REPEAT OF TEST Test_Remote_Insert_Local_Update_Notify_Host
+            // -- BEGIN REPEAT OF TEST Test_Remote_Insert_Local_Delete_Notify_Host_Accept_Changes
             // -------------------------------------------------------------
             string sysDbName = Databases.DRUM_SYSTEM;
             string rootFolder = "TestRemoteCrud";
@@ -2219,10 +2208,10 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             Assert.False(row.RemoteMetadata.IsRemoteOutOfSyncWithHost);
             Assert.False(row.RemoteMetadata.IsHashOutOfSyncWithHost);
 
-            // END REPEAT OF TEST Test_Remote_Insert_Local_Update_Notify_Host
+            // END REPEAT OF TEST Test_Remote_Insert_Local_Delete_Notify_Host_Accept_Changes
             // -------------------------------------------------------------
 
-            // configure the host database to accept remote deletions if discovered
+            // configure the host database to update deletion status only
             var configureRemoteDeletes = harness.ExecuteSQL(company,
             $@"DRUMMER BEGIN;
             SET REMOTE DELETE BEHAVIOR FOR {dbName} OPTION Update_Status_Only;
