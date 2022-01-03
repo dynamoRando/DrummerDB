@@ -1877,7 +1877,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var deletedSelectedData = selectDeletedData.Results.First();
 
             // assert that there are no longer any rows
-            Assert.InRange(0, 0, deletedSelectedData.Rows.Count);
+            Assert.InRange(deletedSelectedData.Rows.Count, 0, 0);
 
         }
 
@@ -2249,7 +2249,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             var deletedSelectedData = selectDeletedData.Results.First();
 
             // assert that there still is a row
-            Assert.InRange(1, 1, deletedSelectedData.Rows.Count);
+            Assert.InRange(deletedSelectedData.Rows.Count, 1, 1);
 
             var rowInfo = deletedSelectedData.Rows.First();
 
