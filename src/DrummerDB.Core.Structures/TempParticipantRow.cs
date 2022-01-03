@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Drummersoft.DrummerDB.Core.Structures
 {
     /// <summary>
-    /// A row that temporarily holds data to be sent to a participant or returned from a participant, 
+    /// A row that temporarily holds data to be sent to a participant or returned from a participant (to be rendered at a SQL client), 
     /// but whose data is not saved to memory or disk
     /// </summary>
     internal class TempParticipantRow : RowValueGroup
