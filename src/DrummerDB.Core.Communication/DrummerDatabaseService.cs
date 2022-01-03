@@ -51,6 +51,46 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return Task.FromResult(reply);
         }
 
+        public override Task<NotifyHostOfRemovedRowResponse> NotifyHostOfRemovedRow(NotifyHostOfRemovedRowRequest request, ServerCallContext context)
+        {
+            bool isSuccessfulNotification = false;
+            var result = new NotifyHostOfRemovedRowResponse();
+
+            if (request.MessageInfo is not null)
+            {
+                LogMessageInfo(request.MessageInfo);
+            }
+
+            Guid participantId = Guid.Parse(request.HostInfo.HostGUID);
+            string dbName = request.DatabaseName;
+            string tableName = request.TableName;
+            uint rowId = request.RowId;
+            
+            var hasLogin = IsLoginValid(request.Authentication, context);
+            if (hasLogin.Result.IsAuthenticated)
+            {
+                isSuccessfulNotification = _handler.UpdateDeletedStatusForRow(
+                    participantId,
+                    dbName,
+                    tableName,
+                    rowId);
+            }
+            else
+            {
+                throw new InvalidOperationException("The requestor has not been authenticated");
+            }
+
+            result.IsSuccessful = isSuccessfulNotification;
+
+            if (!isSuccessfulNotification)
+            {
+                throw new NotImplementedException("Need to fill out failure details");
+            }
+
+            throw new NotImplementedException();
+            return Task.FromResult(result);
+        }
+
         public override Task<UpdateRowDataHashForHostResponse> UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest request, ServerCallContext context)
         {
             bool isSuccessfulHashUpdate = false;

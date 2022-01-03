@@ -232,6 +232,18 @@ namespace Drummersoft.DrummerDB.Core.Communication
             return isSuccessful;
         }
 
+        public bool UpdateDeletedStatusForRow(
+            Guid participantId,
+            string databaseName,
+            string tableName,
+            uint rowId)
+        {
+            throw new NotImplementedException();
+
+            // need to decide here what to do based on our settings 
+            // here at the host
+        }
+
         public bool UpdateDataHashForRow(
             Guid participantId,
             string databaseName,

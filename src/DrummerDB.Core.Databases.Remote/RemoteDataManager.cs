@@ -164,6 +164,17 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             }
         }
 
+        public bool NotifyHostOfRowDeletion(
+            string dbName,
+            string tableName,
+            uint rowId,
+            structHost host,
+            Guid databaseId,
+            uint tableId)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool NotifyHostRowDataHashChanged(
             string dbName,
             string tableName,

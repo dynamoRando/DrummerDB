@@ -23,6 +23,7 @@ service DatabaseService {
 	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
 	rpc RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest) returns (RemoveRowFromPartialDatabaseResult);
 	rpc UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest) returns (UpdateRowDataHashForHostResponse);
+	rpc NotifyHostOfRemovedRow(NotifyHostOfRemovedRowRequest) returns (NotifyHostOfRemovedRowResponse);
 }
 
 // A message for creating a user database
@@ -217,6 +218,22 @@ message UpdateRowDataHashForHostRequest {
 }
 
 message UpdateRowDataHashForHostResponse {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+}
+
+message NotifyHostOfRemovedRowRequest{
+	Drum.AuthRequest authentication = 1;
+	Drum.MessageInfo MessageInfo = 2;
+	DrumDB.Host hostInfo = 3;
+	string databaseName = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	uint32 tableId = 7;
+	uint32 rowId = 8;
+}
+
+message NotifyHostOfRemovedRowResponse {
 	Drum.AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
 }
