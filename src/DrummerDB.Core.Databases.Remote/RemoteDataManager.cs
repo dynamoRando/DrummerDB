@@ -172,7 +172,46 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             Guid databaseId,
             uint tableId)
         {
-            throw new NotImplementedException();
+
+            string errorMessage = string.Empty;
+            HostSink sink;
+            sink = GetOrAddHostSink(host);
+            var request = new NotifyHostOfRemovedRowRequest();
+            var result = new NotifyHostOfRemovedRowResponse();
+
+            request.MessageInfo = GetMessageInfo(MessageType.DeletedRow);
+            request.Authentication = GetAuthRequest(dbName);
+            request.TableName = tableName;
+            request.DatabaseName = dbName;
+            request.RowId = rowId;
+            request.HostInfo = GetHostInfo();
+            request.TableId = tableId;
+            request.DatabaseId = databaseId.ToString();
+
+            if (!sink.IsOnline())
+            {
+                errorMessage = $"Host {host.HostName} is not online";
+                return false;
+            }
+
+            try
+            {
+                LogMessageInfo(request.MessageInfo, sink);
+                result = sink.Client.NotifyHostOfRemovedRow(request);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+
+            if (result is null)
+            {
+                return false;
+            }
+            else
+            {
+                return result.IsSuccessful;
+            }
         }
 
         public bool NotifyHostRowDataHashChanged(
@@ -707,7 +746,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             var tempPreamble = new RowPreamble(request.Row.RowId, RowType.TempParticipantRow);
             var tempRow = new TempParticipantRow(tempPreamble);
 
-            if (!request.IsDeleted)
+            if (!request.Row.RemoteMetadata.IsRemoteDeleted)
             {
                 var values = new List<structRowValue>(request.Row.Values.Count);
 
@@ -727,7 +766,7 @@ namespace Drummersoft.DrummerDB.Core.Databases.Remote
             else
             {
                 tempRow.IsRemoteDeleted = true;
-                tempRow.RemoteDeletedUTC = request.RemoteDeletedDateUTC.ToDateTime();
+                tempRow.RemoteDeletedUTC = request.Row.RemoteMetadata.RemoteDeletedDate.ToDateTime();
             }
 
             return tempRow;

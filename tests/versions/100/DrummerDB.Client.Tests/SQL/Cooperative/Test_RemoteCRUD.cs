@@ -2244,8 +2244,8 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // assert that the host is now out of sync with the participant
             Assert.True(rowInfo.IsRemoteable);
-            Assert.True(row.RemoteMetadata.IsRemoteOutOfSyncWithHost);
-            Assert.True(row.RemoteMetadata.IsRemoteDeleted);
+            Assert.True(rowInfo.RemoteMetadata.IsRemoteOutOfSyncWithHost);
+            Assert.True(rowInfo.RemoteMetadata.IsRemoteDeleted);
         }
     }
 }

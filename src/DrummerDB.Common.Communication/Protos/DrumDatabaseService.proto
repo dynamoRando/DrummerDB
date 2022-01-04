@@ -163,9 +163,7 @@ message GetRowFromPartialDatabaseResult {
 	Drum.AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
 	string resultMessage = 3;
-	bool isDeleted = 4;
-	google.protobuf.Timestamp remoteDeletedDateUTC = 5;
-	Drum.Row row = 6;
+	Drum.Row row = 4;
 }
 
 // a message from a host to a participant to save a contract

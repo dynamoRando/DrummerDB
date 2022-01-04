@@ -22,6 +22,7 @@ using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Common.Communication.Enum;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Drummersoft.DrummerDB.Core.Communication
 {
@@ -87,7 +88,6 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 throw new NotImplementedException("Need to fill out failure details");
             }
 
-            throw new NotImplementedException();
             return Task.FromResult(result);
         }
 
@@ -469,21 +469,30 @@ namespace Drummersoft.DrummerDB.Core.Communication
         private comRow ConvertStructRowToComRow(structRow row)
         {
             var result = new comRow();
+            result.RemoteMetadata = new RowRemoteMetadata();
             result.RowId = Convert.ToUInt32(row.Id);
 
-            foreach (var value in row.Values)
+            if (row.IsLogicallyDeleted)
             {
-                var comColumn = new comColumn();
-                var colType = SQLColumnTypeConverter.Convert(value.Column.DataType, Constants.DatabaseVersions.V100);
-                comColumn.ColumnType = Convert.ToUInt32(colType);
-                comColumn.ColumnName = value.Column.Name;
-                comColumn.ColumnLength = Convert.ToUInt32(value.Column.Length);
+                result.RemoteMetadata.IsRemoteDeleted = true;
+                result.RemoteMetadata.RemoteDeletedDate = Timestamp.FromDateTime(row.RemoteDeletionUTC.ToUniversalTime());
+            }
+            else
+            {
+                foreach (var value in row.Values)
+                {
+                    var comColumn = new comColumn();
+                    var colType = SQLColumnTypeConverter.Convert(value.Column.DataType, Constants.DatabaseVersions.V100);
+                    comColumn.ColumnType = Convert.ToUInt32(colType);
+                    comColumn.ColumnName = value.Column.Name;
+                    comColumn.ColumnLength = Convert.ToUInt32(value.Column.Length);
 
-                var comRV = new comRowValue();
-                comRV.Column = comColumn;
-                comRV.Value = ByteString.CopyFrom(value.GetValueInBinary());
+                    var comRV = new comRowValue();
+                    comRV.Column = comColumn;
+                    comRV.Value = ByteString.CopyFrom(value.GetValueInBinary());
 
-                result.Values.Add(comRV);
+                    result.Values.Add(comRV);
+                }
             }
 
             return result;

@@ -238,10 +238,64 @@ namespace Drummersoft.DrummerDB.Core.Communication
             string tableName,
             uint rowId)
         {
-            throw new NotImplementedException();
 
-            // need to decide here what to do based on our settings 
-            // here at the host
+            var db = _dbManager.GetHostDatabase(databaseName);
+            var participant = db.GetParticipant(participantId, false);
+
+            if (participant.InternalId != Guid.Empty)
+            {
+                var table = db.GetTable(tableName);
+                var row = table.GetHostRow(rowId);
+
+                if (row.RemoteId == participant.InternalId)
+                {
+                    if (db.AcceptsRemoteDeletions())
+                    {
+                        var hostRow = row.AsHost();
+                        hostRow.IsRemoteDeleted = true;
+                        hostRow.RemoteDeletionUTC = DateTime.UtcNow;
+                        hostRow.Delete();
+                        if (table.XactUpdateRow(hostRow))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else if (db.RecordsRemoteDeletions())
+                    {
+                        var hostRow = row.AsHost();
+                        hostRow.IsRemoteDeleted = true;
+                        hostRow.RemoteDeletionUTC = DateTime.UtcNow;
+                        if (table.XactUpdateRow(hostRow))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else if (db.IgnoresRemoteDeletions())
+                    {
+                        // do nothing?
+                        return true;
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Row Remote Id does not match");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Participant not found");
+            }
+
+            return false;
+
         }
 
         public bool UpdateDataHashForRow(

@@ -350,6 +350,14 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             foreach (var offset in offsets)
             {
                 Row row = GetRowAtOffset(offset, rowId);
+
+                if (row is PartialRow)
+                {
+                    var partRow = row as PartialRow;
+                    partRow.IsRemoteDeleted = true;
+                    partRow.RemoteDeletionUTC = DateTime.UtcNow;
+                }
+
                 row.Delete();
                 var rowData = row.GetRowInPageBinaryFormat();
                 Array.Copy(rowData, 0, _data, offset, rowData.Length);

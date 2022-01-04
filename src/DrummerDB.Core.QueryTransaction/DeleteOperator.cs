@@ -13,6 +13,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     {
         #region Private Fields
         private IDbManager _db;
+        private bool _isPreviousRemoteDeleteSuccess;
         #endregion
 
         #region Public Properties
@@ -81,17 +82,40 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                                             var sysDb = _db.GetSystemDatabase();
                                             var shouldNotifyHost = sysDb.ShouldNotifyHostOfDataChanges(DatabaseName, table.Name);
+                                            var hostId = table.GetRemotableRow(row.Id).RemoteId;
+                                            var hostInfo = sysDb.GetCooperatingHost(hostId);
 
                                             if (shouldNotifyHost)
                                             {
-                                                var hostId = table.GetRemotableRow(row.Id).RemoteId;
-                                                var hostInfo = sysDb.GetCooperatingHost(hostId);
-                                                var partDb = _db.GetPartialDb(DatabaseName);
-                                                var hostIsNotified = partDb.NotifyHostOfRowDeletion(row.Id, table.Name, hostInfo, partDb.Id, table.Address.TableId);
-
-                                                if (hostIsNotified)
+                                                if ((transactionMode == TransactionMode.Commit || transactionMode == TransactionMode.None) && _isPreviousRemoteDeleteSuccess)
                                                 {
                                                     messages.Add($"Host {hostInfo} has been notified of deletion");
+                                                }
+                                                else
+                                                {
+                                                    var partDb = _db.GetPartialDb(DatabaseName);
+                                                    var hostIsNotified = partDb.NotifyHostOfRowDeletion(row.Id, table.Name, hostInfo, partDb.Id, table.Address.TableId);
+
+                                                    if (hostIsNotified)
+                                                    {
+                                                        messages.Add($"Host {hostInfo} has been notified of deletion");
+
+                                                        if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
+                                                        {
+                                                            if (hostIsNotified)
+                                                            {
+                                                                _isPreviousRemoteDeleteSuccess = true;
+                                                            }
+
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
+                                                        {
+                                                            _isPreviousRemoteDeleteSuccess = false;
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }

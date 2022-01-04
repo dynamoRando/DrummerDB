@@ -244,6 +244,117 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return result;
         }
 
+        public bool AcceptsRemoteDeletions()
+        {
+            var currentContractId = GetCurrentContractGUID();
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+
+            var searchItem = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, currentContractId.ToString());
+            var resultCount = contracts.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple contracts with the same id {currentContractId}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no contracts with the internal id {currentContractId}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = contracts.GetLocalRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    var result = row.GetValueInString(Tables.DatabaseContracts.Columns.RemoteDeleteBehavior);
+                    int iRemoteBehavior = Convert.ToInt32(result);
+                    var behavior = (RemoteDeleteBehavior)iRemoteBehavior;
+
+                    if (behavior == RemoteDeleteBehavior.Auto_Delete)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool IgnoresRemoteDeletions()
+        {
+            var currentContractId = GetCurrentContractGUID();
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+
+            var searchItem = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, currentContractId.ToString());
+            var resultCount = contracts.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple contracts with the same id {currentContractId}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no contracts with the internal id {currentContractId}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = contracts.GetLocalRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    var result = row.GetValueInString(Tables.DatabaseContracts.Columns.RemoteDeleteBehavior);
+                    int iRemoteBehavior = Convert.ToInt32(result);
+                    var behavior = (RemoteDeleteBehavior)iRemoteBehavior;
+
+                    if (behavior == RemoteDeleteBehavior.Ignore)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool RecordsRemoteDeletions()
+        {
+            var currentContractId = GetCurrentContractGUID();
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+
+            var searchItem = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, currentContractId.ToString());
+            var resultCount = contracts.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple contracts with the same id {currentContractId}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no contracts with the internal id {currentContractId}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = contracts.GetLocalRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    var result = row.GetValueInString(Tables.DatabaseContracts.Columns.RemoteDeleteBehavior);
+                    int iRemoteBehavior = Convert.ToInt32(result);
+                    var behavior = (RemoteDeleteBehavior)iRemoteBehavior;
+
+                    if (behavior == RemoteDeleteBehavior.Update_Status_Only)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         public Participant GetParticipant(Guid participantId, bool isInternalId)
         {
             Participant result = new();
