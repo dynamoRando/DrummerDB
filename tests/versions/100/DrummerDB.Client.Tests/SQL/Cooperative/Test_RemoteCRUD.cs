@@ -223,7 +223,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // -------------------------------------------------------------
             // insert customer name as a test for remote data saving
             var addCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             INSERT INTO {customerTableName} 
             (
                 ID,
@@ -465,7 +465,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // -------------------------------------------------------------
             // insert customer name as a test for remote data saving
             var addCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             INSERT INTO {customerTableName} 
             (
                 ID,
@@ -523,7 +523,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // update customer name at host
             var updateCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             UPDATE {customerTableName} 
             SET CUSTOMERNAME = '{newCustomerName}'
             WHERE CUSTOMERNAME = '{customer.Alias}';
@@ -757,7 +757,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
             // -------------------------------------------------------------
             // insert customer name as a test for remote data saving
             var addCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             INSERT INTO {customerTableName} 
             (
                 ID,
@@ -813,7 +813,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // delete customer name at host
             var updateCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             DELETE FROM {customerTableName} 
             WHERE CUSTOMERNAME = '{customer.Alias}';
             ", dbName, DatabaseType.Host);
@@ -1024,7 +1024,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // insert customer name as a test for remote data saving
             var addCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             INSERT INTO {customerTableName} 
             (
                 ID,
@@ -1079,7 +1079,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // update customer name at host
             var updateCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             UPDATE {customerTableName} 
             SET CUSTOMERNAME = '{newCustomerName}'
             WHERE CUSTOMERNAME = '{customer.Alias}';
@@ -1360,7 +1360,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // insert customer name as a test for remote data saving
             var addCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             INSERT INTO {customerTableName} 
             (
                 ID,
@@ -1415,7 +1415,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // update customer name at host
             var updateCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             UPDATE {customerTableName} 
             SET CUSTOMERNAME = '{newCustomerName}'
             WHERE CUSTOMERNAME = '{customer.Alias}';
@@ -1695,7 +1695,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // insert customer name as a test for remote data saving
             var addCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             INSERT INTO {customerTableName} 
             (
                 ID,
@@ -1750,7 +1750,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // update customer name at host
             var updateCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             UPDATE {customerTableName} 
             SET CUSTOMERNAME = '{newCustomerName}'
             WHERE CUSTOMERNAME = '{customer.Alias}';
@@ -2062,7 +2062,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // insert customer name as a test for remote data saving
             var addCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             INSERT INTO {customerTableName} 
             (
                 ID,
@@ -2117,7 +2117,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Cooperative
 
             // update customer name at host
             var updateCustomerName = harness.ExecuteSQL(company,
-            $@"COOP_ACTION FOR PARTICIPANT {customer.Alias};
+            $@"APPLY TO PARTICIPANT {customer.Alias};
             UPDATE {customerTableName} 
             SET CUSTOMERNAME = '{newCustomerName}'
             WHERE CUSTOMERNAME = '{customer.Alias}';

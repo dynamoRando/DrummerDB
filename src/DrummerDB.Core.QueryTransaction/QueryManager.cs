@@ -384,7 +384,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         private bool ContainsCooperativeKeywords(string statement)
         {
-            return statement.Contains(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT);
+            return statement.Contains(CooperativeKeywords.APPLY_TO_PARTICIPANT);
         }
 
         private ICoopActionPlanOption[] ParseStatementForCooperativeOptions(string statement)
@@ -395,10 +395,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             foreach (var line in lines)
             {
-                if (line.StartsWith(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT))
+                if (line.StartsWith(CooperativeKeywords.APPLY_TO_PARTICIPANT))
                 {
                     var trimmedLine = line.Trim();
-                    var participantAlias = trimmedLine.Replace(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT + " ", string.Empty).Trim();
+                    var participantAlias = trimmedLine.Replace(CooperativeKeywords.APPLY_TO_PARTICIPANT + " ", string.Empty).Trim();
                     var alias = new CoopActionOptionParticipant();
                     alias.ParticipantAlias = participantAlias;
                     alias.Text = trimmedLine;
