@@ -12,6 +12,6 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// The id of an expression computed elsewhere in the query plan
         /// </summary>
         public int ExpressionId { get; set; }
-        public int Order { get; set; }
+        public uint Order { get; set; }
     }
 }

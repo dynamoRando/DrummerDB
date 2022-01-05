@@ -7,7 +7,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.Interface
 {
     internal interface ITableReadFilter
     {
-        int Order { get; set; }
+        uint Order { get; set; }
         public List<RowAddress> GetRows(IDbManager db, TransactionRequest transaction, TransactionMode transactionMode);
     }
 }

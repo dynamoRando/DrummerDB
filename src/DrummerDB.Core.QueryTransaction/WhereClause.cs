@@ -21,7 +21,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
         public IPredicate GetMaxPredicate()
         {
-            int maxId = 0;
+            uint maxId = 0;
             foreach (var part in Parts)
             {
                 if (part.Id > maxId)
@@ -41,9 +41,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return null;
         }
 
-        public int GetMaxWhereClauseId()
+        public uint GetMaxWhereClauseId()
         {
-            int maxId = 0;
+            uint maxId = 0;
 
             foreach (var part in Parts)
             {

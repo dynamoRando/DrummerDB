@@ -8,19 +8,19 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
     {
         public abstract byte[] Data { get; }
         public abstract PageType Type { get; }
-        public abstract int DatabaseVersion { get; }
+        public abstract ushort DatabaseVersion { get; }
         public abstract string DatabaseName { get; }
         public abstract Guid DatabaseId { get; }
 
-        public abstract int PageId();
+        public abstract uint PageId();
         public abstract void SetDatabaseName(string databaseName);
-        public abstract int GetMaxSystemDataPage();
+        public abstract uint GetMaxSystemDataPage();
         public abstract void SetMaxSystemDataPage(int max);
         /// <summary>
         /// Returns the number of bytes from the beginning of the file to the first system page offset
         /// </summary>
         /// <returns>The number of bytes until the first system page offset</returns>
-        public abstract int FirstSystemDataPageOffset();
+        public abstract uint FirstSystemDataPageOffset();
         public abstract bool IsDeleted();
     }
 }

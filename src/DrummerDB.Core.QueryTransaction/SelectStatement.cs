@@ -52,7 +52,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             TableName = string.Empty;
         }
 
-        public int GetMaxWhereClauseId()
+        public uint GetMaxWhereClauseId()
         {
             if (HasWhereClause)
             {
@@ -62,9 +62,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return 0;
         }
 
-        public int GetMaxColumnId()
+        public uint GetMaxColumnId()
         {
-            int max = 0;
+            uint max = 0;
             foreach (var column in Columns)
             {
                 if (column.ColumnIndex > max)

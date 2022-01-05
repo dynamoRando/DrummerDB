@@ -132,6 +132,16 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForGenerateHostInfo(statement, out errorMessage);
                     }
+
+                    if (HasSetNotifyHostKeyword(statement))
+                    {
+                        return ParseForSetNotifyHost(statement, out errorMessage);
+                    }
+
+                    if (HasSetRemoteDeleteBehaviorKeyword(statement))
+                    {
+                        return ParseForSetRemoteDeleteBehavior(statement, out errorMessage);
+                    }
                 }
             }
 
@@ -156,6 +166,136 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             errorMessage = string.Empty;
             return true;
+        }
+
+        private bool ParseForSetNotifyHost(string statement, out string errorMessage)
+        {
+            //SET NOTIFY HOST FOR {partialDatabaseName} TABLE {tableName} OPTION [on|off] 
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
+                {
+                    //{partialDatabaseName} TABLE {tableName} OPTION [on|off]
+                    string databaseName = trimmedLine.Replace(DrummerKeywords.SET_NOTIFY_HOST_FOR, string.Empty).Trim();
+                    var items = databaseName.Split(" ");
+
+                    if (items.Length != 5)
+                    {
+                        errorMessage = "Unable to parse SET NOTIFY HOST FOR statement";
+                        return false;
+                    }
+
+                    var dbName = items[0].Trim();
+                    var tableName = items[2].Trim();
+                    var option = items[4].Trim();
+
+                    if (_dbManager.HasDatabase(dbName))
+                    {
+                        var db = _dbManager.GetPartialDb(dbName);
+                        if (db.HasTable(tableName))
+                        {
+                            if (string.Equals(option, DrummerKeywords.ON, StringComparison.OrdinalIgnoreCase) || string.Equals(option, DrummerKeywords.OFF, StringComparison.OrdinalIgnoreCase))
+                            {
+                                errorMessage = string.Empty;
+                                return true;
+                            }
+                            else
+                            {
+                                errorMessage = $"Unknown option type {option}";
+                                return false;
+                            }
+
+                        }
+                        else
+                        {
+                            errorMessage = $"Table {tableName} was not found";
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        errorMessage = $"Database {dbName} was not found";
+                        return false;
+                    }
+                }
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        private bool ParseForSetRemoteDeleteBehavior(string statement, out string errorMessage)
+        {
+            //SET REMOTE DELETE BEHAVIOR FOR {hostDatabaseName} OPTION [option]
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR))
+                {
+                    // {hostDatabaseName} OPTION [option]
+                    var dbNameLine = trimmedLine.Replace(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR + " ", string.Empty);
+                    var values = dbNameLine.Split(" ");
+
+                    if (values.Length != 3)
+                    {
+                        errorMessage = "Unable to parse remote options";
+                        return false;
+                    }
+
+                    var dbName = values[0].Trim();
+                    var option = values[2].Trim();
+
+                    if (!DrummerKeywords.RemoteDeleteBehaviorKeywords.Behaviors.Any(i => string.Equals(i, option, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        errorMessage = $"Unable to parse remote option {option}";
+                        return false;
+                    }
+
+                    if (!_dbManager.HasDatabase(dbName, DatabaseType.Host))
+                    {
+                        errorMessage = $"Host database {dbName} was not found";
+                        return false;
+                    }
+                }
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        private bool HasSetRemoteDeleteBehaviorKeyword(string statement)
+        {
+            //SET REMOTE DELETE BEHAVIOR FOR {hostDatabaseName} OPTION [option]
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool HasSetNotifyHostKeyword(string statement)
+        {
+            //SET NOTIFY HOST FOR {partialDatabaseName} TABLE {tableName} OPTION [on|off] 
+            var lines = statement.Split(";");
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool HasRejectContractByKeyword(string statement)
@@ -247,7 +387,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var hostTable = sysDb.GetTable(Tables.Hosts.TABLE_NAME);
 
                     var hostNameValue = RowValueMaker.Create(hostTable, Tables.Hosts.Columns.HostName, hostName);
-                    int resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
+                    uint resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
 
                     if (resultCount != 1)
                     {
@@ -256,7 +396,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        var hostsResults = hostTable.GetRowsWithValue(hostNameValue);
+                        var hostsResults = hostTable.GetLocalRowsWithValue(hostNameValue);
 
                         if (hostsResults.Count != 1)
                         {
@@ -339,7 +479,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     foreach (var row in rows)
                     {
-                        hostGuid = Guid.Parse(row.GetValueInString(Tables.Hosts.Columns.HostGUID));
+                        hostGuid = Guid.Parse(row.AsValueGroup().GetValueInString(Tables.Hosts.Columns.HostGUID));
                     }
 
                     if (hostGuid != Guid.Empty)

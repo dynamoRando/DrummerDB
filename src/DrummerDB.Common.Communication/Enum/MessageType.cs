@@ -14,6 +14,8 @@ namespace Drummersoft.DrummerDB.Common.Communication.Enum
         AcceptContract,
         GetRow,
         UpdateRow,
-        DeleteRow
+        DeleteRow,
+        DataHashChanged,
+        DeletedRow
     }
 }

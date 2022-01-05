@@ -6,6 +6,7 @@ using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -21,6 +22,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #region Private Fields
         private IDbManager _db;
         private List<IUpdateColumnSource> _sources;
+        private bool _alreadySuccessfullyUpdated = false;
         #endregion
 
         #region Public Properties
@@ -43,8 +45,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public void Execute(TransactionRequest transaction, TransactionMode transactionMode, ref List<string> messages, ref List<string> errorMessages)
         {
             Table table = _db.GetTable(Address);
-            
+
             bool rowsUpdated = true;
+            bool hostNotified = false;
 
             // if we have a WHERE clause that we need to specify
             if (PreviousOperation is not null)
@@ -66,63 +69,118 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             foreach (var rowAddress in targets.Item2)
                             {
-                                if (rowAddress.ParticipantId == Guid.Empty)
+                                if (rowAddress.RemotableId == Guid.Empty)
                                 {
-                                    var row = table.GetRow(rowAddress);
-                                    foreach (var source in _sources)
+                                    // this is a local row update
+                                    rowsUpdated = UpdateLocalRow(transaction, transactionMode, errorMessages, table, rowsUpdated, rowAddress);
+                                }
+                                else // this is a remote update (host row or partial row)
+                                {
+                                    // this is a partial database row update
+                                    if (rowAddress.HasDataLocally)
                                     {
-                                        if (source is UpdateTableValue)
-                                        {
-                                            var updateValue = source as UpdateTableValue;
+                                        // we need to update the local data, 
+                                        // then notify the upstream host of a data hash change 
+                                        // if we are configured to do so
 
-                                            if (table.HasColumn(updateValue.Column.ColumnName))
+                                        // first, update the row in the local database
+                                        rowsUpdated = UpdateLocalRow(transaction, transactionMode, errorMessages, table, rowsUpdated, rowAddress);
+
+                                        if (rowsUpdated)
+                                        {
+                                            byte[] rowDataHash = null;
+
+                                            // next need to determine if we are configured to notify the host of upstream changes
+                                            var sysDb = _db.GetSystemDatabase();
+                                            var shouldNotifyHost = sysDb.ShouldNotifyHostOfDataChanges(DatabaseName, table.Name);
+                                            if (shouldNotifyHost)
                                             {
-                                                row.SetValue(updateValue.Column.ColumnName, updateValue.Value);
-                                                if (!table.XactUpdateRow(row, transaction, transactionMode))
+                                                // need to write function to notify host of data hash change
+                                                rowDataHash = table.GetDataHashFromRow(rowAddress.RowId);
+                                                Guid hostId = table.GetRemotableRow(rowAddress.RowId).RemoteId;
+
+                                                var db = _db.GetDatabase(DatabaseName, DatabaseType.Partial) as PartialDb;
+                                                var hostInfo = sysDb.GetCooperatingHost(hostId);
+
+                                                if (!_alreadySuccessfullyUpdated && (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None))
                                                 {
-                                                    rowsUpdated = false;
+                                                    hostNotified = db.NotifyHostOfRowDataHashChange(
+                                                 rowAddress.RowId,
+                                                 table.Name,
+                                                 rowDataHash,
+                                                 hostInfo,
+                                                 db.Id,
+                                                 table.Address.TableId);
+                                                }
+
+                                                if (hostNotified)
+                                                {
+                                                    if (transactionMode == TransactionMode.None || transactionMode == TransactionMode.Try)
+                                                    {
+                                                        _alreadySuccessfullyUpdated = true;
+                                                        messages.Add($"{targets.Item2.Count.ToString()} rows updated in table {table.Name} " +
+                                                       $"and host {hostInfo} notified of data change");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (!_alreadySuccessfullyUpdated)
+                                                    {
+                                                        errorMessages.Add("Rows were updated but unable to notify host of data change");
+                                                    }
                                                 }
                                             }
-                                            else
+                                        }
+                                        else
+                                        {
+                                            errorMessages.Add($"Unable to update row");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // this is a pure remote update
+                                        HostDb hostDb = _db.GetHostDatabase(Address.DatabaseId);
+                                        var participant = hostDb.GetParticipant(rowAddress.RemotableId, true);
+                                        foreach (var source in _sources)
+                                        {
+                                            if (source is UpdateTableValue)
                                             {
-                                                errorMessages.Add(
-                                                    $"Tried to update column {updateValue.Column.ColumnName} which is not in table {table.Name}");
+                                                var updateValue = source as UpdateTableValue;
+                                                var remoteUpdateValue = new RemoteValueUpdate();
+                                                remoteUpdateValue.ColumnName = updateValue.Column.ColumnName;
+                                                remoteUpdateValue.Value = updateValue.Value;
+                                                string errorMessage = string.Empty;
+
+                                                byte[] newDataHash = new byte[0];
+                                                var existingRow = table.GetHostRow(rowAddress);
+
+                                                var result =
+                                                    hostDb.XactRequestParticipantUpdateRow
+                                                    (
+                                                        participant,
+                                                        table.Name,
+                                                        table.Address.TableId,
+                                                        hostDb.Name,
+                                                        hostDb.Id,
+                                                        rowAddress.RowId,
+                                                        remoteUpdateValue,
+                                                        transaction,
+                                                        transactionMode,
+                                                        existingRow.DataHash,
+                                                        out newDataHash,
+                                                        out errorMessage
+                                                    );
+
+                                                if (result)
+                                                {
+                                                    table.UpdateDataHashForHostRow(existingRow, newDataHash);
+                                                }
+
+                                                rowsUpdated = result;
                                             }
                                         }
                                     }
-                                }
-                                else
-                                {
-                                    HostDb hostDb = _db.GetHostDatabase(Address.DatabaseId);
-                                    var participant = hostDb.GetParticipant(rowAddress.ParticipantId);
-                                    foreach (var source in _sources)
-                                    {
-                                        if (source is UpdateTableValue)
-                                        {
-                                            var updateValue = source as UpdateTableValue;
-                                            var remoteUpdateValue = new RemoteValueUpdate();
-                                            remoteUpdateValue.ColumnName = updateValue.Column.ColumnName;
-                                            remoteUpdateValue.Value = updateValue.Value;
-                                            string errorMessage = string.Empty;
 
-                                            var result = 
-                                                hostDb.XactRequestParticipantUpdateRow
-                                                (
-                                                    participant,
-                                                    table.Name,
-                                                    table.Address.TableId,
-                                                    hostDb.Name,
-                                                    hostDb.Id,
-                                                    rowAddress.RowId, 
-                                                    remoteUpdateValue, 
-                                                    transaction, 
-                                                    transactionMode, 
-                                                    out errorMessage
-                                                );
-
-                                            rowsUpdated = result;
-                                        }
-                                    }
                                 }
                             }
 
@@ -139,6 +197,37 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 // update all rows in table
                 // this still works because in StatementPlanEvaluator.cs in EvaluateQueryPlanForUpdate() we set the TableReadOperator to the entire table.
             }
+        }
+
+        private bool UpdateLocalRow(TransactionRequest transaction, TransactionMode transactionMode, List<string> errorMessages, Table table, bool rowsUpdated, RowAddress rowAddress)
+        {
+            var row = table.GetRow(rowAddress);
+            foreach (var source in _sources)
+            {
+                if (source is UpdateTableValue)
+                {
+                    var updateValue = source as UpdateTableValue;
+
+                    if (table.HasColumn(updateValue.Column.ColumnName))
+                    {
+                        if (row.IsValueGroup())
+                        {
+                            row.AsValueGroup().SetValue(updateValue.Column.ColumnName, updateValue.Value);
+                            if (!table.XactUpdateRow(row, transaction, transactionMode))
+                            {
+                                rowsUpdated = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        errorMessages.Add(
+                            $"Tried to update column {updateValue.Column.ColumnName} which is not in table {table.Name}");
+                    }
+                }
+            }
+
+            return rowsUpdated;
         }
         #endregion
 

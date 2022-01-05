@@ -14,7 +14,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         public override TransactionDataOperation Operation => TransactionDataOperation.Insert;
         public override SQLAddress Address => _address;
 
-        public InsertTransaction(Guid databaseId, int tableId, int rowId, int pageId, Guid schemaId, ReadOnlySpan<byte> rowData) : base(databaseId, tableId)
+        public InsertTransaction(Guid databaseId, uint tableId, uint rowId, uint pageId, Guid schemaId, ReadOnlySpan<byte> rowData) : base(databaseId, tableId)
         {
             _address = new SQLAddress { DatabaseId = databaseId, TableId = tableId, PageId = pageId, RowId = rowId, RowOffset = 0, SchemaId = schemaId };
             _rowData = rowData.ToArray();

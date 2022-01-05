@@ -128,7 +128,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             {
                 var arrays = new List<byte[]>();
 
-                arrays.Add(DbBinaryConvert.GuidToBinary(participant.Id));
+                arrays.Add(DbBinaryConvert.GuidToBinary(participant.InternalId));
                 arrays.Add(DbBinaryConvert.StringToBinary(participant.IP4Address, true));
                 arrays.Add(DbBinaryConvert.StringToBinary(participant.IP6Address, true));
                 arrays.Add(DbBinaryConvert.IntToBinary(participant.PortNumber));

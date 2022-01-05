@@ -21,7 +21,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <summary>
         /// Indicates how far the byte value starts in the row (minus the preamble)
         /// </summary>
-        public int ParseValueLength { get; set; }
+        public uint ParseValueLength { get; set; }
         #endregion
 
         #region Constructors
@@ -67,14 +67,9 @@ namespace Drummersoft.DrummerDB.Core.Structures
         #endregion
 
         #region Public Methods
-        public string DebugValue()
+        public bool IsDataSet()
         {
-            if (_value is not null)
-            {
-                return BitConverter.ToString(_value);
-            }
-
-            return string.Empty;
+            return _value is not null;
         }
 
         public void SetValueAsNull()
@@ -334,14 +329,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
                             byte[] isNull = DbBinaryConvert.BooleanToBinary(_isNull);
 
                             string debugConvertedValue = BitConverter.ToString(convertedValue);
-                            Debug.WriteLine(debugConvertedValue);
+                            //Debug.WriteLine(debugConvertedValue);
 
                             _value = new byte[convertedValue.Length + isNull.Length];
                             Array.Copy(isNull, 0, _value, 0, isNull.Length);
                             Array.Copy(convertedValue, 0, _value, isNull.Length, convertedValue.Length);
 
                             string debugFinalValue = BitConverter.ToString(_value);
-                            Debug.WriteLine(debugFinalValue);
+                            //Debug.WriteLine(debugFinalValue);
 
                         }
                         else
@@ -356,7 +351,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                     {
                         if (value.Length < Column.Length)
                         {
-                            value = value.PadRight(Column.Length);
+                            value = value.PadRight((int)Column.Length);
                         }
                     }
 
@@ -368,14 +363,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
                             byte[] isNull = DbBinaryConvert.BooleanToBinary(_isNull);
 
                             string debugConvertedValue = BitConverter.ToString(convertedValue);
-                            Debug.WriteLine(debugConvertedValue);
+                            //Debug.WriteLine(debugConvertedValue);
 
                             _value = new byte[convertedValue.Length + isNull.Length];
                             Array.Copy(isNull, 0, _value, 0, isNull.Length);
                             Array.Copy(convertedValue, 0, _value, isNull.Length, convertedValue.Length);
 
                             string debugValue = BitConverter.ToString(_value);
-                            Debug.WriteLine(debugValue);
+                            //Debug.WriteLine(debugValue);
                         }
                         else
                         {
@@ -393,14 +388,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
                             byte[] isNull = DbBinaryConvert.BooleanToBinary(_isNull);
 
                             string debugConvertedValue = BitConverter.ToString(convertedValue);
-                            Debug.WriteLine(debugConvertedValue);
+                            //Debug.WriteLine(debugConvertedValue);
 
                             _value = new byte[convertedValue.Length + isNull.Length];
                             Array.Copy(isNull, 0, _value, 0, isNull.Length);
                             Array.Copy(convertedValue, 0, _value, isNull.Length, convertedValue.Length);
 
                             string debugValue = BitConverter.ToString(_value);
-                            Debug.WriteLine(debugValue);
+                            //Debug.WriteLine(debugValue);
                         }
                         else
                         {
@@ -418,14 +413,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
                             byte[] isNull = DbBinaryConvert.BooleanToBinary(_isNull);
 
                             string debugConvertedValue = BitConverter.ToString(convertedValue);
-                            Debug.WriteLine(debugConvertedValue);
+                            //Debug.WriteLine(debugConvertedValue);
 
                             _value = new byte[convertedValue.Length + isNull.Length];
                             Array.Copy(isNull, 0, _value, 0, isNull.Length);
                             Array.Copy(convertedValue, 0, _value, isNull.Length, convertedValue.Length);
 
                             string debugValue = BitConverter.ToString(_value);
-                            Debug.WriteLine(debugValue);
+                            //Debug.WriteLine(debugValue);
                         }
                         else
                         {
@@ -443,14 +438,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
                             byte[] isNull = DbBinaryConvert.BooleanToBinary(_isNull);
 
                             string debugConvertedValue = BitConverter.ToString(convertedValue);
-                            Debug.WriteLine(debugConvertedValue);
+                            //Debug.WriteLine(debugConvertedValue);
 
                             _value = new byte[convertedValue.Length + isNull.Length];
                             Array.Copy(isNull, 0, _value, 0, isNull.Length);
                             Array.Copy(convertedValue, 0, _value, isNull.Length, convertedValue.Length);
 
                             string debugValue = BitConverter.ToString(_value);
-                            Debug.WriteLine(debugValue);
+                            //Debug.WriteLine(debugValue);
                         }
                         else
                         {
@@ -467,14 +462,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
                             byte[] isNull = DbBinaryConvert.BooleanToBinary(_isNull);
 
                             string debugConvertedValue = BitConverter.ToString(convertedValue);
-                            Debug.WriteLine(debugConvertedValue);
+                            //Debug.WriteLine(debugConvertedValue);
 
                             _value = new byte[convertedValue.Length + isNull.Length];
                             Array.Copy(isNull, 0, _value, 0, isNull.Length);
                             Array.Copy(convertedValue, 0, _value, isNull.Length, convertedValue.Length);
 
                             string debugValue = BitConverter.ToString(_value);
-                            Debug.WriteLine(debugValue);
+                            //Debug.WriteLine(debugValue);
                         }
                         else
                         {
@@ -489,14 +484,14 @@ namespace Drummersoft.DrummerDB.Core.Structures
                         byte[] isNull = DbBinaryConvert.BooleanToBinary(_isNull);
 
                         string debugConvertedValue = BitConverter.ToString(convertedValue);
-                        Debug.WriteLine(debugConvertedValue);
+                        //Debug.WriteLine(debugConvertedValue);
 
                         _value = new byte[convertedValue.Length + isNull.Length];
                         Array.Copy(isNull, 0, _value, 0, isNull.Length);
                         Array.Copy(convertedValue, 0, _value, isNull.Length, convertedValue.Length);
 
                         string debugValue = BitConverter.ToString(_value);
-                        Debug.WriteLine(debugValue);
+                        //Debug.WriteLine(debugValue);
                     }
                     else
                     {
@@ -512,7 +507,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// Returns the binary array size of the value
         /// </summary>
         /// <returns>the binary array size of the value</returns>
-        public int BinarySize()
+        public uint BinarySize()
         {
             if (Column.IsFixedBinaryLength)
             {
@@ -527,7 +522,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
             }
             else
             {
-                return _value.Length;
+                return (uint)_value.Length;
             }
         }
 
@@ -727,7 +722,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                 case SQLDecimal dec:
 
                                     string debugValue = BitConverter.ToString(_value);
-                                    Debug.WriteLine(debugValue);
+                                    //Debug.WriteLine(debugValue);
 
                                     return _value; // value should already include the nullable boolean prefix 
                                 default:
@@ -766,17 +761,17 @@ namespace Drummersoft.DrummerDB.Core.Structures
                                 byte[] resultArray = new byte[lengthArray.Length + _value.Length];
 
                                 string debugIsNullArray = BitConverter.ToString(isNull);
-                                Debug.WriteLine(debugIsNullArray);
+                                //Debug.WriteLine(debugIsNullArray);
 
                                 string debugLengthArray = BitConverter.ToString(lengthArray);
-                                Debug.WriteLine(debugLengthArray);
+                                //Debug.WriteLine(debugLengthArray);
 
                                 Array.Copy(isNull, 0, resultArray, 0, isNull.Length);
                                 Array.Copy(lengthArray, 0, resultArray, Constants.SIZE_OF_BOOL, lengthArray.Length);
                                 Array.Copy(_value, Constants.SIZE_OF_BOOL, resultArray, Constants.SIZE_OF_BOOL + lengthArray.Length, _value.Length - Constants.SIZE_OF_BOOL);
 
                                 string debugArray = BitConverter.ToString(resultArray);
-                                Debug.WriteLine(debugArray);
+                                //Debug.WriteLine(debugArray);
 
                                 return resultArray;
                             }

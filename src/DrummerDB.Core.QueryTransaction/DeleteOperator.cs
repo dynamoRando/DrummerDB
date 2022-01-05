@@ -13,6 +13,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     {
         #region Private Fields
         private IDbManager _db;
+        private bool _isPreviousRemoteDeleteSuccess;
         #endregion
 
         #region Public Properties
@@ -58,7 +59,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         {
                             foreach (var rowAddress in targets.Item2)
                             {
-                                if (rowAddress.ParticipantId == Guid.Empty)
+                                if (rowAddress.RemotableId == Guid.Empty)
                                 {
                                     var row = table.GetRow(rowAddress);
                                     if (table.XactDeleteRow(row, transaction, transactionMode))
@@ -68,34 +69,88 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                                 }
                                 else
                                 {
-                                    // need to delete the remote row first
-                                    var participant = db.GetParticipant(rowAddress.ParticipantId);
-                                    isSuccessful = db.XactRequestParticipantRemoveRow
-                                        (
-                                        participant,
-                                        table.Name,
-                                        table.Address.TableId,
-                                        db.Name,
-                                        db.Id,
-                                        rowAddress.RowId,
-                                        transaction,
-                                        transactionMode,
-                                        out errorMessage
-                                        );
-
-                                    // if the remote row delete is successful, then delete the local reference
-                                    if (isSuccessful)
+                                    if (rowAddress.HasDataLocally)
                                     {
+                                        // need to handle deleting locally
+                                        // then notifying the host of the deletion
+                                        // and then letting the host decide what it wants to do with the deletion action
+
                                         var row = table.GetRow(rowAddress);
                                         if (table.XactDeleteRow(row, transaction, transactionMode))
                                         {
-                                            messages.Add("DELETE completed successfully");
+                                            messages.Add("DELETE locally completed successfully");
+
+                                            var sysDb = _db.GetSystemDatabase();
+                                            var shouldNotifyHost = sysDb.ShouldNotifyHostOfDataChanges(DatabaseName, table.Name);
+                                            var hostId = table.GetRemotableRow(row.Id).RemoteId;
+                                            var hostInfo = sysDb.GetCooperatingHost(hostId);
+
+                                            if (shouldNotifyHost)
+                                            {
+                                                if ((transactionMode == TransactionMode.Commit || transactionMode == TransactionMode.None) && _isPreviousRemoteDeleteSuccess)
+                                                {
+                                                    messages.Add($"Host {hostInfo} has been notified of deletion");
+                                                }
+                                                else
+                                                {
+                                                    var partDb = _db.GetPartialDb(DatabaseName);
+                                                    var hostIsNotified = partDb.NotifyHostOfRowDeletion(row.Id, table.Name, hostInfo, partDb.Id, table.Address.TableId);
+
+                                                    if (hostIsNotified)
+                                                    {
+                                                        messages.Add($"Host {hostInfo} has been notified of deletion");
+
+                                                        if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
+                                                        {
+                                                            if (hostIsNotified)
+                                                            {
+                                                                _isPreviousRemoteDeleteSuccess = true;
+                                                            }
+
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (transactionMode == TransactionMode.Try || transactionMode == TransactionMode.None)
+                                                        {
+                                                            _isPreviousRemoteDeleteSuccess = false;
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
-
-                                    if (isSuccessful)
+                                    else
                                     {
-                                        messages.Add($"REMOTE DELETE completed successfully at {participant.Alias}");
+                                        // need to delete the remote row first
+                                        var participant = db.GetParticipant(rowAddress.RemotableId, true);
+                                        isSuccessful = db.XactRequestParticipantRemoveRow
+                                            (
+                                            participant,
+                                            table.Name,
+                                            table.Address.TableId,
+                                            db.Name,
+                                            db.Id,
+                                            rowAddress.RowId,
+                                            transaction,
+                                            transactionMode,
+                                            out errorMessage
+                                            );
+
+                                        // if the remote row delete is successful, then delete the local reference
+                                        if (isSuccessful)
+                                        {
+                                            var row = table.GetRow(rowAddress);
+                                            if (table.XactDeleteRow(row, transaction, transactionMode))
+                                            {
+                                                messages.Add("DELETE completed successfully");
+                                            }
+                                        }
+
+                                        if (isSuccessful)
+                                        {
+                                            messages.Add($"REMOTE DELETE completed successfully at {participant.Alias}");
+                                        }
                                     }
                                 }
                             }

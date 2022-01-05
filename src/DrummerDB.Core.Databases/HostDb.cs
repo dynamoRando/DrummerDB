@@ -81,7 +81,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
 
             var contractValue = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, guid);
-            var rows = contracts.GetRowsWithValue(contractValue);
+            var rows = contracts.GetLocalRowsWithValue(contractValue);
 
             if (rows.Count != 1)
             {
@@ -117,7 +117,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var rows = contracts.GetRows();
             foreach (var row in rows)
             {
-                var data = contracts.GetRow(row);
+                var data = contracts.GetLocalRow(row);
                 var stringDate = data.GetValueInString(Tables.DatabaseContracts.Columns.GeneratedDate);
 
                 var date = DateTime.Parse(stringDate);
@@ -128,7 +128,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
 
             var maxDateValue = RowValueMaker.Create(contracts, DatabaseContracts.Columns.GeneratedDate, maxDate.ToString());
-            var maxContractRow = contracts.GetRowsWithValue(maxDateValue);
+            var maxContractRow = contracts.GetLocalRowsWithValue(maxDateValue);
 
             if (maxContractRow.Count != 1)
             {
@@ -140,7 +140,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return Guid.Parse(stringContractGuid);
         }
 
-        public override int GetMaxTableId()
+        public override uint GetMaxTableId()
         {
             return _baseDb.GetMaxTableId();
         }
@@ -155,7 +155,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             Participant result = new();
             var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
             var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.Alias, aliasName);
-            int resultCount = participants.CountOfRowsWithValue(searchItem);
+            uint resultCount = participants.CountOfRowsWithValue(searchItem);
 
             if (resultCount > 1)
             {
@@ -169,17 +169,18 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             if (resultCount == 1)
             {
-                var results = participants.GetRowsWithValue(searchItem);
+                var results = participants.GetLocalRowsWithValue(searchItem);
                 foreach (var row in results)
                 {
-                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+                    result.InternalId = Guid.Parse(row.GetValueInString(Participants.Columns.InternalParticpantGUID));
                     result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
                     result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
                     result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
                     result.Alias = row.GetValueInString(Participants.Columns.Alias);
-
+                    result.Token = row.GetValueInByte(Participants.Columns.Token);
                     result.Url = string.Empty;
                     result.UseHttps = false;
+                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
                 }
             }
 
@@ -197,57 +198,232 @@ namespace Drummersoft.DrummerDB.Core.Databases
             // this is because the api for com's was partially started before the api for queries
             // will need to revisit so that the com api exposes a way to get a single value from a participant
 
-            var data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), Name, table.Name, out errorMessage);
+            TempParticipantRow data = _remote.GetRowFromParticipant(participant, address.ToSQLAddress(), Name, table.Name, out errorMessage);
 
-            // filter out by the value we're interested in
-            foreach (var value in data.Values)
+            if (!data.IsRemoteDeleted)
             {
-                if (string.Equals(value.Column.Name, address.ColumnName, StringComparison.OrdinalIgnoreCase))
+                // filter out by the value we're interested in
+                foreach (var value in data.Values)
                 {
-                    if (value.IsNull())
+                    if (string.Equals(value.Column.Name, address.ColumnName, StringComparison.OrdinalIgnoreCase))
                     {
-                        result.IsNullValue = true;
+                        if (value.IsNull())
+                        {
+                            result.IsNullValue = true;
+                        }
+                        else
+                        {
+                            result.Value = value.GetValueInBinary(false, value.Column.IsNullable);
+                        }
                     }
-                    else
-                    {
-                        result.Value = value.GetValueInBinary(false, value.Column.IsNullable);
-                    }
+                }
+            }
+           
+            result.IsRemotable = true;
+            result.IsRemoteDeleted = data.IsRemoteDeleted;
+
+            if (data.IsRemoteDeleted)
+            {
+                result.RemoteDeletedDateUTC = data.RemoteDeletedUTC;
+                result.IsRemoteOutOfSyncWithHost = true;
+                result.IsLocalDeleted = false;
+            }
+            else
+            {
+                var localRow = table.GetHostRow(address.RowId);
+                var localHash = localRow.DataHash;
+                var remoteHash = data.GetRowHash();
+                result.IsHashOutOfSyncWithHost = !DbBinaryConvert.BinaryEqual(localHash, remoteHash);
+
+                if (result.IsHashOutOfSyncWithHost)
+                {
+                    result.IsRemoteOutOfSyncWithHost = true;
                 }
             }
 
             return result;
         }
 
-        public Participant GetParticipant(Guid participantId)
+        public bool AcceptsRemoteDeletions()
         {
-            Participant result = new();
-            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
-            var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.ParticpantGUID, participantId.ToString());
-            int resultCount = participants.CountOfRowsWithValue(searchItem);
+            var currentContractId = GetCurrentContractGUID();
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+
+            var searchItem = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, currentContractId.ToString());
+            var resultCount = contracts.CountOfRowsWithValue(searchItem);
 
             if (resultCount > 1)
             {
-                throw new InvalidOperationException($"There exists multiple participants with the same id {participantId}");
+                throw new InvalidOperationException($"There exists multiple contracts with the same id {currentContractId}");
             }
 
             if (resultCount == 0)
             {
-                throw new InvalidOperationException($"There are no participants with the id {participantId}");
+                throw new InvalidOperationException($"There are no contracts with the internal id {currentContractId}");
             }
 
             if (resultCount == 1)
             {
-                var results = participants.GetRowsWithValue(searchItem);
+                var results = contracts.GetLocalRowsWithValue(searchItem);
                 foreach (var row in results)
                 {
-                    result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
-                    result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
-                    result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
-                    result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
-                    result.Alias = row.GetValueInString(Participants.Columns.Alias);
+                    var result = row.GetValueInString(Tables.DatabaseContracts.Columns.RemoteDeleteBehavior);
+                    int iRemoteBehavior = Convert.ToInt32(result);
+                    var behavior = (RemoteDeleteBehavior)iRemoteBehavior;
 
-                    result.Url = string.Empty;
-                    result.UseHttps = false;
+                    if (behavior == RemoteDeleteBehavior.Auto_Delete)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool IgnoresRemoteDeletions()
+        {
+            var currentContractId = GetCurrentContractGUID();
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+
+            var searchItem = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, currentContractId.ToString());
+            var resultCount = contracts.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple contracts with the same id {currentContractId}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no contracts with the internal id {currentContractId}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = contracts.GetLocalRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    var result = row.GetValueInString(Tables.DatabaseContracts.Columns.RemoteDeleteBehavior);
+                    int iRemoteBehavior = Convert.ToInt32(result);
+                    var behavior = (RemoteDeleteBehavior)iRemoteBehavior;
+
+                    if (behavior == RemoteDeleteBehavior.Ignore)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool RecordsRemoteDeletions()
+        {
+            var currentContractId = GetCurrentContractGUID();
+            var contracts = _baseDb.GetTable(Tables.DatabaseContracts.TABLE_NAME);
+
+            var searchItem = RowValueMaker.Create(contracts, Tables.DatabaseContracts.Columns.ContractGUID, currentContractId.ToString());
+            var resultCount = contracts.CountOfRowsWithValue(searchItem);
+
+            if (resultCount > 1)
+            {
+                throw new InvalidOperationException($"There exists multiple contracts with the same id {currentContractId}");
+            }
+
+            if (resultCount == 0)
+            {
+                throw new InvalidOperationException($"There are no contracts with the internal id {currentContractId}");
+            }
+
+            if (resultCount == 1)
+            {
+                var results = contracts.GetLocalRowsWithValue(searchItem);
+                foreach (var row in results)
+                {
+                    var result = row.GetValueInString(Tables.DatabaseContracts.Columns.RemoteDeleteBehavior);
+                    int iRemoteBehavior = Convert.ToInt32(result);
+                    var behavior = (RemoteDeleteBehavior)iRemoteBehavior;
+
+                    if (behavior == RemoteDeleteBehavior.Update_Status_Only)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public Participant GetParticipant(Guid participantId, bool isInternalId)
+        {
+            Participant result = new();
+            var participants = _baseDb.GetTable(Tables.Participants.TABLE_NAME);
+
+            if (isInternalId)
+            {
+                var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.InternalParticpantGUID, participantId.ToString());
+                uint resultCount = participants.CountOfRowsWithValue(searchItem);
+
+                if (resultCount > 1)
+                {
+                    throw new InvalidOperationException($"There exists multiple participants with the same internal id {participantId}");
+                }
+
+                if (resultCount == 0)
+                {
+                    throw new InvalidOperationException($"There are no participants with the internal id {participantId}");
+                }
+
+                if (resultCount == 1)
+                {
+                    var results = participants.GetLocalRowsWithValue(searchItem);
+                    foreach (var row in results)
+                    {
+                        result.InternalId = Guid.Parse(row.GetValueInString(Participants.Columns.InternalParticpantGUID));
+                        result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
+                        result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
+                        result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
+                        result.Alias = row.GetValueInString(Participants.Columns.Alias);
+                        result.Token = row.GetValueInByte(Participants.Columns.Token);
+                        result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+
+                        result.Url = string.Empty;
+                        result.UseHttps = false;
+                    }
+                }
+            }
+            else
+            {
+                var searchItem = RowValueMaker.Create(participants, Tables.Participants.Columns.ParticpantGUID, participantId.ToString());
+                uint resultCount = participants.CountOfRowsWithValue(searchItem);
+
+                if (resultCount > 1)
+                {
+                    throw new InvalidOperationException($"There exists multiple participants with the same id {participantId}");
+                }
+
+                if (resultCount == 0)
+                {
+                    throw new InvalidOperationException($"There are no participants with the id {participantId}");
+                }
+
+                if (resultCount == 1)
+                {
+                    var results = participants.GetLocalRowsWithValue(searchItem);
+                    foreach (var row in results)
+                    {
+                        result.InternalId = Guid.Parse(row.GetValueInString(Participants.Columns.InternalParticpantGUID));
+                        result.IP4Address = row.GetValueInString(Participants.Columns.IP4Address);
+                        result.IP6Address = row.GetValueInString(Participants.Columns.IP6Address);
+                        result.PortNumber = Convert.ToInt32(row.GetValueInString(Participants.Columns.PortNumber));
+                        result.Alias = row.GetValueInString(Participants.Columns.Alias);
+                        result.Token = row.GetValueInByte(Participants.Columns.Token);
+                        result.Id = Guid.Parse(row.GetValueInString(Participants.Columns.ParticpantGUID));
+
+                        result.Url = string.Empty;
+                        result.UseHttps = false;
+                    }
                 }
             }
 
@@ -259,7 +435,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.GetSchemaInformation(schemaName);
         }
 
-        public override Table GetTable(int tableId)
+        public override Table GetTable(uint tableId)
         {
             return _baseDb.GetTable(tableId);
         }
@@ -296,7 +472,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.HasSchema(schemaName);
         }
 
-        public override bool HasTable(int tableId)
+        public override bool HasTable(uint tableId)
         {
             return _baseDb.HasTable(tableId);
         }
@@ -349,10 +525,10 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
         public bool XactRequestParticipantRemoveRow(Participant participant,
             string tableName,
-            int tableId,
+            uint tableId,
             string databaseName,
             Guid dbId,
-            int rowId,
+            uint rowId,
             TransactionRequest transaction,
             TransactionMode transactionMode,
             out string errorMessage)
@@ -376,13 +552,15 @@ namespace Drummersoft.DrummerDB.Core.Databases
         public bool XactRequestParticipantUpdateRow(
             Participant participant,
             string tableName,
-            int tableId,
+            uint tableId,
             string databaseName,
             Guid dbId,
-            int rowId,
+            uint rowId,
             RemoteValueUpdate updateValue,
             TransactionRequest transaction,
             TransactionMode transactionMode,
+            byte[] currentDataHash,
+            out byte[] newDataHash,
             out string errorMessage)
         {
             errorMessage = string.Empty;
@@ -397,7 +575,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 updateValue,
                 transaction,
                 transactionMode,
-                out errorMessage
+                currentDataHash,
+                out errorMessage,
+                out newDataHash
                 );
 
             return result;
@@ -411,8 +591,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
             var isSaved = _remote.SaveContractAtParticipant(participant, contract, out errorMessage);
 
             var participantTable = GetTable(Participants.TABLE_NAME);
-            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.ParticpantGUID, participant.Id.ToString());
-            int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
+            var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.InternalParticpantGUID, participant.InternalId.ToString());
+            uint totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
 
             if (totalParticipants > 1)
             {
@@ -426,7 +606,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             }
             else
             {
-                var rowsForParticipant = participantTable.GetRowsWithValue(participantSearch);
+                var rowsForParticipant = participantTable.GetLocalRowsWithValue(participantSearch);
 
                 if (rowsForParticipant.Count != 1)
                 {
@@ -469,14 +649,14 @@ namespace Drummersoft.DrummerDB.Core.Databases
             // and when the participant executes their own GENERATE HOSTINFO AS HOSTNAME ZYXW they generate their own id
             // and so these don't match when searching by participant GUID
             var participantSearch = RowValueMaker.Create(participantTable, Participants.Columns.Alias, participant.Alias);
-            int totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
+            uint totalParticipants = participantTable.CountOfRowsWithValue(participantSearch);
 
             if (totalParticipants != 1)
             {
                 throw new InvalidOperationException($"More than 1 or no participant found for alias {participant.Alias}");
             }
 
-            var rowsForParticipant = participantTable.GetRowsWithValue(participantSearch);
+            var rowsForParticipant = participantTable.GetLocalRowsWithValue(participantSearch);
 
             if (rowsForParticipant.Count != 1)
             {
@@ -489,6 +669,8 @@ namespace Drummersoft.DrummerDB.Core.Databases
                 row.SetValue(Participants.Columns.AcceptedContractVersion, contractGuid.ToString());
                 row.SetValue(Participants.Columns.LastCommunicationUTC, DateTime.UtcNow.ToString());
                 row.SetValue(Participants.Columns.AcceptedContractDateTimeUTC, DateTime.UtcNow.ToString());
+                row.SetValue(Participants.Columns.Token, participant.Token);
+                row.SetValue(Participants.Columns.ParticpantGUID, participant.Id.ToString());
                 participantTable.XactUpdateRow(row, transaction, transactionMode);
             }
 

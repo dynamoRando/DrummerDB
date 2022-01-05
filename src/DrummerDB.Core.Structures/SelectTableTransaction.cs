@@ -23,7 +23,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// </summary>
         /// <param name="databaseId">The database the SELECT operation is being performed on</param>
         /// <param name="tableId">The table the SELECT operation is being performed on</param>
-        public SelectTableTransaction(Guid databaseId, int tableId) : base(databaseId, tableId)
+        public SelectTableTransaction(Guid databaseId, uint tableId) : base(databaseId, tableId)
         {
             _address = new SQLAddress { DatabaseId = databaseId, TableId = tableId, PageId = 0, RowId = 0, RowOffset = 0 };
         }

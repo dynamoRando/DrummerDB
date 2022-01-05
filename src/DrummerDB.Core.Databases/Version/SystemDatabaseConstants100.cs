@@ -422,10 +422,6 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     public const string Version = "Version";
                     public const string GeneratedDate = "GeneratedDate";
                     public const string Status = "Status";
-
-                    // we need supporting tables to handle the table schema
-                    // we will need to flatten the table structure for a list of table names
-                    // and then the columns for each table
                 }
 
                 public static ColumnSchemaCollection GetColumns()
@@ -502,6 +498,11 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     public const string DatabaseName = "DatabaseName";
                     public const string DatabaseId = "DatabaseId";
                     public const string LogicalStoragePolicy = "LogicalStoragePolicy";
+
+                    /// <summary>
+                    /// Determines if we make changes locally, if we should notify the host of changes, usually in the case of UPDATE or DELETE
+                    /// </summary>
+                    public const string NotifyHostOfChanges = "NotifyHost";
                 }
 
                 public static ColumnSchemaCollection GetColumns()
@@ -514,11 +515,21 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
                     return _columns;
                 }
 
+                public static ColumnSchema GetColumn(string columName)
+                {
+                    if (_columns is null)
+                    {
+                        GenerateColumns();
+                    }
+
+                    return _columns.Get(columName);
+                }
+
                 private static void GenerateColumns()
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(5);
+                        _columns = new ColumnSchemaCollection(6);
 
                         var tableId = new ColumnSchema(Columns.TableId, new SQLInt(), 1);
                         _columns.Add(tableId);
@@ -534,6 +545,9 @@ namespace Drummersoft.DrummerDB.Core.Databases.Version
 
                         var storagePolicy = new ColumnSchema(Columns.LogicalStoragePolicy, new SQLInt(), 5);
                         _columns.Add(storagePolicy);
+
+                        var notifyHost = new ColumnSchema(Columns.NotifyHostOfChanges, new SQLBit(), 6, true);
+                        _columns.Add(notifyHost);
                     }
                 }
             }

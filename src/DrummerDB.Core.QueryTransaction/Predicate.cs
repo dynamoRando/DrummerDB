@@ -8,7 +8,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     /// </summary>
     class Predicate : IPredicate
     {
-        private int _id;
+        private uint _id;
         private Interval _interval;
 
         public string FullText { get; set; }
@@ -17,10 +17,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         public string Operator { get; set; }
         public string Value { get; set; }
         public int EvaluationLevel { get; set; }
-        public int Id => _id;
+        public uint Id => _id;
         public Interval Interval => _interval;
 
-        public Predicate(int id)
+        public Predicate(uint id)
         {
             if (string.IsNullOrEmpty(FullText))
             {
@@ -34,7 +34,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             _id = id;
         }
 
-        public Predicate(int id, string fulltext, string tableName) : this(id)
+        public Predicate(uint id, string fulltext, string tableName) : this(id)
         {
             FullText = fulltext;
             TableName = tableName;

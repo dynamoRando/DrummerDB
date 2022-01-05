@@ -20,7 +20,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.DataDefinitionLanguage
             string systemDbName = SystemDatabaseConstants100.Databases.DRUM_SYSTEM;
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.GET_DBS);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();

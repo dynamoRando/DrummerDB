@@ -18,7 +18,7 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
         string DatabaseName { get; }
         DateTime CreatedDate { get; }
         Guid DatabaseId { get; }
-        UserDataPageSearchResult GetAnyUserDataPage(string fileName, ITableSchema schema, PageAddress[] pagesInMemory, int tableId);
+        UserDataPageSearchResult GetAnyUserDataPage(string fileName, ITableSchema schema, PageAddress[] pagesInMemory, uint tableId);
 
         // reads the entire data file and returns the page items on disk
         List<PageItem> GetPageItems(string fileName);

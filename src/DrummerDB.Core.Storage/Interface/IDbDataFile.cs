@@ -9,17 +9,17 @@ namespace Drummersoft.DrummerDB.Core.Storage.Interface
 {
     internal interface IDbDataFile
     {
-        UserDataPage GetUserDataPage(int id);
-        UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, int tableId);
+        UserDataPage GetUserDataPage(uint id);
+        UserDataPage GetAnyUserDataPage(PageAddress[] pagesInMemory, ITableSchema schema, uint tableId);
         List<UserDataPage> GetAllUserDataPages(TreeAddress address, ITableSchema schema);
         void WritePageToDisk(byte[] pageData, PageAddress address, PageType type, DataPageType dataPageType, bool isDeleted);
         Guid DbId { get; }
         int Version { get; }
         ISystemPage GetSystemPage();
         string DatabaseName { get; }
-        int GetTotalPages();
-        int GetTotalPages(TreeAddress address);
-        int GetMaxPageId(in TreeAddress address);
+        uint GetTotalPages();
+        uint GetTotalPages(TreeAddress address);
+        uint GetMaxPageId(in TreeAddress address);
         void DeleteFromDisk();
     }
 }

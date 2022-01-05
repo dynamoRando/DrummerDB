@@ -40,7 +40,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.DataDefinitionLanguage
             // Stopwatch stopwatch = Stopwatch.StartNew();
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.CREATE_TABLE_DROP);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();

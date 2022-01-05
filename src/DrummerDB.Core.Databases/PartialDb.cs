@@ -49,6 +49,16 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _remote.NotifyAcceptContract(contract, out errorMessage);
         }
 
+        public bool NotifyHostOfRowDataHashChange(uint rowId, string tableName, byte[] newDataHash, HostInfo hostInfo, Guid dbId, uint tableId)
+        {
+            return _remote.NotifyHostRowDataHashChanged(_baseDb.Name, tableName, rowId, newDataHash, hostInfo, dbId, tableId);
+        }
+
+        public bool NotifyHostOfRowDeletion(uint rowId, string tableName, HostInfo hostInfo, Guid dbId, uint tableId)
+        {
+            return _remote.NotifyHostOfRowDeletion(_baseDb.Name, tableName, rowId, hostInfo, dbId, tableId);
+        }
+
         public override bool XactDropTable(string tableName, TransactionRequest transaction, TransactionMode transactionMode)
         {
             return _baseDb.XactDropTable(tableName, transaction, transactionMode);
@@ -69,17 +79,17 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return _baseDb.HasSchema(schemaName);
         }
 
-        public override Table GetTable(int tableId)
+        public override Table GetTable(uint tableId)
         {
             return _baseDb.GetTable(tableId);
         }
 
-        public override int GetMaxTableId()
+        public override uint GetMaxTableId()
         {
             return _baseDb.GetMaxTableId();
         }
 
-        public override bool HasTable(int tableId)
+        public override bool HasTable(uint tableId)
         {
             return _baseDb.HasTable(tableId);
         }

@@ -8,6 +8,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
     internal static class CooperativeKeywords
     {
-        public const string COOP_ACTION_FOR_PARTICIPANT = "COOP_ACTION FOR PARTICIPANT";
+        // consider simplifying to "APPLY TO PARTICIPANT"
+        public const string APPLY_TO_PARTICIPANT = "APPLY TO PARTICIPANT";
     }
 }

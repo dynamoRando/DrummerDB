@@ -1,6 +1,7 @@
 syntax = "proto3";
 import "Drum.proto";
 import "DrumDB.proto";
+import "google/protobuf/timestamp.proto";
 option csharp_namespace = "Drummersoft.DrummerDB.Common.Communication.DatabaseService";
 package DrummerDatabaseService;
 
@@ -21,6 +22,8 @@ service DatabaseService {
 	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
 	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
 	rpc RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest) returns (RemoveRowFromPartialDatabaseResult);
+	rpc UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest) returns (UpdateRowDataHashForHostResponse);
+	rpc NotifyHostOfRemovedRow(NotifyHostOfRemovedRowRequest) returns (NotifyHostOfRemovedRowResponse);
 }
 
 // A message for creating a user database
@@ -87,6 +90,7 @@ message InsertRowRequest {
 	Drum.MessageInfo messageInfo = 4; 
 	Drum.TransactionInfo transaction = 5;
 	uint32 rowId = 6;
+	DrumDB.Host hostInfo = 7;
 }
 
 // a message for describing the result of a InsertRowRequest
@@ -111,6 +115,7 @@ message UpdateRowInTableRequest{
 	uint32 whereRowId = 7;
 	string updateColumn = 8;
 	string updateValue = 9; 
+	bytes existingDataHash = 10;
 }
 
 message UpdateRowInTableResult {
@@ -122,6 +127,7 @@ message UpdateRowInTableResult {
 	string tableId = 6;
 	uint32 numberOfRowsAffected = 7;
 	string resultMessage = 8;
+	bytes newDataHash = 9;
 }
 
 message GetRowsFromTableRequest {
@@ -195,4 +201,37 @@ message RemoveRowFromPartialDatabaseResult {
 	Drum.AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
 	string resultMessage = 3;
+}
+
+message UpdateRowDataHashForHostRequest {
+	Drum.AuthRequest authentication = 1;
+	Drum.MessageInfo MessageInfo = 2;
+	DrumDB.Host hostInfo = 3;
+	string databaseName = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	uint32 tableId = 7;
+	uint32 rowId = 8;
+	bytes updatedHashValue = 9;
+}
+
+message UpdateRowDataHashForHostResponse {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+}
+
+message NotifyHostOfRemovedRowRequest{
+	Drum.AuthRequest authentication = 1;
+	Drum.MessageInfo MessageInfo = 2;
+	DrumDB.Host hostInfo = 3;
+	string databaseName = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	uint32 tableId = 7;
+	uint32 rowId = 8;
+}
+
+message NotifyHostOfRemovedRowResponse {
+	Drum.AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
 }

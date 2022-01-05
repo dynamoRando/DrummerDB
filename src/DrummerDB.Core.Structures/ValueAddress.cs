@@ -1,4 +1,6 @@
-﻿using Drummersoft.DrummerDB.Core.Structures.Interface;
+﻿using Drummersoft.DrummerDB.Core.Structures.Abstract;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
+using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
 
 namespace Drummersoft.DrummerDB.Core.Structures
@@ -18,7 +20,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <summary>
         /// The table of the value
         /// </summary>
-        public int TableId { get; init; }
+        public uint TableId { get; init; }
 
         /// <summary>
         /// The name of the column for the value
@@ -28,36 +30,40 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <summary>
         /// The page of the value
         /// </summary>
-        public int PageId { get; init; }
+        public uint PageId { get; init; }
 
         /// <summary>
         /// The row of the value
         /// </summary>
-        public int RowId { get; init; }
+        public uint RowId { get; init; }
 
         /// <summary>
         /// Represents the byte offset of the row on the page
         /// </summary>
-        public int RowOffset { get; init; }
+        public uint RowOffset { get; init; }
 
         /// <summary>
         /// Represents the value offset in the byte array of the row. Should include the size prefix if applicable.
         /// </summary>
-        public int ValueOffset { get; init; }
+        public uint ValueOffset { get; init; }
 
         /// <summary>
         /// The total length of the value to parse. See <seealso cref="IRowValue.ParseValueLength"/> for more information.
         /// </summary>
-        public int ParseLength { get; init; }
+        public uint ParseLength { get; init; }
 
         /// <summary>
         /// The id of the column for the value
         /// </summary>
-        public int ColumnId { get; init; }
+        public uint ColumnId { get; init; }
 
         public Guid SchemaId { get; init; }
 
-        public Guid? ParticipantId { get; set; }
+        public Guid? RemotableId { get; set; }
+
+        public RowType RowType { get; set; }
+
+        public bool HasDataLocally => Row.HasLocalData(RowType);
 
         public PageAddress ToPageAddress()
         {
@@ -71,7 +77,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
 
         public RowAddress ToRowAddress()
         {
-            return new RowAddress(PageId, RowId, RowOffset, ParticipantId.GetValueOrDefault());
+            return new RowAddress(PageId, RowId, RowOffset, RemotableId.GetValueOrDefault(), RowType);
         }
 
         public SQLAddress ToSQLAddress()

@@ -19,7 +19,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.Database
             string pw = "PwTestSystemLogin1";
             Guid guid = Guid.NewGuid();
             string dbName = "CreateDbClient";
-            int portNumber = TestPortNumbers.CREATE_DB;
+            int portNumber = TestPortManager.GetNextAvailablePortNumber();
 
             string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "TestCreateDbClient");
 

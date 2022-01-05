@@ -256,7 +256,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
             throw new NotImplementedException();
         }
 
-        public UserDataPage GetAnySystemDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, int tableId)
+        public UserDataPage GetAnySystemDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
         {
             SystemDbFileHandler file = _systemDbFiles.Get(address.DatabaseId);
 
@@ -275,7 +275,7 @@ namespace Drummersoft.DrummerDB.Core.Storage
             return null;
         }
 
-        public UserDataPage GetAnyUserDataPage(int[] pagesInMemory, TreeAddress address, ITableSchema schema, int tableId)
+        public UserDataPage GetAnyUserDataPage(uint[] pagesInMemory, TreeAddress address, ITableSchema schema, uint tableId)
         {
             UserDbFileHandler file = _userDbFiles.Get(address.DatabaseId);
 
@@ -294,9 +294,9 @@ namespace Drummersoft.DrummerDB.Core.Storage
             return null;
         }
 
-        public int GetMaxPageId(TreeAddress address)
+        public uint GetMaxPageId(TreeAddress address)
         {
-            int result = 0;
+            uint result = 0;
             var file = _userDbFiles.Get(address.DatabaseId);
             if (file is not null)
             {
@@ -399,9 +399,9 @@ namespace Drummersoft.DrummerDB.Core.Storage
             }
         }
 
-        public int GetTotalPages(TreeAddress address)
+        public uint GetTotalPages(TreeAddress address)
         {
-            int result = 0;
+            uint result = 0;
             var file = _userDbFiles.Get(address.DatabaseId);
             if (file is not null)
             {

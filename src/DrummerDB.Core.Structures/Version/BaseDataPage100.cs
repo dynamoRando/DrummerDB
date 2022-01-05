@@ -1,7 +1,6 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures.Abstract;
-using Drummersoft.DrummerDB.Core.Structures.DbDebug;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using System;
@@ -46,13 +45,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// The total bytes used in the page, not including the preamble. 
         /// </summary>
         /// <remarks>This includes rows that are deleted.</remarks>
-        private int _totalBytesUsed = 0;
+        private uint _totalBytesUsed = 0;
 
         /// <summary>
         /// The total number of rows in the page
         /// </summary>
         /// <remarks>This includes rows that are deleted.</remarks>
-        private int _totalRows = 0;
+        private uint _totalRows = 0;
 
         /// <summary>
         /// The type of data page
@@ -62,7 +61,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <summary>
         /// Version 100
         /// </summary>
-        private int _V100 = Constants.DatabaseVersions.V100;
+        private ushort _V100 = Constants.DatabaseVersions.V100;
         #endregion
 
         #region Public Properties
@@ -155,20 +154,24 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             foreach (var row in rows)
             {
                 bool rowHasAllValues = true;
-                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+                Row rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
                 foreach (var value in values)
                 {
                     byte[] a;
                     byte[] b;
 
-                    a = rowData.GetValueInByte(value.Column.Name);
-                    b = value.GetValueInBinary(false, value.Column.IsNullable);
-
-                    if (!DbBinaryConvert.BinaryEqual(a, b))
+                    if (rowData is RowValueGroup)
                     {
-                        rowHasAllValues = false;
-                        break;
+                        var rowValueGroup = rowData as RowValueGroup;
+                        a = rowValueGroup.GetValueInByte(value.Column.Name);
+                        b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                        if (!DbBinaryConvert.BinaryEqual(a, b))
+                        {
+                            rowHasAllValues = false;
+                            break;
+                        }
                     }
                 }
 
@@ -189,20 +192,24 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             foreach (var row in rows)
             {
                 bool rowHasAllValues = true;
-                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+                Row rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
                 foreach (var value in values)
                 {
                     byte[] a;
                     byte[] b;
 
-                    a = rowData.GetValueInByte(value.Column.Name);
-                    b = value.GetValueInBinary(false, value.Column.IsNullable);
-
-                    if (!DbBinaryConvert.BinaryEqual(a, b))
+                    if (rowData is RowValueGroup)
                     {
-                        rowHasAllValues = false;
-                        break;
+                        var rowValueGroup = rowData as RowValueGroup;
+                        a = rowValueGroup.GetValueInByte(value.Column.Name);
+                        b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                        if (!DbBinaryConvert.BinaryEqual(a, b))
+                        {
+                            rowHasAllValues = false;
+                            break;
+                        }
                     }
                 }
 
@@ -235,11 +242,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             var bDelete = BitConverter.GetBytes(false);
             bDelete.CopyTo(_data, PageConstants.PageIsDeletedOffset(_V100));
         }
-        public override int GetCountOfRowIdsOnPage(bool includeDeletedRows = false)
+        public override uint GetCountOfRowIdsOnPage(bool includeDeletedRows = false)
         {
-            int totalCount = 0;
-            var action = new ParsePageAction<int>(CountRows);
-            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, -1, false, includeDeletedRows, ref totalCount);
+            uint totalCount = 0;
+            var action = new ParsePageAction<uint>(CountRows);
+            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, 0, false, includeDeletedRows, ref totalCount);
 
             return totalCount;
         }
@@ -247,13 +254,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         public override List<RowAddress> GetRowIdsOnPage(bool includeDeletedRows = false)
         {
             var addresses = new List<RowAddress>();
-            var action = new ParsePageAction<List<RowAddress>>(AddToRowAddresses);
+            var action = new ParsePageRemotableAction<List<RowAddress>>(AddToRowAddresses);
 
-            ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, -1, false, includeDeletedRows, ref addresses);
+            ParsePageDataRemotable(new ReadOnlySpan<byte>(_data), PageId(), action, 0, false, includeDeletedRows, ref addresses);
             return addresses;
         }
 
-        public override void ForwardRows(int rowId, int newPageId, int newPageOffset)
+        public override void ForwardRows(uint rowId, uint newPageId, uint newPageOffset)
         {
             var locations = GetRowOffsets(rowId);
 
@@ -276,7 +283,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <param name="rowId">The row Id to find</param>
         /// <returns><c>TRUE</c> if the <see cref="PageRowStatus"/> is <see cref="PageRowStatus.IsOnPage"/> or <see cref="PageRowStatus.IsOnPageAndForwardedOnSamePage"/>
         /// , otherwise <c>FALSE</c></returns>
-        public override bool HasRow(int rowId)
+        public override bool HasRow(uint rowId)
         {
             PageRowStatus status = GetRowStatus(rowId);
             if (status == PageRowStatus.IsOnPage || status == PageRowStatus.IsOnPageAndForwardedOnSamePage)
@@ -286,7 +293,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return false;
         }
 
-        public override PageRowStatus GetRowStatus(int rowId)
+        public override PageRowStatus GetRowStatus(uint rowId)
         {
             var offsets = GetRowOffsets(rowId);
 
@@ -319,7 +326,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         /// <param name="rowSize">The length of the row</param>
         /// <returns>True if there is room on the page, otherwise false</returns>
-        public override bool IsFull(int rowSize)
+        public override bool IsFull(uint rowSize)
         {
             // total bytes used by rows on the page + the size of the row we wish to add + the number of bytes for the page preamble
             if ((_totalBytesUsed + rowSize + DataPageConstants.RowDataStartOffset(_V100)) > _data.Length)
@@ -337,26 +344,34 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         /// <param name="rowId">The row id to delete</param>
         /// <remarks>Note that deleting a row does not internally decrement the number of rows on a page nor the total bytes used. Those values are only reset if the page is rebuilt.</remarks>
-        public override void DeleteRow(int rowId)
+        public override void DeleteRow(uint rowId)
         {
             var offsets = GetRowOffsets(rowId);
             foreach (var offset in offsets)
             {
-                var row = GetRowAtOffset(offset, rowId);
-                row.IsDeleted = true;
+                Row row = GetRowAtOffset(offset, rowId);
+
+                if (row is PartialRow)
+                {
+                    var partRow = row as PartialRow;
+                    partRow.IsRemoteDeleted = true;
+                    partRow.RemoteDeletionUTC = DateTime.UtcNow;
+                }
+
+                row.Delete();
                 var rowData = row.GetRowInPageBinaryFormat();
                 Array.Copy(rowData, 0, _data, offset, rowData.Length);
             }
         }
 
-        public override PageUpdateRowResult TryUpdateRowData(IRow updatedRow, out int updatedOffset)
+        public override PageUpdateRowResult TryUpdateRowData(Row updatedRow, out uint updatedOffset)
         {
             PageUpdateRowResult result = PageUpdateRowResult.Unknown;
-            int rowId = updatedRow.Id;
-            int existingRowOffset = GetRowOffsets(rowId).Max();
-            IRow existingRow = GetRow(rowId);
+            uint rowId = updatedRow.Id;
+            uint existingRowOffset = (uint)GetRowOffsets(rowId).Max();
+            Row existingRow = GetRow(rowId);
 
-            if (updatedRow.Size() == existingRow.Size())
+            if (updatedRow.TotalSize == existingRow.TotalSize)
             {
                 // update in place
                 byte[] rowData = updatedRow.GetRowInPageBinaryFormat();
@@ -366,21 +381,21 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             }
             else
             {
-                if (!(IsFull(updatedRow.Size())))
+                if (!(IsFull(updatedRow.TotalSize)))
                 {
                     // add the row to the page
-                    int newRowOffset = AppendRowToData(updatedRow);
+                    uint newRowOffset = AppendRowToData(updatedRow);
 
                     string debug = $"Appending Row {updatedRow.Id.ToString()} at location: {newRowOffset.ToString()}";
                     Debug.WriteLine(debug);
 
-                    List<int> locations = GetRowOffsets(rowId);
+                    List<uint> locations = GetRowOffsets(rowId);
                     locations.Remove(newRowOffset);
 
                     // if we have not forwarded this row before
                     if (locations.Count == 0)
                     {
-                        existingRow.ForwardRow(newRowOffset, PageId());
+                        existingRow.ForwardRow(newRowOffset, (uint)PageId());
                         byte[] rowData = existingRow.GetRowInPageBinaryFormat();
                         Array.Copy(rowData, 0, _data, existingRowOffset, rowData.Length);
                         result = PageUpdateRowResult.Success;
@@ -388,7 +403,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     }
                     else // need to loop thru all the locations and update them to the new offset
                     {
-                        int pageId = PageId();
+                        uint pageId = PageId();
 
                         foreach (var location in locations)
                         {
@@ -427,11 +442,16 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <param name="row">The row to be added</param>
         /// <exception cref="InvalidOperationException">Thrown if there is not enough room on the Page's data.</exception>
         /// <returns>The offset of where the row was added onto the page</returns>
-        public override int AddRow(IRow row)
+        public override uint AddRow(Row row)
         {
-            int offset = 0;
+            uint offset = 0;
 
-            if (!IsFull(row.Size()))
+            if (row.IsTempForParticipant())
+            {
+                throw new InvalidOperationException("Temp rows should not be sent to cache or disk");
+            }
+
+            if (!IsFull(row.TotalSize))
             {
                 offset = AppendRowToData(row);
                 _totalRows++;
@@ -446,7 +466,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return offset;
         }
 
-        public override IRow GetRow(RowAddress address)
+        public override Row GetRow(RowAddress address)
         {
             return GetRowAtOffset(address.RowOffset, address.RowId);
         }
@@ -457,12 +477,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <param name="rowId">The row id to return</param>
         /// <returns>The specified row if found, otherwise NULL</returns>
         /// <remarks>Note that this function can be used to get rows forwarded to other pages.</remarks>
-        public override IRow GetRow(int rowId)
+        public override Row GetRow(uint rowId)
         {
-            IRow row = null;
-            List<int> offsets = GetRowOffsets(rowId, false, true);
+            Row row = null;
+            List<uint> offsets = GetRowOffsets(rowId, false, true);
 
-            int rowOffset;
+            uint rowOffset;
             if (offsets.Count == 0)
             {
                 return null;
@@ -485,43 +505,16 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             return row;
         }
 
-        public override RowDebug GetDebugRow(int rowId)
-        {
-            RowDebug row = null;
-            List<int> offsets = GetRowOffsets(rowId, true);
-
-            int rowOffset;
-            if (offsets.Count == 0)
-            {
-                return null;
-            }
-            else
-            {
-                rowOffset = offsets.Max();
-            }
-
-            if (rowOffset != 0)
-            {
-                row = GetDebugRowAtOffset(rowOffset, rowId);
-
-                if (row.IsForwarded() && row.ForwardedPageId() == PageId())
-                {
-                    row = GetDebugRowAtOffset(row.ForwardOffset(), rowId);
-                }
-            }
-
-            return row;
-        }
 
         /// <summary>
         /// The Id of the Page, read from the Page's data
         /// </summary>
         /// <returns>The id of this page</returns>
-        public override int PageId()
+        public override uint PageId()
         {
             var idSpan = new ReadOnlySpan<byte>(_data);
             ReadOnlySpan<byte> idBytes = idSpan.Slice(PageConstants.PageIdOffset(), PageConstants.SIZE_OF_PAGE_ID(_V100));
-            var result = BitConverter.ToInt32(idBytes);
+            var result = BitConverter.ToUInt32(idBytes);
             return result;
         }
 
@@ -541,11 +534,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// The Table Id of the Page, read from the Page's data
         /// </summary>
         /// <returns></returns>
-        public override int TableId()
+        public override uint TableId()
         {
             var idSpan = new ReadOnlySpan<byte>(_data);
             ReadOnlySpan<byte> idBytes = idSpan.Slice(DataPageConstants.TableIdOffset(_V100), DataPageConstants.SIZE_OF_TABLE_ID(_V100));
-            var result = BitConverter.ToInt32(idBytes);
+            var result = BitConverter.ToUInt32(idBytes);
             return result;
         }
 
@@ -553,11 +546,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// The total rows on the page, read from the Page's data
         /// </summary>
         /// <returns>The total rows on this page</returns>
-        public override int TotalRows()
+        public override uint TotalRows()
         {
             var idSpan = new ReadOnlySpan<byte>(_data);
             ReadOnlySpan<byte> idBytes = idSpan.Slice(DataPageConstants.TotalRowsOffset(_V100), DataPageConstants.SIZE_OF_TOTAL_ROWS(_V100));
-            var result = BitConverter.ToInt32(idBytes);
+            var result = BitConverter.ToUInt32(idBytes);
             return result;
         }
 
@@ -565,11 +558,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// The total bytes used on this page, read from the Page's data
         /// </summary>
         /// <returns>The total bytes on this page</returns>
-        public override int TotalBytesUsed()
+        public override uint TotalBytesUsed()
         {
             var idSpan = new ReadOnlySpan<byte>(_data);
             ReadOnlySpan<byte> idBytes = idSpan.Slice(DataPageConstants.TotalBytesUsedOffset(_V100), DataPageConstants.SIZE_OF_TOTAL_ROWS(_V100));
-            var result = BitConverter.ToInt32(idBytes);
+            var result = BitConverter.ToUInt32(idBytes);
             return result;
         }
 
@@ -600,26 +593,30 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         }
 
 
-        public override int GetCountOfRowsWithValue(IRowValue value)
+        public override uint GetCountOfRowsWithValue(IRowValue value)
         {
-            int count = 0;
+            uint count = 0;
 
             List<RowAddress> rows = GetRowIdsOnPage();
             foreach (var row in rows)
             {
-                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
-
-                if (!rowData.IsForwarded && !rowData.IsDeleted)
+                Row rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+                if (rowData is RowValueGroup)
                 {
-                    byte[] a;
-                    byte[] b;
+                    RowValueGroup rowVG = rowData as RowValueGroup;
 
-                    a = rowData.GetValueInByte(value.Column.Name);
-                    b = value.GetValueInBinary(false, value.Column.IsNullable);
-
-                    if (DbBinaryConvert.BinaryEqual(a, b))
+                    if (!rowVG.IsForwarded && !rowVG.IsLogicallyDeleted)
                     {
-                        count++;
+                        byte[] a;
+                        byte[] b;
+
+                        a = rowVG.GetValueInByte(value.Column.Name);
+                        b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                        if (DbBinaryConvert.BinaryEqual(a, b))
+                        {
+                            count++;
+                        }
                     }
                 }
             }
@@ -634,19 +631,24 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             List<RowAddress> rows = GetRowIdsOnPage();
             foreach (var row in rows)
             {
-                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+                Row rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
-                byte[] a;
-                byte[] b;
-
-                if (!rowData.IsForwarded && !rowData.IsDeleted)
+                if (rowData is RowValueGroup)
                 {
-                    a = rowData.GetValueInByte(value.Column.Name);
-                    b = value.GetValueInBinary(false, value.Column.IsNullable);
+                    var rowVG = rowData as RowValueGroup;
 
-                    if (DbBinaryConvert.BinaryEqual(a, b))
+                    byte[] a;
+                    byte[] b;
+
+                    if (!rowData.IsForwarded && !rowData.IsLogicallyDeleted)
                     {
-                        result.Add(row);
+                        a = rowVG.GetValueInByte(value.Column.Name);
+                        b = value.GetValueInBinary(false, value.Column.IsNullable);
+
+                        if (DbBinaryConvert.BinaryEqual(a, b))
+                        {
+                            result.Add(row);
+                        }
                     }
                 }
             }
@@ -656,25 +658,29 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
         public override RowAddress[] GetRowAddressesWithValue(IRowValue value)
         {
-            int count = GetCountOfRowsWithValue(value);
+            uint count = GetCountOfRowsWithValue(value);
             var result = new RowAddress[count];
             int index = 0;
 
             List<RowAddress> rows = GetRowIdsOnPage();
             foreach (var row in rows)
             {
-                var rowData = GetRowAtOffset(row.RowOffset, row.RowId);
+                Row rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
-                byte[] a;
-                byte[] b;
-
-                a = rowData.GetValueInByte(value.Column.Name);
-                b = value.GetValueInBinary();
-
-                if (DbBinaryConvert.BinaryEqual(a, b))
+                if (rowData is RowValueGroup)
                 {
-                    result[index] = row;
-                    index++;
+                    var rowVG = rowData as RowValueGroup;
+                    byte[] a;
+                    byte[] b;
+
+                    a = rowVG.GetValueInByte(value.Column.Name);
+                    b = value.GetValueInBinary();
+
+                    if (DbBinaryConvert.BinaryEqual(a, b))
+                    {
+                        result[index] = row;
+                        index++;
+                    }
                 }
             }
 
@@ -687,25 +693,16 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             List<RowAddress> rows = GetRowIdsOnPage();
             foreach (var row in rows)
             {
+                Row rowData = GetRowAtOffset(row.RowOffset, row.RowId);
 
-                //RowDebug debug = GetDebugRowAtOffset(row.RowOffset, row.RowId);
-
-                IRow rowData = GetRowAtOffset(row.RowOffset, row.RowId);
-
-                if (DbBinaryConvert.BinaryEqual(rowData.GetValueInByteSpan(value.Column.Name), value.GetValueInByteSpan()))
+                if (rowData is RowValueGroup)
                 {
-                    return true;
+                    var rowVG = rowData as RowValueGroup;
+                    if (DbBinaryConvert.BinaryEqual(rowVG.GetValueInByteSpan(value.Column.Name), value.GetValueInByteSpan()))
+                    {
+                        return true;
+                    }
                 }
-
-                /*
-                
-                Re-write to see if better in performance, also this was silly to compare strings
-
-                if (rowData.GetValueInString(value.Column.Name).ToUpper() == value.GetValueInString().ToUpper())
-                {
-                    return true;
-                }
-                */
             }
 
             return false;
@@ -714,9 +711,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         public override RowValue GetValueAtAddress(ValueAddress address, ColumnSchema column)
         {
             var span = new ReadOnlySpan<byte>(_data);
-            int valueLocation = address.RowOffset + address.ValueOffset;
+            uint valueLocation = address.RowOffset + address.ValueOffset;
 
-            return new RowValue(column, span.Slice(valueLocation, address.ParseLength));
+            return new RowValue(column, span.Slice((int)valueLocation, (int)address.ParseLength));
         }
 
         /// <summary>
@@ -730,10 +727,10 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// i.e. the latest version of the row. Be sure to validate this when calling this function.
         /// 
         /// Note that this returns forwarded rows that may be on other pages.</remarks>
-        public override List<int> GetRowOffsets(int rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false)
+        public override List<uint> GetRowOffsets(uint rowId, bool stopAtFirstForward = false, bool includeDeletedRows = false)
         {
-            var offsets = new List<int>();
-            var action = new ParsePageAction<List<int>>(AddParsedRowToOffsets);
+            var offsets = new List<uint>();
+            var action = new ParsePageAction<List<uint>>(AddParsedRowToOffsets);
             ParsePageData(new ReadOnlySpan<byte>(_data), PageId(), action, rowId, stopAtFirstForward, includeDeletedRows, ref offsets);
 
             return offsets;
@@ -741,28 +738,42 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Private Methods
-        private void CountRows(int pageId, Row row, int offset, int targetRowId, ref int totalCount)
+        private void CountRows(uint pageId, RowPreamble row, uint offset, uint targetRowId, ref uint totalCount)
         {
             totalCount++;
         }
 
-        private void AddToRowAddresses(int pageId, Row row, int offset, int targetRowId, ref List<RowAddress> addresses)
+        private void AddToRowAddresses(uint pageId, RowPreamble row, uint offset, uint targetRowId, ref List<RowAddress> addresses)
         {
             if (row.IsForwarded)
             {
                 if (row.ForwardedPageId == pageId)
                 {
-                    addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty));
+                    addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type));
                 }
             }
             else
             {
-                addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty));
+                addresses.Add(new RowAddress(pageId, row.Id, offset, Guid.Empty, row.Type));
             }
-
         }
 
-        private void AddParsedRowToOffsets(int pageId, Row row, int offset, int targetRowId, ref List<int> items)
+        private void AddToRowAddresses(uint pageId, RowPreamble row, uint offset, uint targetRowId, Guid remoteId, ref List<RowAddress> addresses)
+        {
+            if (row.IsForwarded)
+            {
+                if (row.ForwardedPageId == pageId)
+                {
+                    addresses.Add(new RowAddress(pageId, row.Id, offset, remoteId, row.Type));
+                }
+            }
+            else
+            {
+                addresses.Add(new RowAddress(pageId, row.Id, offset, remoteId, row.Type));
+            }
+        }
+
+        private void AddParsedRowToOffsets(uint pageId, RowPreamble row, uint offset, uint targetRowId, ref List<uint> items)
         {
             if (targetRowId == row.Id)
             {
@@ -780,135 +791,95 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             _totalBytesUsed = TotalBytesUsed();
         }
 
-        private RowDebug GetDebugRowAtOffset(int offset, int rowId)
-        {
-            RowDebug row = null;
-            var span = new ReadOnlySpan<byte>(_data);
-
-            string pageData = BitConverter.ToString(span.ToArray());
-            Debug.WriteLine(pageData);
-
-            if (offset != 0)
-            {
-                int runningTotal = offset;
-                var preamble = span.Slice(offset, RowConstants.LengthOfPreamble());
-                RowDebug item = new RowDebug();
-
-                item.SetPreamble(preamble);
-                item.SetSchema(_schema as TableSchema);
-
-                if (item.RowId() == rowId)
-                {
-                    row = item;
-                    if (row.IsLocal())
-                    {
-                        ReadOnlySpan<byte> sizeOfRowData = span.Slice(runningTotal + RowConstants.LengthOfPreamble(), RowConstants.SIZE_OF_ROW_SIZE);
-
-                        row.SetRowSize(sizeOfRowData);
-
-                        int sizeOfRow = DbBinaryConvert.BinaryToInt(sizeOfRowData);
-                        int rowdataSlice = sizeOfRow - RowConstants.LengthOfPreamble() - RowConstants.SIZE_OF_ROW_SIZE;
-                        runningTotal += RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
-
-                        string stringData = BitConverter.ToString(span.Slice(runningTotal, rowdataSlice).ToArray());
-                        Debug.WriteLine(stringData);
-
-                        row.SetRowData(span.Slice(runningTotal, rowdataSlice));
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("remote row data has not been implemented");
-                        // TODO - haven't tested this yet, this is prototyping
-                        var binaryParticipantId = span.Slice(runningTotal + RowConstants.SIZE_OF_PARTICIPANT_ID);
-
-                        row.SetParticipant(binaryParticipantId);
-
-                        Guid partipantId = DbBinaryConvert.BinaryToGuid(binaryParticipantId);
-                        //row.ParticipantId = partipantId;
-
-                        //byte[] data = _cache.GetRemoteRowData(partipantId, new SQLAddress { DatabaseId = _address.DatabaseId, TableId = _address.TableId, PageId = PageId(), RowId = row.Id, RowOffset = 0 });
-                        //row.SetRowData(_schema, data);
-
-                        // ideally, we shouldn't have DrummerDB.Structures take a dependency on Network
-                        // maybe we should have DrummerDB.Databases take a dependency on Network?
-                        // In theory, we would have the database ask network to go get the remote bytes
-
-                        runningTotal += RowConstants.SIZE_OF_PARTICIPANT_ID + RowConstants.LengthOfPreamble();
-                    }
-                }
-            }
-
-            return row;
-        }
-
         /// <summary>
         /// Returns a row at the specified offset
         /// </summary>
         /// <param name="offset">The offset of the row</param>
         /// <param name="rowId">The row id to get</param>
         /// <returns>A row from the specified offset on the page's data</returns>
-        private IRow GetRowAtOffset(int offset, int rowId)
+        private Row GetRowAtOffset(uint offset, uint rowId)
         {
-            IRow row = null;
+            Row row = null;
             var span = new ReadOnlySpan<byte>(_data);
 
             if (offset != 0)
             {
-                int runningTotal = offset;
-                var preamble = span.Slice(offset, RowConstants.LengthOfPreamble());
-                Row item = new Row(preamble);
+                uint runningTotal = offset;
+                var preamble = span.Slice((int)offset, (int)RowConstants.Preamble.Length());
+                RowPreamble item = new RowPreamble(preamble);
                 if (item.Id == rowId)
                 {
-                    row = item;
-                    if (row.IsLocal)
+                    switch (item.Type)
                     {
-                        ReadOnlySpan<byte> sizeOfRowData = span.Slice(runningTotal + RowConstants.LengthOfPreamble(), RowConstants.SIZE_OF_ROW_SIZE);
-                        int sizeOfRow = DbBinaryConvert.BinaryToInt(sizeOfRowData);
-                        int rowdataSlice = sizeOfRow - RowConstants.LengthOfPreamble() - RowConstants.SIZE_OF_ROW_SIZE;
-                        runningTotal += RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
-                        row.SetRowData(_schema, span.Slice(runningTotal, rowdataSlice));
-                    }
-                    else
-                    {
-                        ReadOnlySpan<byte> sizeOfRowData = span.Slice(runningTotal + RowConstants.LengthOfPreamble(), RowConstants.SIZE_OF_ROW_SIZE);
-                        int sizeOfRow = DbBinaryConvert.BinaryToInt(sizeOfRowData);
-                        int rowdataSlice = sizeOfRow - RowConstants.LengthOfPreamble() - RowConstants.SIZE_OF_ROW_SIZE;
-                        runningTotal += RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
+                        case RowType.Local:
+                            LocalRow localRow = new LocalRow(item);
+                            runningTotal += RowConstants.Preamble.Length();
+                            localRow.SetRowData(_schema, span.Slice((int)runningTotal, (int)item.RowValueSize));
+                            runningTotal += item.RowValueSize;
 
-                        // format needs to be 
-                        // participant id
-                        // length of data hash (int - 4 bytes)
-                        // data hash
+                            row = localRow;
 
-                        var remoteData = span.Slice(runningTotal, rowdataSlice);
-                        int remoteDataTotal = runningTotal;
+                            break;
 
-                        runningTotal += sizeOfRow;
+                        case RowType.Remoteable:
+                        case RowType.RemotableAndLocal:
 
-                        var binaryParticipantId = span.Slice(remoteDataTotal, RowConstants.SIZE_OF_PARTICIPANT_ID);
-                        Guid partipantId = DbBinaryConvert.BinaryToGuid(binaryParticipantId);
-                        row.ParticipantId = partipantId;
+                            runningTotal += RowConstants.Preamble.Length();
 
-                        remoteDataTotal += RowConstants.SIZE_OF_PARTICIPANT_ID;
+                            // determine type of remotable row
+                            ReadOnlySpan<byte> remotableData = span.Slice((int)runningTotal, (int)RowConstants.RemotableFixedData.Length());
+                            var remotePrefix = new RemotableFixedData(remotableData);
+                            runningTotal += RowConstants.RemotableFixedData.Length();
 
-                        int dataHashLength = DbBinaryConvert.BinaryToInt(span.Slice(remoteDataTotal, Constants.SIZE_OF_INT));
-                        remoteDataTotal += Constants.SIZE_OF_INT;
+                            switch (remotePrefix.RemoteType)
+                            {
+                                // if the row is remotable, and contains information about the host
+                                // then it's a partial row (because partial rows have values and have 
+                                // references back to the host they refer to)
+                                // so we need to set the remotable data and the actual values
+                                case RemoteType.Host:
+                                    PartialRow partialRow = new PartialRow(item);
+                                    partialRow.SetRemotableFixedData(remotePrefix);
 
-                        var hashData = span.Slice(remoteDataTotal, dataHashLength).ToArray();
-                        row.Hash = hashData;
-                        row.Values = new IRowValue[0];
+                                    // subtract the remotable size from the fixed length
+                                    // this is because the remainder is the lenght of the saved data hash, which we want to skip
+                                    runningTotal += item.RowRemotableSize - RowConstants.RemotableFixedData.Length();
+                                    partialRow.SetRowData(_schema, span.Slice((int)runningTotal, (int)item.RowValueSize));
+                                    runningTotal += item.RowValueSize;
 
-                        remoteDataTotal += dataHashLength;
-                        
+                                    row = partialRow;
+
+                                    break;
+
+                                // if the row is remotable, and contains information about the participant
+                                // then it's a host row (because host rows only have references to the participant
+                                // that they point to, and no actual values)
+                                case RemoteType.Participant:
+
+                                    HostRow hostRow = new HostRow(item);
+                                    hostRow.SetRemotableFixedData(remotePrefix);
+                                    hostRow.SetDataHash(span.Slice((int)runningTotal, (int)remotePrefix.DataHashLength).ToArray());
+                                    runningTotal += item.RowRemotableSize;
+
+                                    row = hostRow;
+
+                                    break;
+                                case RemoteType.Tenant:
+                                    throw new NotImplementedException("Tenant Remote rows not implemented yet");
+                                default:
+                                    throw new InvalidOperationException("Unknown remote type");
+                            }
+                            break;
+                        case RowType.Tenant:
+                            throw new NotImplementedException("Tenant Local rows not implemented yet");
+                        default:
+                            throw new InvalidOperationException("Unknown row type");
                     }
                 }
             }
 
             return row;
         }
-
-
-
 
         // TO DO: In the future, for remote rows, going to have a dependency on the Communication system
         // or intercept the saving of the row to send the row to the particiapnt, and then save only the preamble data + participant id
@@ -917,13 +888,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         /// <param name="row">The row to be added</param>
         /// <returns>The offset where the row was added</returns>
-        private int AppendRowToData(IRow row)
+        private uint AppendRowToData(Row row)
         {
             var rowData = row.GetRowInPageBinaryFormat();
-            int nextAvailableRowOffset = DataPageConstants.RowDataStartOffset(_V100) + _totalBytesUsed;
+            uint nextAvailableRowOffset = (uint)DataPageConstants.RowDataStartOffset(_V100) + _totalBytesUsed;
 
             Array.Copy(rowData, 0, _data, nextAvailableRowOffset, rowData.Length);
-            _totalBytesUsed += rowData.Length;
+            _totalBytesUsed += (uint)rowData.Length;
 
             return nextAvailableRowOffset;
         }
@@ -933,7 +904,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         private void SaveTotalRows()
         {
-            var array = DbBinaryConvert.IntToBinary(_totalRows);
+            var array = DbBinaryConvert.UIntToBinary(_totalRows);
             Array.Copy(array, 0, _data, DataPageConstants.TotalRowsOffset(_V100), array.Length);
         }
 
@@ -942,7 +913,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         private void SaveTotalBytesUsedToData()
         {
-            var array = DbBinaryConvert.IntToBinary(_totalBytesUsed);
+            var array = DbBinaryConvert.UIntToBinary(_totalBytesUsed);
             Array.Copy(array, 0, _data, DataPageConstants.TotalBytesUsedOffset(_V100), array.Length);
         }
 
@@ -960,13 +931,13 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         private void SavePageTypeToData()
         {
-            var bType = DbBinaryConvert.IntToBinary((int)Type);
+            var bType = DbBinaryConvert.UIntToBinary((uint)Type);
             Array.Copy(bType, 0, _data, PageConstants.PageTypeOffset(_V100), bType.Length);
         }
 
         private void SaveDataPageTypeToData()
         {
-            var bType = DbBinaryConvert.IntToBinary((int)_dataPageType);
+            var bType = DbBinaryConvert.UIntToBinary((uint)_dataPageType);
             Array.Copy(bType, 0, _data, DataPageConstants.DataPageTypeOffset(_V100), bType.Length);
         }
 
@@ -984,7 +955,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         private void SaveTableIdToData()
         {
-            var bTbId = DbBinaryConvert.IntToBinary(_address.TableId);
+            var bTbId = DbBinaryConvert.UIntToBinary(_address.TableId);
             Array.Copy(bTbId, 0, _data, DataPageConstants.TableIdOffset(_V100), bTbId.Length);
         }
 
@@ -993,8 +964,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// </summary>
         private void SetPageAddressFromData()
         {
-            int pageId = PageId();
-            int tableId = TableId();
+            uint pageId = PageId();
+            uint tableId = TableId();
             Guid dbId = DbId();
 
             _address = new PageAddress(dbId, tableId, pageId, Guid.Empty);

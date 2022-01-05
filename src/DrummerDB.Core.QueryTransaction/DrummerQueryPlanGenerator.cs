@@ -17,6 +17,8 @@ using System.Net;
 using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100;
 using Drummersoft.DrummerDB.Core.Cryptography.Interface;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
+using static Drummersoft.DrummerDB.Core.Databases.Version.SystemDatabaseConstants100.Tables;
+using Drummersoft.DrummerDB.Common;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
@@ -71,6 +73,71 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             EvaluteForReviewAcceptedContract(line, database, dbManager, ref plan);
             EvaluateForGenerateHostInfo(line, database, dbManager, ref plan);
             EvaluateForReviewHostInfo(line, database, dbManager, ref plan);
+            EvaluateForSetNotifyHost(line, database, dbManager, ref plan);
+            EvaluateForRemoteDeleteBehavior(line, database, dbManager, ref plan);
+        }
+
+        private void EvaluateForSetNotifyHost(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            if (line.StartsWith(DrummerKeywords.SET_NOTIFY_HOST_FOR))
+            {
+                var trimmedLine = line.Trim();
+
+                //{partialDatabaseName} TABLE {tableName} OPTION [on|off]
+                string databaseName = trimmedLine.Replace(DrummerKeywords.SET_NOTIFY_HOST_FOR, string.Empty).Trim();
+                var items = databaseName.Split(" ");
+
+                if (items.Length != 5)
+                {
+                    string errorMessage = "Unable to parse SET NOTIFY HOST FOR statement";
+                    throw new InvalidOperationException(errorMessage);
+                }
+
+                var dbName = items[0].Trim();
+                var tableName = items[2].Trim();
+                var option = items[4].Trim();
+
+                bool notifyHost = string.Equals(option, DrummerKeywords.ON, StringComparison.OrdinalIgnoreCase);
+
+                if (!plan.HasPart(PlanPartType.Update))
+                {
+                    plan.AddPart(new UpdateQueryPlanPart());
+                }
+
+                var systemDb = dbManager.GetSystemDatabase();
+                var coopTable = systemDb.GetTable(CooperativeTables.TABLE_NAME);
+
+                var part = plan.GetPart(PlanPartType.Update);
+                if (part is UpdateQueryPlanPart)
+                {
+                    var address = coopTable.Address;
+                    // need to create update column sources
+
+                    var columns = new List<IUpdateColumnSource>();
+
+                    // create value object that we're going to update the value to
+                    var column = new UpdateTableValue();
+                    var tableColumn = CooperativeTables.GetColumn(CooperativeTables.Columns.NotifyHostOfChanges);
+
+                    column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
+                    column.Value = notifyHost.ToString();
+
+                    columns.Add(column);
+                    var updateOp = new UpdateOperator(dbManager, address, columns);
+
+                    // we need to create a read table operator to specify to update all the columns in the target table
+                    // and set it as the previous operation
+
+                    // only reading 1 column from the table that we want to update
+                    string[] colNames = new string[1] { CooperativeTables.Columns.NotifyHostOfChanges };
+
+                    var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
+                    updateOp.PreviousOperation = readTableOp;
+
+                    part.AddOperation(readTableOp);
+                    part.AddOperation(updateOp);
+                }
+            }
         }
 
         private void EvaluateForReviewHostInfo(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
@@ -329,7 +396,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                 foreach (var row in rows)
                 {
-                    hostGuid = Guid.Parse(row.GetValueInString(Tables.Hosts.Columns.HostGUID));
+                    hostGuid = Guid.Parse(row.AsValueGroup().GetValueInString(Tables.Hosts.Columns.HostGUID));
                 }
 
                 if (hostGuid != Guid.Empty)
@@ -345,7 +412,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     searchValues[0] = hostGuidValue;
                     searchValues[1] = pendingContract;
 
-                    var searchResults = coopContracts.GetRowsWithAllValues(searchValues.ToArray());
+                    var searchResults = coopContracts.GetLocalRowsWithAllValues(searchValues.ToArray());
 
                     if (searchResults.Count() == 0)
                     {
@@ -610,7 +677,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     insertOp.TableSchemaName = Constants.SYS_SCHEMA;
 
                     // get columns to insert values into
-                    var colParticipantGuid = Participants.GetColumn(Participants.Columns.ParticpantGUID);
+                    var colParticipantGuidInternal = Participants.GetColumn(Participants.Columns.InternalParticpantGUID);
                     var colAlias = Participants.GetColumn(Participants.Columns.Alias);
                     var colIp4 = Participants.GetColumn(Participants.Columns.IP4Address);
                     var colIp6 = Participants.GetColumn(Participants.Columns.IP6Address);
@@ -620,13 +687,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var colContractVersion = Participants.GetColumn(Participants.Columns.AcceptedContractVersion);
                     var colContractVersionDate = Participants.GetColumn(Participants.Columns.AcceptedContractDateTimeUTC);
                     var colToken = Participants.GetColumn(Participants.Columns.Token);
+                    var colParticipantGuid = Participants.GetColumn(Participants.Columns.ParticpantGUID);
 
                     var participantId = Guid.NewGuid();
 
                     // need to create a row to insert
                     var insertRow = new InsertRow(1);
 
-                    var valueParticipantId = new InsertValue(1, colParticipantGuid.Name, participantId.ToString());
+                    var valueParticipantIdInternal = new InsertValue(1, colParticipantGuidInternal.Name, participantId.ToString());
                     var valueAlias = new InsertValue(2, colAlias.Name, participantAlias);
                     var valueIp4 = new InsertValue(3, colIp4.Name, stringIP4);
                     var valueIp6 = new InsertValue(4, colIp6.Name, stringIP6);
@@ -636,8 +704,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var valueContractVersion = new InsertValue(8, colContractVersion.Name);
                     var valueContractVersionDate = new InsertValue(9, colContractVersionDate.Name);
                     var valueToken = new InsertValue(10, colToken.Name);
+                    var valueParticipantId = new InsertValue(11, colParticipantGuid.Name, Guid.Empty.ToString());
 
-                    insertRow.AddValue(valueParticipantId);
+                    insertRow.AddValue(valueParticipantIdInternal);
                     insertRow.AddValue(valueAlias);
                     insertRow.AddValue(valueIp4);
                     insertRow.AddValue(valueIp6);
@@ -647,6 +716,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     insertRow.AddValue(valueContractVersion);
                     insertRow.AddValue(valueContractVersionDate);
                     insertRow.AddValue(valueToken);
+                    insertRow.AddValue(valueParticipantId);
 
                     insertOp.Rows.Add(insertRow);
 
@@ -676,7 +746,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     var hostTable = sysDb.GetTable(Tables.Hosts.TABLE_NAME);
 
                     var hostNameValue = RowValueMaker.Create(hostTable, Tables.Hosts.Columns.HostName, hostName);
-                    int resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
+                    uint resultCount = hostTable.CountOfRowsWithValue(hostNameValue);
 
                     if (resultCount != 1)
                     {
@@ -685,7 +755,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     }
                     else
                     {
-                        var hostsResults = hostTable.GetRowsWithValue(hostNameValue);
+                        var hostsResults = hostTable.GetLocalRowsWithValue(hostNameValue);
 
                         if (hostsResults.Count != 1)
                         {
@@ -816,6 +886,89 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             }
         }
 
+        private void EvaluateForRemoteDeleteBehavior(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
+        {
+            // SET REMOTE DELETE BEHAVIOR FOR {hostDatabaseName} OPTION [option]
+            if (line.StartsWith(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR))
+            {
+                var trimmedLine = line.Trim();
+
+                // {hostDatabaseName} OPTION [option]
+                string dbNameLine = trimmedLine.Replace(DrummerKeywords.SET_REMOTE_DELETE_BEHAVIOR_FOR + " ", string.Empty);
+
+                var values = dbNameLine.Split(" ");
+
+                if (values.Length != 3)
+                {
+                    throw new InvalidOperationException("Unable to parse Remote Delete Behavior");
+                }
+
+                var dbName = values[0].Trim();
+                var option = values[2].Trim();
+
+                HostDb hostDb = dbManager.GetHostDatabase(dbName);
+                var table = hostDb.GetTable(DatabaseContracts.TABLE_NAME);
+                var activeContractId = hostDb.GetCurrentContractGUID();
+
+                RemoteDeleteBehavior behavior = RemoteDeleteBehavior.Unknown;
+
+                if (string.Equals(option, DrummerKeywords.RemoteDeleteBehaviorKeywords.AUTO_DELETE, StringComparison.OrdinalIgnoreCase))
+                {
+                    behavior = RemoteDeleteBehavior.Auto_Delete;
+                }
+
+                if (string.Equals(option, DrummerKeywords.RemoteDeleteBehaviorKeywords.IGNORE, StringComparison.OrdinalIgnoreCase))
+                {
+                    behavior = RemoteDeleteBehavior.Ignore;
+                }
+
+                if (string.Equals(option, DrummerKeywords.RemoteDeleteBehaviorKeywords.UPDATE_STATUS_ONLY, StringComparison.OrdinalIgnoreCase))
+                {
+                    behavior = RemoteDeleteBehavior.Update_Status_Only;
+                }
+
+                // need to generate an update statement
+
+                if (!plan.HasPart(PlanPartType.Update))
+                {
+                    plan.AddPart(new UpdateQueryPlanPart());
+                }
+
+                var part = plan.GetPart(PlanPartType.Update);
+                if (part is UpdateQueryPlanPart)
+                {
+                    var address = new TreeAddress { DatabaseId = hostDb.Id, TableId = table.Address.TableId, SchemaId = table.Schema().Schema.SchemaGUID };
+                    // need to create update column sources
+
+                    var columns = new List<IUpdateColumnSource>();
+
+                    // create value object that we're going to update the behavior to
+                    var column = new UpdateTableValue();
+                    var tableColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RemoteDeleteBehavior);
+
+                    column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
+                    column.Value = Convert.ToInt32(behavior).ToString();
+
+                    columns.Add(column);
+                    var updateOp = new UpdateOperator(dbManager, address, columns);
+
+                    // specify the column that we're interested in reading + updating
+                    string[] colNames = new string[2] { DatabaseContracts.Columns.ContractGUID, DatabaseContracts.Columns.RemoteDeleteBehavior };
+
+                    // filter by the host name
+                    var value = RowValueMaker.Create(table, DatabaseContracts.Columns.ContractGUID, activeContractId.ToString(), true);
+                    var trv = new TableRowValue(value, table.Address.TableId, hostDb.Id, table.Address.SchemaId);
+                    TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
+
+                    var readTableOp = new TableReadOperator(dbManager, table.Address, colNames, filter, _log);
+                    updateOp.PreviousOperation = readTableOp;
+
+                    part.AddOperation(readTableOp);
+                    part.AddOperation(updateOp);
+                }
+            }
+        }
+
         private void EvaluateForGenerateContract(string line, HostDb database, IDbManager dbManager, ref QueryPlan plan)
         {
             // example:
@@ -859,6 +1012,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var descriptionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Description);
                         var retiredColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RetiredDate);
                         var versionColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.Version);
+                        var remoteDeleteBehaviorColumn = DatabaseContracts.GetColumn(DatabaseContracts.Columns.RemoteDeleteBehavior);
 
                         // need to create a row to insert
                         var insertRow = new InsertRow(1);
@@ -868,12 +1022,14 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                         var insertValueDescription = new InsertValue(3, descriptionColumn.Name, description);
                         var insertValueRetiredDate = new InsertValue(4, retiredColumn.Name, DateTime.MinValue.ToString());
                         var insertValueVersion = new InsertValue(5, versionColumn.Name, contractVersion.ToString());
+                        var insertRemoteDeleteBehavior = new InsertValue(6, remoteDeleteBehaviorColumn.Name, Convert.ToInt32(RemoteDeleteBehavior.Ignore).ToString());
 
                         insertRow.Values.Add(insertValueContractGuid);
                         insertRow.Values.Add(insertValueGeneratedDate);
                         insertRow.Values.Add(insertValueDescription);
                         insertRow.Values.Add(insertValueRetiredDate);
                         insertRow.Values.Add(insertValueVersion);
+                        insertRow.Values.Add(insertRemoteDeleteBehavior);
 
                         insertDatabaseContractsOp.Rows.Add(insertRow);
 

@@ -10,7 +10,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
     {
         #region Private Fields
         private ColumnSchema[] _columns;
-        private int _Id;
+        private uint _Id;
         private string _name;
         private Guid _dbId;
         private TreeAddress _address => GetTreeAddress();
@@ -26,7 +26,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         /// <summary>
         /// The local id of the table
         /// </summary>
-        public override int Id => _Id;
+        public override uint Id => _Id;
         /// <summary>
         /// The name of the table
         /// </summary>
@@ -47,7 +47,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
         #endregion
 
         #region Constructors
-        public SystemTableSchema100(int id, string name, Guid dbId, List<ColumnSchema> columns)
+        public SystemTableSchema100(uint id, string name, Guid dbId, List<ColumnSchema> columns)
         {
             _Id = id;
             _name = name;
@@ -56,7 +56,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             ContractGUID = Guid.Empty;
         }
 
-        public SystemTableSchema100(int id, string name, Guid dbId, List<ColumnSchema> columns, Guid objectId) : this(id, name, dbId, columns)
+        public SystemTableSchema100(uint id, string name, Guid dbId, List<ColumnSchema> columns, Guid objectId) : this(id, name, dbId, columns)
         {
             _objectId = objectId;
         }

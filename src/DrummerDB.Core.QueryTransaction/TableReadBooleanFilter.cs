@@ -13,7 +13,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         #endregion
 
         #region Public Properties
-        public int Order { get; set; }
+        public uint Order { get; set; }
         public BooleanComparisonOperator ComparisonOperator { get; set; }
         public ITableReadFilter LeftFilter { get; set; }
         public ITableReadFilter RightFilter { get; set; }

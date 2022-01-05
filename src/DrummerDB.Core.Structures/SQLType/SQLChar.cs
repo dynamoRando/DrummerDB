@@ -5,15 +5,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.SQLType
     internal class SQLChar : ISQLType
     {
         #region Private Fields
-        private int _length;
+        private uint _length;
         #endregion
 
         #region Public Properties
-        public int Length => _length;
+        public uint Length => _length;
         #endregion
 
         #region Constructors
-        public SQLChar(int length)
+        public SQLChar(uint length)
         {
             _length = length;
         }

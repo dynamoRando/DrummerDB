@@ -5,7 +5,7 @@
     /// </summary>
     interface IPredicate
     {
-        int Id { get; }
+        uint Id { get; }
         Interval Interval { get; }
     }
 }

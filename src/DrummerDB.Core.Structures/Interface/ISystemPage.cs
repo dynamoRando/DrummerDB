@@ -4,7 +4,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
 {
     internal interface ISystemPage
     {
-        int DatabaseVersion { get; }
+        ushort DatabaseVersion { get; }
         string DatabaseName { get; }
         void SetDatabaseName(string databaseName);
         Guid DatabaseId { get; }

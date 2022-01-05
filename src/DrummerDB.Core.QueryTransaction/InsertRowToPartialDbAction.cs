@@ -1,6 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Core.Databases;
 using Drummersoft.DrummerDB.Core.QueryTransaction.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
 using Drummersoft.DrummerDB.Core.Structures.Enum;
 using System;
 using System.Collections.Generic;
@@ -13,13 +14,13 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
     internal class InsertRowToPartialDbAction : IDatabaseServiceAction
     {
         private Guid _id;
-        private Row _row;
+        private PartialRow _row;
         private PartialDb _db;
         private Table _table;
 
         public Guid Id => _id;
 
-        public InsertRowToPartialDbAction(Row row, PartialDb database, Table table)
+        public InsertRowToPartialDbAction(PartialRow row, PartialDb database, Table table)
         {
             _id = Guid.NewGuid();
             _row = row;

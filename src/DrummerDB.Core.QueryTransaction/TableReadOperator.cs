@@ -124,7 +124,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 throw new ArgumentNullException(nameof(_filters));
             }
 
-            int maxFilterId = _filters.Max(f => f.Order);
+            uint maxFilterId = _filters.Max(f => f.Order);
             ITableReadFilter maxFilter = _filters.Where(filter => filter.Order == maxFilterId).FirstOrDefault();
 
             if (maxFilter is not null)
@@ -145,7 +145,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 {
                     foreach (var column in _columnNames)
                     {
-                        int colId = table.GetColumn(column).Id;
+                        uint colId = table.GetColumn(column).Id;
                         var address = new ValueAddress
                         {
                             ColumnId = colId,
@@ -155,10 +155,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             TableId = Address.TableId,
                             PageId = row.PageId,
                             RowOffset = row.RowOffset,
-                            ParticipantId = row.ParticipantId,
+                            RemotableId = row.RemotableId,
                             SchemaId = table.Schema().Schema.SchemaGUID,
                             ParseLength = 0,
-                            ValueOffset = 0
+                            ValueOffset = 0,
+                            RowType = row.RowType
                         };
 
                         result.Add(address);
@@ -209,7 +210,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             foreach (var row in rows)
             {
-                if (row.ParticipantId != Guid.Empty)
+                if (row.RemotableId != Guid.Empty)
                 {
                     result.Add(row);
                 }
@@ -224,7 +225,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             foreach (var row in rows)
             {
-                if (row.ParticipantId == Guid.Empty)
+                if (row.RemotableId == Guid.Empty)
                 {
                     result.Add(row);
                 }

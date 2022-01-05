@@ -30,7 +30,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.SQLType
             return true;
         }
 
-        int IFixedSQLType.Size()
+        uint IFixedSQLType.Size()
         {
             return Constants.SIZE_OF_INT;
         }

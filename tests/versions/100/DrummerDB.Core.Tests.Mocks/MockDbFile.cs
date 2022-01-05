@@ -15,7 +15,7 @@ namespace Drummersoft.DrummerDB.Core.Tests.Mocks
             Pages = new List<UserDataPage>();
         }
 
-        public int[] PageIds()
+        public uint[] PageIds()
         {
             return Pages.Select(p => p.PageId()).ToArray();
         }

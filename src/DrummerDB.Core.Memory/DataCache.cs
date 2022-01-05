@@ -2,7 +2,8 @@
 using Drummersoft.DrummerDB.Core.Memory.Enum;
 using Drummersoft.DrummerDB.Core.Memory.Interface;
 using Drummersoft.DrummerDB.Core.Structures;
-using Drummersoft.DrummerDB.Core.Structures.DbDebug;
+using Drummersoft.DrummerDB.Core.Structures.Abstract;
+using Drummersoft.DrummerDB.Core.Structures.Enum;
 using Drummersoft.DrummerDB.Core.Structures.Interface;
 using Drummersoft.DrummerDB.Core.Structures.Version;
 using System;
@@ -64,16 +65,17 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return addresses;
         }
 
-        public RowAddress GetRowAddress(TreeAddress treeAddress, int rowId)
+        public RowAddress GetRowAddress(TreeAddress treeAddress, uint rowId)
         {
             TreeContainer container = GetContainer(treeAddress);
-            int pageId = container.GetPageIdOfRow(rowId);
+            uint pageId = container.GetPageIdOfRow(rowId);
             var offsets = container.GetRowOffsets(rowId, pageId);
+            var rowType = container.GetRowType(rowId, pageId);
 
-            return new RowAddress(pageId, rowId, offsets.Max(), Guid.Empty);
+            return new RowAddress(pageId, rowId, offsets.Max(), Guid.Empty, rowType);
         }
 
-        public TreeStatus GetTreeSizeStatus(TreeAddress address, int sizeOfDataToAdd)
+        public TreeStatus GetTreeSizeStatus(TreeAddress address, uint sizeOfDataToAdd)
         {
             if (IsTreeFull(address, sizeOfDataToAdd))
             {
@@ -141,9 +143,6 @@ namespace Drummersoft.DrummerDB.Core.Memory
                 {
                     IBaseDataPage page = GetPage(pageAddress);
 
-                    var debug = new PageDebug(page.Data);
-                    string dataString = debug.DebugData();
-
                     List<RowAddress> rows = null;
 
                     // if the table is all fixed length columns, we can avoid one extra call to get the actual row
@@ -159,7 +158,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
                         // need to calculate value offset
                         schema.SortBinaryOrder();
-                        int columnValueOffset = 0;
+                        uint columnValueOffset = 0;
 
                         foreach (var column in schema.Columns)
                         {
@@ -169,7 +168,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                             }
                         }
 
-                        int valueOffset = RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE + columnValueOffset;
+                        uint valueOffset = (uint)(RowConstants.Preamble.Length() + columnValueOffset);
                         var schemaColumn = schema.Columns.Where(c => string.Equals(c.Name, columnName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
                         foreach (var row in rows)
@@ -186,7 +185,8 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                             TableId = address.TableId,
                                             ColumnName = columnName,
                                             ColumnId = GetColumnId(schema, columnName),
-                                            SchemaId = address.SchemaId
+                                            SchemaId = address.SchemaId,
+                                            RowType = row.RowType
                                         };
                             result.Add(valueAddress);
                         }
@@ -196,21 +196,32 @@ namespace Drummersoft.DrummerDB.Core.Memory
                         rows = page.GetRowIdsOnPage(true);
                         foreach (var row in rows)
                         {
-                            IRow physicalRow = page.GetRow(row);
-                            if (physicalRow.IsDeleted == false)
+                            Row physicalRow = page.GetRow(row);
+                            if (physicalRow.IsLogicallyDeleted == false)
                             {
-                                if (physicalRow.IsLocal)
+                                if (physicalRow.HasLocalData())
                                 {
                                     if (!physicalRow.IsForwarded)
                                     {
-                                        physicalRow.SortBinaryOrder();
+                                        var rowValueGroup = physicalRow as RowValueGroup;
+                                        rowValueGroup.SortBinaryOrder();
+
                                         var bytes = physicalRow.GetRowInPageBinaryFormat();
                                         schema.SortBinaryOrder();
 
-                                        int valueOffset = RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
-                                        //int valueOffset = RowConstants.LengthOfPreamble() + row.RowOffset;
+                                        uint valueOffset = 0;
 
-                                        foreach (var value in physicalRow.Values)
+                                        if (physicalRow.IsRemotable())
+                                        {
+                                            valueOffset = RowConstants.Preamble.Length() + physicalRow.RemoteSize;
+                                        }
+                                        else
+                                        {
+                                            valueOffset = RowConstants.Preamble.Length();
+                                        }
+
+
+                                        foreach (var value in rowValueGroup.Values)
                                         {
                                             if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
                                             {
@@ -226,7 +237,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                                         TableId = address.TableId,
                                                         ColumnName = columnName,
                                                         ColumnId = GetColumnId(schema, columnName),
-                                                        SchemaId = address.SchemaId
+                                                        SchemaId = address.SchemaId,
+                                                        RowType = row.RowType,
+                                                        RemotableId = row.RemotableId
                                                     };
                                                 result.Add(valueAddress);
                                             }
@@ -249,10 +262,11 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                                 }
                                             }
                                         }
-                                    }   
+                                    }
                                 }
                                 else
                                 {
+                                    var remotableRow = physicalRow as IRowRemotable;
                                     var valueAddress =
                                                 new ValueAddress
                                                 {
@@ -266,7 +280,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
                                                     ColumnName = columnName,
                                                     ColumnId = GetColumnId(schema, columnName),
                                                     SchemaId = address.SchemaId,
-                                                    ParticipantId = physicalRow.ParticipantId.Value
+                                                    RemotableId = remotableRow.RemoteId,
+                                                    RowType = row.RowType
+
                                                 };
                                     result.Add(valueAddress);
 
@@ -293,7 +309,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _dataCache.ContainsKey(address);
         }
 
-        public bool TryDeleteRow(int rowId, TreeAddress address)
+        public bool TryDeleteRow(uint rowId, TreeAddress address)
         {
             if (HasAddress(address))
             {
@@ -309,7 +325,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return false;
         }
 
-        public CacheUpdateRowResult TryUpdateRow(IRow row, TreeAddress address, out int pageId)
+        public CacheUpdateRowResult TryUpdateRow(Row row, TreeAddress address, out uint pageId)
         {
             TreeContainer container = null;
             pageId = 0;
@@ -335,8 +351,13 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return CacheUpdateRowResult.Unknown;
         }
 
-        public CacheAddRowResult TryAddRow(IRow row, TreeAddress address, out int pageId)
+        public CacheAddRowResult TryAddRow(Row row, TreeAddress address, out uint pageId)
         {
+            if (row.IsTempForParticipant())
+            {
+                throw new InvalidOperationException("Temp rows should not be sent to cache or disk");
+            }
+
             CacheAddRowResult result = CacheAddRowResult.Unknown;
             TreeContainer container = null;
             pageId = 0;
@@ -351,7 +372,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
                 return CacheAddRowResult.NoPagesOnTree;
             }
 
-            if (IsTreeFull(address, row.Size()))
+            if (IsTreeFull(address, row.TotalSize))
             {
                 return CacheAddRowResult.NoRoomOnTree;
             }
@@ -413,7 +434,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return _dataCache.TryAdd(address, container);
         }
 
-        public int[] GetContainerPages(TreeAddress address)
+        public uint[] GetContainerPages(TreeAddress address)
         {
             TreeContainer container = GetContainer(address);
             if (container is not null)
@@ -422,7 +443,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             }
             else
             {
-                return new int[0];
+                return new uint[0];
             }
         }
 
@@ -461,7 +482,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
         /// <returns>
         /// The row specified if found, otherwise <c>NULL.</c>
         /// </returns>
-        public IRow GetRow(int rowId, TreeAddress address)
+        public Row GetRow(uint rowId, TreeAddress address)
         {
             var container = GetContainer(address);
             return container.GetRow(rowId);
@@ -602,7 +623,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return container.IsEmpty();
         }
 
-        public bool IsTreeFull(TreeAddress address, int rowSize)
+        public bool IsTreeFull(TreeAddress address, uint rowSize)
         {
             var container = GetContainer(address);
             return container.IsTreeFull(rowSize);
@@ -617,7 +638,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             throw new NotImplementedException();
         }
 
-        public bool DeleteRow(int rowId, TreeAddress address)
+        public bool DeleteRow(uint rowId, TreeAddress address)
         {
             throw new NotImplementedException();
         }
@@ -637,7 +658,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             throw new NotImplementedException();
         }
 
-        public int CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        public uint CountOfRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
             var addresses = new List<RowAddress>();
 
@@ -667,12 +688,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
                 }
             }
 
-            return addresses.Distinct().Count();
+            return (uint)addresses.Distinct().Count();
         }
 
-        public IRow[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
+        public Row[] GetRowsWithAllValues(TreeAddress address, ref IRowValue[] values)
         {
-            var result = new List<IRow>();
+            var result = new List<Row>();
 
             TreeContainer container;
             _dataCache.TryGetValue(address, out container);
@@ -696,7 +717,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return result.Distinct().ToArray();
         }
 
-        public List<IRow> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
+        public List<Row> FindRowsWithAllValues(TreeAddress address, List<RowValue> values)
         {
             throw new NotImplementedException();
         }
@@ -706,9 +727,9 @@ namespace Drummersoft.DrummerDB.Core.Memory
             throw new NotImplementedException();
         }
 
-        public int CountOfRowsWithValue(TreeAddress address, IRowValue value)
+        public uint CountOfRowsWithValue(TreeAddress address, IRowValue value)
         {
-            int count = 0;
+            uint count = 0;
             TreeContainer container;
             _dataCache.TryGetValue(address, out container);
 
@@ -724,7 +745,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return count;
         }
 
-        public IRow[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
+        public Row[] GetRowsWithValue(TreeAddress address, IRowValue value, ITableSchema schema)
         {
             throw new NotImplementedException();
         }
@@ -734,7 +755,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             throw new NotImplementedException();
         }
 
-        public IRow GetRow(RowAddress address, TreeAddress treeAddress)
+        public Row GetRow(RowAddress address, TreeAddress treeAddress)
         {
             throw new NotImplementedException();
         }
@@ -764,12 +785,12 @@ namespace Drummersoft.DrummerDB.Core.Memory
             throw new NotImplementedException();
         }
 
-        public CacheAddRowResult TryAddRow(IRow row, TreeAddress address, ITableSchema schema, out int pageId)
+        public CacheAddRowResult TryAddRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId)
         {
             throw new NotImplementedException();
         }
 
-        public void UpdateRow(IRow row, TreeAddress address, ITableSchema schema, out int pageId)
+        public void UpdateRow(Row row, TreeAddress address, ITableSchema schema, out uint pageId)
         {
             throw new NotImplementedException();
         }
@@ -783,40 +804,64 @@ namespace Drummersoft.DrummerDB.Core.Memory
 
             foreach (var row in rows)
             {
-                var physicalRow = GetRow(row.RowId, address);
+                Row physicalRow = GetRow(row.RowId, address);
 
-                if (!physicalRow.IsLocal)
+                if (!physicalRow.HasLocalData())
                 {
                     throw new InvalidOperationException("Remote row handling should be done at database level");
                 }
 
-                if (physicalRow.IsDeleted == false)
+                if (physicalRow.IsLogicallyDeleted == false)
                 {
-                    physicalRow.SortBinaryOrder();
+                    physicalRow.AsValueGroup().SortBinaryOrder();
                     var bytes = physicalRow.GetRowInPageBinaryFormat();
                     schema.SortBinaryOrder();
 
-                    int valueOffset = RowConstants.LengthOfPreamble() + RowConstants.SIZE_OF_ROW_SIZE;
-                    //int valueOffset = RowConstants.LengthOfPreamble() + row.RowOffset;
+                    uint valueOffset = (uint)RowConstants.Preamble.Length();
 
-                    foreach (var value in physicalRow.Values)
+                    foreach (var value in physicalRow.AsValueGroup().Values)
                     {
                         if (string.Equals(value.Column.Name, columnName, StringComparison.OrdinalIgnoreCase))
                         {
-                            var valueAddress =
-                                new ValueAddress
-                                {
-                                    PageId = row.PageId,
-                                    RowId = row.RowId,
-                                    RowOffset = row.RowOffset,
-                                    ValueOffset = valueOffset,
-                                    ParseLength = value.ParseValueLength,
-                                    DatabaseId = address.DatabaseId,
-                                    TableId = address.TableId,
-                                    ColumnName = columnName,
-                                    SchemaId = address.SchemaId,
-                                    ColumnId = value.Column.Id
-                                };
+                            ValueAddress valueAddress;
+                            if (physicalRow.IsRemotable())
+                            {
+                               valueAddress =
+                               new ValueAddress
+                               {
+                                   PageId = row.PageId,
+                                   RowId = row.RowId,
+                                   RowOffset = row.RowOffset,
+                                   ValueOffset = valueOffset,
+                                   ParseLength = value.ParseValueLength,
+                                   DatabaseId = address.DatabaseId,
+                                   TableId = address.TableId,
+                                   ColumnName = columnName,
+                                   SchemaId = address.SchemaId,
+                                   ColumnId = value.Column.Id,
+                                   RowType = physicalRow.Type,
+                                   RemotableId = (physicalRow as IRowRemotable).RemoteId
+                               };
+                            }
+                            else
+                            {
+                               valueAddress =
+                               new ValueAddress
+                               {
+                                   PageId = row.PageId,
+                                   RowId = row.RowId,
+                                   RowOffset = row.RowOffset,
+                                   ValueOffset = valueOffset,
+                                   ParseLength = value.ParseValueLength,
+                                   DatabaseId = address.DatabaseId,
+                                   TableId = address.TableId,
+                                   ColumnName = columnName,
+                                   SchemaId = address.SchemaId,
+                                   ColumnId = value.Column.Id,
+                                   RowType = physicalRow.Type
+                               };
+                            }
+
                             result.Add(valueAddress);
                         }
                         else
@@ -856,7 +901,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return container;
         }
 
-        private int GetColumnId(ITableSchema schema, string columnName)
+        private uint GetColumnId(ITableSchema schema, string columnName)
         {
             foreach (var column in schema.Columns)
             {
@@ -869,7 +914,7 @@ namespace Drummersoft.DrummerDB.Core.Memory
             return 0;
         }
 
-        public List<IRow> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
+        public List<Row> GetRowsWithValue(TreeAddress address, RowValue value, ITableSchema schema)
         {
             throw new NotImplementedException();
         }

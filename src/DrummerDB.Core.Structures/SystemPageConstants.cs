@@ -5,7 +5,7 @@
     /// </summary>
     internal static class SystemPageConstants
     {
-        public static int SIZE_OF_DATABASE_VERSION(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_DATABASE_VERSION(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -16,7 +16,7 @@
             }
         }
 
-        public static int SIZE_OF_DATABASE_NAME(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_DATABASE_NAME(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -27,7 +27,7 @@
             }
         }
 
-        public static int SIZE_OF_CREATED_DATE(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_CREATED_DATE(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -38,7 +38,7 @@
             }
         }
 
-        public static int SIZE_OF_MAX_SYSTEM_DATA_PAGE(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_MAX_SYSTEM_DATA_PAGE(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -49,7 +49,7 @@
             }
         }
 
-        public static int SIZE_OF_DATA_FILE_TYPE(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_DATA_FILE_TYPE(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -60,7 +60,7 @@
             }
         }
 
-        public static int SIZE_OF_DATABASE_ID(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_DATABASE_ID(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -71,7 +71,7 @@
             }
         }
 
-        public static int DatabaseVersionOffset(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort DatabaseVersionOffset(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -82,67 +82,67 @@
             }
         }
 
-        public static int DatabaseIdOffset(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort DatabaseIdOffset(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    int result = PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version);
+                    ushort result = (ushort)(PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version));
                     return result;
                 default:
                     return 0;
             }
         }
 
-        public static int DatabaseNameOffset(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort DatabaseNameOffset(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version)
-                        + SIZE_OF_DATABASE_ID(version);
+                    return (ushort)(PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version)
+                        + SIZE_OF_DATABASE_ID(version));
                 default:
                     return 0;
             }
         }
 
-        public static int CreatedDateOffset(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort CreatedDateOffset(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version) + SIZE_OF_DATABASE_NAME(version)
-                        + SIZE_OF_DATABASE_ID(version);
+                    return (ushort)(PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version) + SIZE_OF_DATABASE_NAME(version)
+                        + SIZE_OF_DATABASE_ID(version));
                 default:
                     return 0;
             }
         }
 
-        public static int MaxSystemDataPageOffset(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort MaxSystemDataPageOffset(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version) + SIZE_OF_DATABASE_NAME(version) + SIZE_OF_CREATED_DATE(version)
-                        + SIZE_OF_DATABASE_ID(version);
+                    return (ushort)(PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version) + SIZE_OF_DATABASE_NAME(version) + SIZE_OF_CREATED_DATE(version)
+                        + SIZE_OF_DATABASE_ID(version));
                 default:
                     return 0;
             }
         }
 
-        public static int DataFileTypeOffset(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort DataFileTypeOffset(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    return PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version) + SIZE_OF_DATABASE_NAME(version) + SIZE_OF_CREATED_DATE(version) +
-                        SIZE_OF_MAX_SYSTEM_DATA_PAGE(version) + SIZE_OF_DATABASE_ID(version);
+                    return (ushort)(PageConstants.SIZE_OF_PAGE_PREAMBLE(version) + SIZE_OF_DATABASE_VERSION(version) + SIZE_OF_DATABASE_NAME(version) + SIZE_OF_CREATED_DATE(version) +
+                        SIZE_OF_MAX_SYSTEM_DATA_PAGE(version) + SIZE_OF_DATABASE_ID(version));
                 default:
                     return 0;
             }
         }
 
-        public static int MAX_LENGTH_DB_NAME(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort MAX_LENGTH_DB_NAME(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
@@ -153,12 +153,12 @@
             }
         }
 
-        public static int SIZE_OF_SYSTEM_PAGE(int version = Constants.MAX_DATABASE_VERSION)
+        public static ushort SIZE_OF_SYSTEM_PAGE(ushort version = Constants.MAX_DATABASE_VERSION)
         {
             switch (version)
             {
                 case Constants.DatabaseVersions.V100:
-                    int totalSize = 0;
+                    ushort totalSize = 0;
 
                     /*
                      

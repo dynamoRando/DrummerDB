@@ -16,7 +16,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// If this is a nullable fixed length, this returns either a 1 byte size (if null, indicating <c>TRUE</c> for null) or a 1 byte size (for the nullable status) and the fixed size. (example: 5 bytes for a nullable int: 1 byte BOOL + 4 byte INT).
         /// If this is a nullable variable length, this returns either a 1 byte size (if null, indicating <c>TRUE</c> for null), or a 1 byte size (for the nullable status), and the variable byte array itself. THIS DOES NOT INCLUDE THE 4 BYTE INT SIZE PREFIX.
         /// </returns>
-        int BinarySize();
+        uint BinarySize();
 
         /// <summary>
         /// Returns a string representation of the value.
@@ -72,6 +72,8 @@ namespace Drummersoft.DrummerDB.Core.Structures.Interface
         /// If it's a variable data type, then it's the total length of the data type + the 4 byte INT size. If it's NULLABLE, then include
         /// the BOOL prefix before the rest of the length. See <seealso cref="Row.SetRowData(ITableSchema, ReadOnlySpan{byte})"/> for the implementation.
         /// </summary>
-        int ParseValueLength { get; set; }
+        uint ParseValueLength { get; set; }
+
+        bool IsDataSet();
     }
 }

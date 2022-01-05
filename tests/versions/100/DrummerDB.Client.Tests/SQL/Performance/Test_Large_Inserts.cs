@@ -48,7 +48,7 @@ namespace Drummersoft.DrummerDB.Client.Tests.SQL.Performance
             int max = 2_000;
 
             // --- ARRANGE
-            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortNumbers.LARGE_INSERTS);
+            test.SetTestObjectNames(dbName, tableName, storageFolder, TestPortManager.GetNextAvailablePortNumber());
             test.SetupTempDirectory();
             test.SetupProcess();
             test.StartNetwork();

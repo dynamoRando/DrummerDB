@@ -8,13 +8,13 @@ namespace Drummersoft.DrummerDB.Core.Structures
     internal record struct PageAddress
     {
         public Guid DatabaseId { get; init; }
-        public int TableId { get; init; }
-        public int PageId { get; init; }
+        public uint TableId { get; init; }
+        public uint PageId { get; init; }
         public Guid SchemaId { get; set; }
 
         public TreeAddress TreeAddress => new TreeAddress(DatabaseId, TableId, SchemaId);
 
-        public PageAddress(Guid dbId, int tableId, int pageId, Guid schemaId)
+        public PageAddress(Guid dbId, uint tableId, uint pageId, Guid schemaId)
         {
             DatabaseId = dbId;
             TableId = tableId;

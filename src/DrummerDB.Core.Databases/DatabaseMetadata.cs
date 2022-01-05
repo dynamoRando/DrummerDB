@@ -237,7 +237,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
-        public TableSchema GetTableSchema(int tableId)
+        public TableSchema GetTableSchema(uint tableId)
         {
             foreach (var item in _tables)
             {
@@ -250,9 +250,9 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return null;
         }
 
-        public int GetMaxTableId()
+        public uint GetMaxTableId()
         {
-            int maxId = 0;
+            uint maxId = 0;
             foreach (var table in _tables)
             {
                 if (table.Id > maxId)
@@ -264,7 +264,7 @@ namespace Drummersoft.DrummerDB.Core.Databases
             return maxId;
         }
 
-        public bool HasTable(int tableId)
+        public bool HasTable(uint tableId)
         {
             foreach (var item in _tables)
             {

@@ -319,7 +319,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
             foreach (var line in lines)
             {
-                if (!line.StartsWith(CooperativeKeywords.COOP_ACTION_FOR_PARTICIPANT))
+                if (!line.StartsWith(CooperativeKeywords.APPLY_TO_PARTICIPANT))
                 {
                     if (!string.IsNullOrEmpty(line))
                     {

@@ -513,7 +513,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                 public static class Columns
                 {
-                    public const string ParticpantGUID = "ParticpantGUID";
+                    /// <summary>
+                    /// The unique identifier generated when a record is entered into the Participant table
+                    /// </summary>
+                    public const string InternalParticpantGUID = "InternalParticpantGUID";
+
                     public const string Alias = "Alias";
                     public const string IP4Address = "IP4Address";
                     public const string IP6Address = "IP6Address";
@@ -523,6 +527,11 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string AcceptedContractVersion = "AcceptedContractVersion";
                     public const string AcceptedContractDateTimeUTC = "AcceptedContractDateTimeUTC";
                     public const string Token = "Token";
+
+                    /// <summary>
+                    /// The identifer that the participant gives to us (for the participant, this is their own "HostId")
+                    /// </summary>
+                    public const string ParticpantGUID = "ParticpantGUID";
                 }
 
                 public static ColumnSchemaCollection GetColumns()
@@ -549,10 +558,10 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(10);
+                        _columns = new ColumnSchemaCollection(11);
 
-                        var participantId = new ColumnSchema(Columns.ParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                        _columns.Add(participantId);
+                        var internalParticipantId = new ColumnSchema(Columns.InternalParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
+                        _columns.Add(internalParticipantId);
 
                         var alias = new ColumnSchema(Columns.Alias, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
                         _columns.Add(alias);
@@ -580,6 +589,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                         var token = new ColumnSchema(Columns.Token, new SQLVarbinary(128), 10, true);
                         _columns.Add(token);
+
+                        var participantId = new ColumnSchema(Columns.ParticpantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 11);
+                        _columns.Add(participantId);
                     }
                 }
             }
@@ -657,6 +669,12 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                     public const string Description = "Description";
                     public const string RetiredDate = "RetiredDate";
                     public const string Version = "Version";
+
+                    /// <summary>
+                    /// Determines how we (the host) respond when a participant deletes a row on its side.
+                    /// See <see cref="Enum.RemoteDeleteBehavior"/> enum.
+                    /// </summary>
+                    public const string RemoteDeleteBehavior = "RemoteDeleteBehavior";
                 }
 
                 public static ColumnSchema GetColumn(string columName)
@@ -683,7 +701,7 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 {
                     if (_columns is null)
                     {
-                        _columns = new ColumnSchemaCollection(5);
+                        _columns = new ColumnSchemaCollection(6);
 
                         var contractGuid = new ColumnSchema(Columns.ContractGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
                         _columns.Add(contractGuid);
@@ -699,6 +717,9 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
 
                         var version = new ColumnSchema(Columns.Version, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 5);
                         _columns.Add(version);
+
+                        var deleteBehavior = new ColumnSchema(Columns.RemoteDeleteBehavior, new SQLInt(), 6);
+                        _columns.Add(deleteBehavior);
                     }
                 }
             }
@@ -712,15 +733,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
             /// </summary>
             public record PageItem
             {
-                public int Order;
-                public int PageId;
-                public int TableId;
+                public uint Order;
+                public uint PageId;
+                public uint TableId;
                 public PageType Type;
                 public DataPageType DataPageType;
-                public int Offset;
+                public uint Offset;
                 public bool IsDeleted;
 
-                public PageItem(int pageId, PageType type, DataPageType dataPageType, int order, int tableId, int offset, bool isDelted)
+                public PageItem(uint pageId, PageType type, DataPageType dataPageType, uint order, uint tableId, uint offset, bool isDelted)
                 {
                     PageId = pageId;
                     Type = type;

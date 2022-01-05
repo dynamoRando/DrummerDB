@@ -292,7 +292,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             {
                 var iStatement = _statement as InsertStatement;
                 var colName = GetWhiteSpaceFromCurrentContext(context).Trim();
-                int colIndex = iStatement.GetMaxColumnId() + 1;
+                uint colIndex = iStatement.GetMaxColumnId() + 1;
                 var col = new StatementColumn(colIndex, colName);
                 iStatement.Columns.Add(col);
             }
@@ -444,7 +444,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
             if (_statement is UpdateStatement)
             {
                 var update = _statement as UpdateStatement;
-                int id = update.GetMaxColumnId();
+                uint id = update.GetMaxColumnId();
                 update.CurrentColumn = new StatementColumn(id);
                 var val = new UpdateTableValue();
                 val.Column = update.CurrentColumn;
@@ -709,7 +709,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
                                             var columnSource = new ResultsetSourceTable();
                                             columnSource.ColumnId = physicalTable.GetColumn(column.ColumnName).Id;
                                             columnSource.Table = physicalTable.Address;
-                                            columnSource.Order = statement.Columns.IndexOf(column);
+                                            columnSource.Order = (uint)statement.Columns.IndexOf(column);
                                             resultLayout.Columns.Add(columnSource);
                                         }
                                     }
@@ -800,7 +800,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction.SQLParsing
                                             var columnSource = new ResultsetSourceTable();
                                             columnSource.ColumnId = physicalTable.GetColumn(column.ColumnName).Id;
                                             columnSource.Table = physicalTable.Address;
-                                            columnSource.Order = statement.Columns.IndexOf(column);
+                                            columnSource.Order = (uint)statement.Columns.IndexOf(column);
                                             resultLayout.Columns.Add(columnSource);
                                         }
                                     }

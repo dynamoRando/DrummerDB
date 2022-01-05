@@ -20,7 +20,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <summary>
         /// The ordinal index of the column
         /// </summary>
-        public int Ordinal { get; set; }
+        public uint Ordinal { get; set; }
         /// <summary>
         /// Specifies if the column allows NULLs or not
         /// </summary>
@@ -28,11 +28,11 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <summary>
         /// The Id of the column. In most cases, this is the same as the <seealso cref="Ordinal"/>
         /// </summary>
-        public int Id { get; set; }
+        public uint Id { get; set; }
         /// <summary>
         /// Returns the varchar or char length of the field; if not this data type, then 0
         /// </summary>
-        public int Length { get; set; }
+        public uint Length { get; set; }
 
         public bool IsFixedBinaryLength => DataType.IsFixedBinaryLength();
         #endregion
@@ -49,7 +49,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <param name="name">The name of the column</param>
         /// <param name="dataType">The SQL data type of the column</param>
         /// <param name="ordinal">The order of the column</param>
-        public ColumnSchema(string name, ISQLType dataType, int ordinal)
+        public ColumnSchema(string name, ISQLType dataType, uint ordinal)
         {
             Name = name;
             DataType = dataType;
@@ -66,7 +66,7 @@ namespace Drummersoft.DrummerDB.Core.Structures
         /// <param name="dataType">The SQL data type of the column</param>
         /// <param name="ordinal">The order of the column</param>
         /// <param name="isNullable">If the column can contain a NULL value or not</param>
-        public ColumnSchema(string name, ISQLType dataType, int ordinal, bool isNullable)
+        public ColumnSchema(string name, ISQLType dataType, uint ordinal, bool isNullable)
         {
             Name = name;
             DataType = dataType;
