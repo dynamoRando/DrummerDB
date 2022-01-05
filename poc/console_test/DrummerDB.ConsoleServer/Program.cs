@@ -17,7 +17,14 @@ namespace DrummerDB.ConsoleServer
 
             string storageFolder = Path.Combine(TEST_TEMP_FOLDER, "ConsoleServer");
 
-            var process = new Process(storageFolder, true, false);
+            if (Directory.Exists(storageFolder))
+            {
+                Directory.Delete(storageFolder, true);
+            }
+
+            Directory.CreateDirectory(storageFolder);
+
+            var process = new Process(storageFolder, true, true);
             process.Start();
             process.StartDbServer();
             process.StartInfoServer();
