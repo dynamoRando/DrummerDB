@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Drummersoft.DrummerDB.Core.QueryTransaction
 {
-    internal static class CooperativeKeywords
+    internal static class TenantKeywords
     {
-        public const string APPLY_TO_PARTICIPANT = "APPLY TO PARTICIPANT";
+        public const string APPLY_TO_TENANT = "APPLY TO TENANT";
+        public const string ENABLE_TENANT_FEATURES = "ENABLE TENANT FEATURES";
     }
 }
