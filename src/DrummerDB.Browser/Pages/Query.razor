@@ -1,6 +1,9 @@
 ﻿@page "/query"
 @inject Services.Connection connection
 
+@using System.Linq
+@using System.Collections
+@using System.Collections.Generic
 @using Drummersoft.DrummerDB.Browser.Format
 @using Drummersoft.DrummerDB.Common
 @using Services
@@ -87,6 +90,7 @@
         {
             connection.CurrentDatabaseName = db;
             selectedDb = db;
+            connection.CurrentDatabaseInformation = connection.DatabaseInformation.Where(d => string.Equals(d.Name, db, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
         }
     }
 
@@ -109,16 +113,19 @@
                         if (dataResult is not null)
                         {
                             connection.CurrentDatabaseNames.Clear();
+                            connection.DatabaseInformation.Clear();
+
                             connection.CurrentDatabaseNames.Add("-- SELECT ONE ---");
                             connection.CurrentDatabaseNames.Add("drumSystem");
 
                             foreach (var row in dataResult.Rows)
                             {
-                                foreach (var value in row.Values)
-                                {
-                                    string databaseName = DbBinaryConvert.BinaryToString(value.Value.ToByteArray());
-                                    connection.CurrentDatabaseNames.Add(databaseName);
-                                }
+                                string databaseName = DbBinaryConvert.BinaryToString(row.Values[1].Value.ToByteArray());
+                                connection.CurrentDatabaseNames.Add(databaseName);
+
+                                uint dbType = DbBinaryConvert.BinaryToUInt(row.Values[0].Value.ToByteArray());
+                                var dbInfo = new DbInfo { Name = databaseName, Type = dbType };
+                                connection.DatabaseInformation.Add(dbInfo);
                             }
                         }
 
@@ -138,7 +145,7 @@
             // must change function to async void for this to work
             //var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, UserName, Password, connection.UserSession);
 
-            var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, selectedDb, UserName, Password, connection.UserSession);
+            var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, selectedDb, UserName, Password, connection.UserSession, (DatabaseType)connection.CurrentDatabaseInformation.Type);
             var queryResult = result.Results.FirstOrDefault();
 
             if (result is not null)
