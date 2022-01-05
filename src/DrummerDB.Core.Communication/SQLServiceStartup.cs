@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Drummersoft.DrummerDB.Core.Diagnostics;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<SQLServiceHandler>();
+            services.AddSingleton<LogService>();
             services.AddGrpc();
         }
 

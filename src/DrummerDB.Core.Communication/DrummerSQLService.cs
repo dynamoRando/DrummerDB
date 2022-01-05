@@ -1,6 +1,7 @@
 ﻿using Drummersoft.DrummerDB.Common;
 using Drummersoft.DrummerDB.Common.Communication;
 using Drummersoft.DrummerDB.Common.Communication.SQLService;
+using Drummersoft.DrummerDB.Core.Diagnostics;
 using Drummersoft.DrummerDB.Core.Structures;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -15,10 +16,10 @@ namespace Drummersoft.DrummerDB.Core.Communication
 {
     internal class DrummerSQLService : SQLServiceBase
     {
-        private readonly ILogger<DrummerSQLService> _logger;
+        private LogService _logger;
         private SQLServiceHandler _handler;
 
-        public DrummerSQLService(ILogger<DrummerSQLService> logger, SQLServiceHandler handler)
+        public DrummerSQLService(LogService logger, SQLServiceHandler handler)
         {
             _logger = logger;
             _handler = handler;
@@ -26,148 +27,159 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
         public override Task<SQLQueryReply> ExecuteSQLQuery(SQLQueryRequest request, ServerCallContext context)
         {
-            string userName = request.Authentication.UserName;
-            string databaseName = request.DatabaseName;
-            string pw = request.Authentication.Pw;
-            string statement = request.SqlStatement;
-            DatabaseType type = (DatabaseType)request.DatabaseType;
-
             var reply = new SQLQueryReply();
             var resultSet = new SQLResultset();
             var authResult = new AuthResult();
-
-            Resultset result = null;
-            Guid userSessionId;
-
-            bool hasSessionId = Guid.TryParse(request.UserSessionId, out userSessionId);
-            bool userIsAuthorized = false;
-
-            string errorMessage = string.Empty;
-
-            if (_handler.UserHasRights(userName, pw))
+            try
             {
-                userIsAuthorized = true;
-                if (string.IsNullOrEmpty(databaseName))
-                {
-                    if (_handler.IsValidQuery(statement, userName, pw, type, out errorMessage))
-                    {
-                        if (hasSessionId)
-                        {
-                            result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId, type);
-                        }
-                    }
-                }
-                else
-                {
-                    if (_handler.IsValidQuery(statement, userName, pw, databaseName, type, out errorMessage))
-                    {
-                        if (hasSessionId)
-                        {
-                            result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId, type);
-                        }
-                    }
-                }
-            }
+                string userName = request.Authentication.UserName;
+                string databaseName = request.DatabaseName;
+                string pw = request.Authentication.Pw;
+                string statement = request.SqlStatement;
+                DatabaseType type = (DatabaseType)request.DatabaseType;
 
-            if (result is not null)
-            {
-                if (!result.HasAuthenticationErrors() && !result.HasExecutionErrors())
+
+
+                Resultset result = null;
+                Guid userSessionId;
+
+                bool hasSessionId = Guid.TryParse(request.UserSessionId, out userSessionId);
+                bool userIsAuthorized = false;
+
+                string errorMessage = string.Empty;
+
+                if (_handler.UserHasRights(userName, pw))
                 {
-                    // succesful query with results
-                    if (result.Rows.Count > 0)
+                    userIsAuthorized = true;
+                    if (string.IsNullOrEmpty(databaseName))
                     {
-                        int numberOfColumns = result.Columns.Length;
-
-                        // is a successful query
-                        resultSet.NumberOfRowsAffected = Convert.ToUInt32(result.Rows.Count);
-                        foreach (var rRow in result.Rows)
+                        if (_handler.IsValidQuery(statement, userName, pw, type, out errorMessage))
                         {
-                            var row = new Common.Communication.Row();
-                            var rowMetaData = new Common.Communication.RowRemoteMetadata();
-                            row.RemoteMetadata = rowMetaData;
-
-                            for (int i = 0; i < numberOfColumns; i++)
+                            if (hasSessionId)
                             {
-                                var currentValue = rRow[i];
-
-                                if (currentValue.IsRemotable)
-                                {
-                                    row.IsRemoteable = true;
-                                    row.RemoteMetadata.IsHashOutOfSyncWithHost = currentValue.IsHashOutOfSyncWithHost;
-                                    row.RemoteMetadata.IsRemoteOutOfSyncWithHost = currentValue.IsRemoteOutOfSyncWithHost;
-                                }
-
-                                if (!currentValue.IsRemoteDeleted)
-                                {
-                                    var rowValue = new Common.Communication.RowValue();
-                                    rowValue.Value = ByteString.CopyFrom(currentValue.Value);
-                                    rowValue.IsNullValue = currentValue.IsNullValue;
-                                    rowValue.Column = new Common.Communication.ColumnSchema();
-                                    rowValue.Column.ColumnName = result.Columns[i].Name;
-                                    rowValue.Column.ColumnType = Convert.ToUInt32(result.Columns[i].DataType);
-                                    rowValue.Column.IsNullable = result.Columns[i].IsNullable;
-                                    rowValue.Column.ColumnLength = Convert.ToUInt32(result.Columns[i].Length);
-                                    row.Values.Add(rowValue);
-                                }
-                                else
-                                {
-                                    row.RemoteMetadata.IsRemoteDeleted = true;
-                                    row.RemoteMetadata.RemoteDeletedDate = Timestamp.FromDateTime(currentValue.RemoteDeletedDateUTC);
-                                }
+                                result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId, type);
                             }
-
-                            resultSet.Rows.Add(row);
                         }
                     }
                     else
                     {
-                        // is a non query, like CREATE TABLE
-                        resultSet.ResultMessage = result.NonQueryMessages.FirstOrDefault();
+                        if (_handler.IsValidQuery(statement, userName, pw, databaseName, type, out errorMessage))
+                        {
+                            if (hasSessionId)
+                            {
+                                result = _handler.ExecuteQuery(statement, userName, pw, databaseName, userSessionId, type);
+                            }
+                        }
                     }
+                }
+
+                if (result is not null)
+                {
+                    if (!result.HasAuthenticationErrors() && !result.HasExecutionErrors())
+                    {
+                        // succesful query with results
+                        if (result.Rows.Count > 0)
+                        {
+                            int numberOfColumns = result.Columns.Length;
+
+                            // is a successful query
+                            resultSet.NumberOfRowsAffected = Convert.ToUInt32(result.Rows.Count);
+                            foreach (var rRow in result.Rows)
+                            {
+                                var row = new Common.Communication.Row();
+                                var rowMetaData = new Common.Communication.RowRemoteMetadata();
+                                row.RemoteMetadata = rowMetaData;
+
+                                for (int i = 0; i < numberOfColumns; i++)
+                                {
+                                    var currentValue = rRow[i];
+
+                                    if (currentValue.IsRemotable)
+                                    {
+                                        row.IsRemoteable = true;
+                                        row.RemoteMetadata.IsHashOutOfSyncWithHost = currentValue.IsHashOutOfSyncWithHost;
+                                        row.RemoteMetadata.IsRemoteOutOfSyncWithHost = currentValue.IsRemoteOutOfSyncWithHost;
+                                    }
+
+                                    if (!currentValue.IsRemoteDeleted)
+                                    {
+                                        var rowValue = new Common.Communication.RowValue();
+                                        rowValue.Value = ByteString.CopyFrom(currentValue.Value);
+                                        rowValue.IsNullValue = currentValue.IsNullValue;
+                                        rowValue.Column = new Common.Communication.ColumnSchema();
+                                        rowValue.Column.ColumnName = result.Columns[i].Name;
+                                        rowValue.Column.ColumnType = Convert.ToUInt32(result.Columns[i].DataType);
+                                        rowValue.Column.IsNullable = result.Columns[i].IsNullable;
+                                        rowValue.Column.ColumnLength = Convert.ToUInt32(result.Columns[i].Length);
+                                        row.Values.Add(rowValue);
+                                    }
+                                    else
+                                    {
+                                        row.RemoteMetadata.IsRemoteDeleted = true;
+                                        row.RemoteMetadata.RemoteDeletedDate = Timestamp.FromDateTime(currentValue.RemoteDeletedDateUTC);
+                                    }
+                                }
+
+                                resultSet.Rows.Add(row);
+                            }
+                        }
+                        else
+                        {
+                            // is a non query, like CREATE TABLE
+                            resultSet.ResultMessage = result.NonQueryMessages.FirstOrDefault();
+                        }
+                    }
+                    else
+                    {
+                        // we had authentication or execution errors
+                        if (result.HasAuthenticationErrors())
+                        {
+                            authResult.AuthenticationMessage = result.AuthenticationErrors.FirstOrDefault();
+                            authResult.IsAuthenticated = false;
+                        }
+
+                        if (result.HasExecutionErrors())
+                        {
+                            resultSet.ExecutionErrorMessage = result.ExecutionErrors.FirstOrDefault();
+                            resultSet.IsError = true;
+                        }
+                    }
+
+                    // need to transform the result into a SQLQueryReply
+                    reply.Results.Add(resultSet);
+                    authResult.IsAuthenticated = userIsAuthorized;
+                    reply.AuthenticationResult = authResult;
                 }
                 else
                 {
-                    // we had authentication or execution errors
-                    if (result.HasAuthenticationErrors())
+                    if (!string.IsNullOrEmpty(errorMessage))
                     {
-                        authResult.AuthenticationMessage = result.AuthenticationErrors.FirstOrDefault();
-                        authResult.IsAuthenticated = false;
+                        resultSet.ExecutionErrorMessage = errorMessage;
+                        resultSet.IsError = true;
+                        reply.Results.Add(resultSet);
                     }
 
-                    if (result.HasExecutionErrors())
+                    if (!userIsAuthorized)
                     {
-                        resultSet.ExecutionErrorMessage = result.ExecutionErrors.FirstOrDefault();
-                        resultSet.IsError = true;
+                        authResult.IsAuthenticated = false;
+                        reply.AuthenticationResult = authResult;
                     }
                 }
 
-                // need to transform the result into a SQLQueryReply
-                reply.Results.Add(resultSet);
-                authResult.IsAuthenticated = userIsAuthorized;
-                reply.AuthenticationResult = authResult;
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(errorMessage))
+                // santiy check
+                if (reply.Results.Count == 0)
                 {
-                    resultSet.ExecutionErrorMessage = errorMessage;
-                    resultSet.IsError = true;
                     reply.Results.Add(resultSet);
                 }
-
-                if (!userIsAuthorized)
+            }
+            catch (Exception ex)
+            {
+                if (_logger is not null)
                 {
-                    authResult.IsAuthenticated = false;
-                    reply.AuthenticationResult = authResult;
+                    _logger.Error(ex, "Error in SQL Service");
                 }
             }
-
-            // santiy check
-            if (reply.Results.Count == 0)
-            {
-                reply.Results.Add(resultSet);
-            }
-
+           
             return Task.FromResult(reply);
         }
 
@@ -178,6 +190,11 @@ namespace Drummersoft.DrummerDB.Core.Communication
             reply.ReplyTimeUTC = DateTime.UtcNow.ToString();
             reply.ReplyEchoMessage = request.RequestEchoMessage;
             return Task.FromResult(reply);
+        }
+
+        public void SetLogger(LogService logger)
+        {
+            _logger = logger;
         }
     }
 }

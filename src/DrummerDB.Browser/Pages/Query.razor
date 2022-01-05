@@ -96,42 +96,50 @@
 
     private void LoadDatabases()
     {
-        var result = connection.SQLClient.ExecuteSQL(Connection.DATABASE_QUERY, UserName, Password, connection.UserSession);
-
-        if (result is not null)
+        try
         {
-            var queryResult = result.Results.FirstOrDefault();
+            var result = connection.SQLClient.ExecuteSQL(Connection.DATABASE_QUERY, UserName, Password, connection.UserSession);
 
-            if (result.AuthenticationResult.IsAuthenticated)
+            if (result is not null)
             {
-                if (queryResult is not null)
+                var queryResult = result.Results.FirstOrDefault();
+
+                if (result.AuthenticationResult.IsAuthenticated)
                 {
-                    if (!queryResult.IsError)
+                    if (queryResult is not null)
                     {
-
-                        var dataResult = result.Results.FirstOrDefault();
-                        if (dataResult is not null)
+                        if (!queryResult.IsError)
                         {
-                            connection.CurrentDatabaseNames.Clear();
-                            connection.DatabaseInformation.Clear();
 
-                            connection.CurrentDatabaseNames.Add("-- SELECT ONE ---");
-                            connection.CurrentDatabaseNames.Add("drumSystem");
-
-                            foreach (var row in dataResult.Rows)
+                            var dataResult = result.Results.FirstOrDefault();
+                            if (dataResult is not null)
                             {
-                                string databaseName = DbBinaryConvert.BinaryToString(row.Values[1].Value.ToByteArray());
-                                connection.CurrentDatabaseNames.Add(databaseName);
+                                connection.CurrentDatabaseNames.Clear();
+                                connection.DatabaseInformation.Clear();
 
-                                uint dbType = DbBinaryConvert.BinaryToUInt(row.Values[0].Value.ToByteArray());
-                                var dbInfo = new DbInfo { Name = databaseName, Type = dbType };
-                                connection.DatabaseInformation.Add(dbInfo);
+                                connection.CurrentDatabaseNames.Add("-- SELECT ONE ---");
+                                connection.CurrentDatabaseNames.Add("drumSystem");
+
+                                foreach (var row in dataResult.Rows)
+                                {
+                                    string databaseName = DbBinaryConvert.BinaryToString(row.Values[1].Value.ToByteArray());
+                                    connection.CurrentDatabaseNames.Add(databaseName);
+
+                                    uint dbType = DbBinaryConvert.BinaryToUInt(row.Values[0].Value.ToByteArray());
+                                    var dbInfo = new DbInfo { Name = databaseName, Type = dbType };
+                                    connection.DatabaseInformation.Add(dbInfo);
+                                }
                             }
-                        }
 
+                        }
                     }
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            QueryMessages += $"ERROR: {ex.ToString()}";
+
         }
     }
 

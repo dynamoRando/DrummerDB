@@ -17,7 +17,7 @@ namespace Drummersoft.DrummerDB.Core.Diagnostics
         private const string METHOD_NAME = "METHOD_NAME";
         private const string TOTAL_MILLISECONDS = "TOTAL_MILLISECONDS";
         private const string ASSEMBLY_NAME = "ASSEMBLY_NAME";
-        
+
         public const string PERFORMANCE = "PERFORMANCE";
 
         #endregion
@@ -50,6 +50,14 @@ namespace Drummersoft.DrummerDB.Core.Diagnostics
         #endregion
 
         #region Public Methods
+        public void Error(Exception exception, string message, [CallerMemberName] string callerName = "")
+        {
+            if (_enableLogging)
+            {
+                _logger.Error(exception, $"{Assembly.GetCallingAssembly().GetName().Name} : {callerName} :: {message}", exception.Message.ToString());
+            }
+        }
+
         public void Info(string message, [CallerMemberName] string callerName = "")
         {
             if (_enableLogging)
