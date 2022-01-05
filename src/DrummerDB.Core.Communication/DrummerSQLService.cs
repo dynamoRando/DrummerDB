@@ -8,6 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using static Drummersoft.DrummerDB.Common.Communication.SQLService.SQLService;
@@ -30,6 +31,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
             var reply = new SQLQueryReply();
             var resultSet = new SQLResultset();
             var authResult = new AuthResult();
+
             try
             {
                 string userName = request.Authentication.UserName;
@@ -177,6 +179,8 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 if (_logger is not null)
                 {
                     _logger.Error(ex, "Error in SQL Service");
+                    Debug.WriteLine(ex.ToString());
+                    Console.WriteLine(ex.ToString());
                 }
             }
            
