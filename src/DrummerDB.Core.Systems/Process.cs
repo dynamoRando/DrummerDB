@@ -71,6 +71,7 @@ namespace Drummersoft.DrummerDB.Core.Systems
         public Process()
         {
             // default consturctor
+            _notifications = new SystemNotifications();
         }
 
         /// <summary>
