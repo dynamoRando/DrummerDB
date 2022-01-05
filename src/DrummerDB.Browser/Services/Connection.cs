@@ -11,7 +11,7 @@ namespace Drummersoft.DrummerDB.Browser.Services
         private DrummerSQLClient _sqlClient;
         private Guid _userSession;
 
-        public const string DATABASE_QUERY = "SELECT * FROM sys.Databases";
+        public const string DATABASE_QUERY = "SELECT DatabaseName FROM sys.Databases";
         public const string SYSTEM_DATABASE_NAME = "drumSystem";
         public string IPAddress { get; set; }
         public int SQLPort { get; set; }
