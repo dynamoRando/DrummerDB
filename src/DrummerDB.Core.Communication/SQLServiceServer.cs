@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Drummersoft.DrummerDB.Core.Diagnostics;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,6 +33,16 @@ namespace Drummersoft.DrummerDB.Core.Communication
             if (_server is null)
             {
                 _server = CreateHostBuilder(args, url, processor, portSettings).Build();
+            }
+
+            return _server.RunAsync();
+        }
+
+        public Task RunAsync(string[] args, string[] url, SQLServiceHandler processor, PortSettings portSettings, LogService logging)
+        {
+            if (_server is null)
+            {
+                _server = CreateHostBuilder(args, url, processor, portSettings, logging).Build();
             }
 
             return _server.RunAsync();
@@ -81,6 +92,25 @@ namespace Drummersoft.DrummerDB.Core.Communication
                 foo =>
                 {
                     foo.Add(new ServiceDescriptor(typeof(SQLServiceHandler), processor));
+                });
+        }
+
+        private static IHostBuilder CreateHostBuilder(string[] args, string[] url, SQLServiceHandler processor, PortSettings portSettings, LogService logging)
+        {
+            return Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<SQLServiceStartup>();
+                webBuilder.UseUrls(url);
+                webBuilder.ConfigureKestrel(options =>
+                {
+                    options.ListenAnyIP(portSettings.PortNumber, listenOptions => { listenOptions.Protocols = HttpProtocols.Http2; });
+                });
+            }).ConfigureServices(
+                foo =>
+                {
+                    foo.Add(new ServiceDescriptor(typeof(SQLServiceHandler), processor));
+                    foo.Add(new ServiceDescriptor(typeof(LogService), logging));
                 });
         }
 
