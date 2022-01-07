@@ -994,7 +994,6 @@ namespace Drummersoft.DrummerDB.Core.Databases
 
             _userTable.XactAddRow(row);
 
-
             return tableObjectId;
         }
 
