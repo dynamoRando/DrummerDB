@@ -145,12 +145,12 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                     if (HasApplyToTenantKeywords(statement))
                     {
-                        throw new NotImplementedException();
+                        return ParseForApplyToTenantKeywords(statement, out errorMessage);
                     }
 
                     if (HasEnableTenantFeaturesKeyword(statement))
                     {
-                        throw new NotImplementedException();
+                        return ParseForEnableTenantFeaturesKeyword(statement, out errorMessage);
                     }
                 }
             }
@@ -854,6 +854,18 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
         private bool HasLogicalStoragePolicyKeyword(string statement)
         {
             return statement.Contains(DrummerKeywords.SET_LOGICAL_STORAGE);
+        }
+
+        private bool ParseForEnableTenantFeaturesKeyword(string statement, out string errorMessage)
+        {
+            // USING {db_name} ENABLE TENANT FEATURES
+            throw new NotImplementedException();
+        }
+
+        private bool ParseForApplyToTenantKeywords(string statement, out string errorMessage)
+        {
+            // APPLY TO TENANT {tenant_alias};
+            throw new NotImplementedException();
         }
 
         private bool ParseForLogicalStoragePolicy(string statement, out string errorMesssage)
