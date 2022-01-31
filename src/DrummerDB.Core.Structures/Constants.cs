@@ -48,13 +48,12 @@
             public const ushort DATABASE_SCHEMAS = 11;
             public const ushort DATABASE_SCHEMA_PERMISSIONS = 12;
             public const ushort PARTICIPANTS = 13;
-            public const ushort TENANTS = 14;
-            public const ushort DATABASE_CONTRACTS = 15;
-            public const ushort HOSTS = 16;
-            public const ushort HOST_INFO = 17;
-            public const ushort COOPERATIVE_CONTRACTS = 18;
-            public const ushort COOPERATIVE_TABLES = 19;
-            public const ushort COOPERATIVE_TABLE_SCHEMAS = 20;
+            public const ushort DATABASE_CONTRACTS = 14;
+            public const ushort HOSTS = 15;
+            public const ushort HOST_INFO = 16;
+            public const ushort COOPERATIVE_CONTRACTS = 17;
+            public const ushort COOPERATIVE_TABLES = 18;
+            public const ushort COOPERATIVE_TABLE_SCHEMAS = 19;
         }
 
         /// <summary>

@@ -596,56 +596,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                 }
             }
 
-            public static class Tenants
-            {
-                private static ColumnSchemaCollection _columns;
-
-                public const int TABLE_ID = Constants.SYS_TABLE_ID_LIST.TENANTS;
-                public const string TABLE_NAME = "Tenants";
-
-                public static TableSchema Schema(Guid dbId, string dbName)
-                {
-                    var schema = new TableSchema(TABLE_ID, TABLE_NAME, dbId, GetColumns().List, new DatabaseSchemaInfo(Constants.SYS_SCHEMA, Guid.Parse(Constants.SYS_SCHEMA_GUID)), dbName);
-                    return schema;
-                }
-
-                public static class Columns
-                {
-                    public const string TenantGUID = "TenantGUID";
-                    public const string Alias = "Alias";
-
-                    // see TenantDataLocation.cs
-                    public const string DataLocation = "DataLocation";
-                }
-
-                public static ColumnSchemaCollection GetColumns()
-                {
-                    if (_columns is null)
-                    {
-                        GenerateColumns();
-                    }
-
-                    return _columns;
-                }
-
-                private static void GenerateColumns()
-                {
-                    if (_columns is null)
-                    {
-                        _columns = new ColumnSchemaCollection(3);
-
-                        var participantId = new ColumnSchema(Columns.TenantGUID, new SQLChar(Constants.LENGTH_OF_GUID_STRING), 1);
-                        _columns.Add(participantId);
-
-                        var alias = new ColumnSchema(Columns.Alias, new SQLVarChar(Constants.MAX_LENGTH_OF_USER_NAME_OR_ROLE_NAME), 2);
-                        _columns.Add(alias);
-
-                        var dataLocation = new ColumnSchema(Columns.DataLocation, new SQLInt(), 3);
-                        _columns.Add(dataLocation);
-                    }
-                }
-            }
-
             /// <summary>
             /// A system database table containing all the contracts we have generated for the database
             /// </summary>

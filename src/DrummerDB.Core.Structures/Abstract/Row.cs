@@ -163,8 +163,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
                     return false;
                 case RowType.TempParticipantRow:
                     return true;
-                case RowType.Tenant:
-                    return true;
                 case RowType.Unknown:
                 default:
                     throw new InvalidOperationException("Unknown row type");
@@ -193,8 +191,6 @@ namespace Drummersoft.DrummerDB.Core.Structures.Abstract
                 case RowType.Remoteable:
                     return false;
                 case RowType.TempParticipantRow:
-                    return true;
-                case RowType.Tenant:
                     return true;
                 case RowType.Unknown:
                 default:
