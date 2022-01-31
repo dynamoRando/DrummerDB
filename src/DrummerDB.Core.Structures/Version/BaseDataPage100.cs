@@ -864,10 +864,14 @@ namespace Drummersoft.DrummerDB.Core.Structures.Version
                                     row = hostRow;
 
                                     break;
+                                case RemoteType.Tenant:
+                                    throw new NotImplementedException("Tenant Remote rows not implemented yet");
                                 default:
                                     throw new InvalidOperationException("Unknown remote type");
                             }
                             break;
+                        case RowType.Tenant:
+                            throw new NotImplementedException("Tenant Local rows not implemented yet");
                         default:
                             throw new InvalidOperationException("Unknown row type");
                     }

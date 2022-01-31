@@ -43,6 +43,15 @@ namespace Drummersoft.DrummerDB.Core.Structures.Enum
         /// </summary>
         /// <remarks>Used when creating a row for Cooperative Insert to send data to 
         /// partial database</remarks>
-        TempParticipantRow
+        TempParticipantRow,
+
+        /// <summary>
+        /// A row that is locally saved to the table, but for a specific tenant
+        /// </summary>
+        /// <remarks>This row has values AND a TenantId</remarks>
+        Tenant
+
+        // a tenant remote row is just a Remotable row
+        // it will be identified by the RemoteType enum
     }
 }
