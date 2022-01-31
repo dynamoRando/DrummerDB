@@ -10,7 +10,7 @@ This project is being actively developed, and does not yet have a release.
 
 ## Project Goals
 
-This project hopes to enable a system where users have greater control over their data.
+This project hopes to enable a system where users have greater control over their data. This project also hopes to help developers building multi-tenant systems.
 
 ## Remarks
 
