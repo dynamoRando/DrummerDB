@@ -52,5 +52,12 @@
 
             public static string[] Behaviors = new string[] { UNKNOWN, IGNORE, AUTO_DELETE, UPDATE_STATUS_ONLY };
         }
+
+        // tenant keywords are unique to DrummerDB
+        internal static class TenantKeywords
+        {
+            public const string APPLY_TO_TENANT = "APPLY TO TENANT";
+            public const string ENABLE_TENANT_FEATURES = "ENABLE TENANT FEATURES";
+        }
     }
 }

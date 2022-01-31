@@ -142,6 +142,16 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         return ParseForSetRemoteDeleteBehavior(statement, out errorMessage);
                     }
+
+                    if (HasApplyToTenantKeywords(statement))
+                    {
+                        return ParseForApplyToTenantKeywords(statement, out errorMessage);
+                    }
+
+                    if (HasEnableTenantFeaturesKeyword(statement))
+                    {
+                        return ParseForEnableTenantFeaturesKeyword(statement, out errorMessage);
+                    }
                 }
             }
 
@@ -831,9 +841,31 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             return true;
         }
 
+        private bool HasEnableTenantFeaturesKeyword(string statement)
+        {
+            return statement.Contains(DrummerKeywords.TenantKeywords.ENABLE_TENANT_FEATURES);
+        }
+
+        private bool HasApplyToTenantKeywords(string statement)
+        {
+            return statement.Contains(DrummerKeywords.TenantKeywords.APPLY_TO_TENANT);
+        }
+
         private bool HasLogicalStoragePolicyKeyword(string statement)
         {
             return statement.Contains(DrummerKeywords.SET_LOGICAL_STORAGE);
+        }
+
+        private bool ParseForEnableTenantFeaturesKeyword(string statement, out string errorMessage)
+        {
+            // USING {db_name} ENABLE TENANT FEATURES
+            throw new NotImplementedException();
+        }
+
+        private bool ParseForApplyToTenantKeywords(string statement, out string errorMessage)
+        {
+            // APPLY TO TENANT {tenant_alias};
+            throw new NotImplementedException();
         }
 
         private bool ParseForLogicalStoragePolicy(string statement, out string errorMesssage)
