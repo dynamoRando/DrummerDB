@@ -243,7 +243,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 part = plan.GetPart(PlanPartType.GenerateHostInfo);
                 if (part is GenerateHostInfoPlanPart)
                 {
-                    var op = new GenerateHostInfoOperator(dbManager as IDbManager);
+                    var op = new GenerateHostInfoOperator(dbManager);
                     part.Operations.Add(op);
                 }
             }
@@ -255,7 +255,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (line.StartsWith(DrummerKeywords.REVIEW_ACCEPTED_CONTRACTS))
             {
                 var sysDb = dbManager.GetSystemDatabase();
-                var table = sysDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+                var table = sysDb.GetTable(CooperativeContracts.TABLE_NAME);
 
                 // need a new set policy operator in the plan
                 if (!plan.HasPart(PlanPartType.Select))
@@ -272,68 +272,68 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     // add the columns, starting with HostGuid
                     ResultsetSourceTable sourceTableColumnHostGuid = new ResultsetSourceTable();
                     sourceTableColumnHostGuid.Table = table.Address;
-                    sourceTableColumnHostGuid.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.HostGuid).Id;
+                    sourceTableColumnHostGuid.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.HostGuid).Id;
                     sourceTableColumnHostGuid.Order = 1;
                     layout.AddSource(sourceTableColumnHostGuid);
 
                     ResultsetSourceTable sourceTableColumnContractGuid = new ResultsetSourceTable();
                     sourceTableColumnContractGuid.Table = table.Address;
-                    sourceTableColumnContractGuid.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.ContractGUID).Id;
+                    sourceTableColumnContractGuid.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.ContractGUID).Id;
                     sourceTableColumnContractGuid.Order = 2;
                     layout.AddSource(sourceTableColumnContractGuid);
 
                     ResultsetSourceTable sourceTableColumnDatabaseName = new ResultsetSourceTable();
                     sourceTableColumnDatabaseName.Table = table.Address;
-                    sourceTableColumnDatabaseName.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.DatabaseName).Id;
+                    sourceTableColumnDatabaseName.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.DatabaseName).Id;
                     sourceTableColumnDatabaseName.Order = 3;
                     layout.AddSource(sourceTableColumnDatabaseName);
 
                     ResultsetSourceTable sourceTableColumnDatabaseId = new ResultsetSourceTable();
                     sourceTableColumnDatabaseId.Table = table.Address;
-                    sourceTableColumnDatabaseId.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.DatabaseId).Id;
+                    sourceTableColumnDatabaseId.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.DatabaseId).Id;
                     sourceTableColumnDatabaseId.Order = 4;
                     layout.AddSource(sourceTableColumnDatabaseId);
 
                     ResultsetSourceTable sourceTableColumnDescription = new ResultsetSourceTable();
                     sourceTableColumnDescription.Table = table.Address;
-                    sourceTableColumnDescription.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Description).Id;
+                    sourceTableColumnDescription.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.Description).Id;
                     sourceTableColumnDescription.Order = 5;
                     layout.AddSource(sourceTableColumnDescription);
 
                     ResultsetSourceTable sourceTableColumnVersion = new ResultsetSourceTable();
                     sourceTableColumnVersion.Table = table.Address;
-                    sourceTableColumnVersion.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Version).Id;
+                    sourceTableColumnVersion.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.Version).Id;
                     sourceTableColumnVersion.Order = 6;
                     layout.AddSource(sourceTableColumnVersion);
 
                     ResultsetSourceTable sourceTableColumnGeneratedDate = new ResultsetSourceTable();
                     sourceTableColumnGeneratedDate.Table = table.Address;
-                    sourceTableColumnGeneratedDate.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.GeneratedDate).Id;
+                    sourceTableColumnGeneratedDate.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.GeneratedDate).Id;
                     sourceTableColumnGeneratedDate.Order = 7;
                     layout.AddSource(sourceTableColumnGeneratedDate);
 
                     ResultsetSourceTable sourceTableColumnStatus = new ResultsetSourceTable();
                     sourceTableColumnStatus.Table = table.Address;
-                    sourceTableColumnStatus.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Status).Id;
+                    sourceTableColumnStatus.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.Status).Id;
                     sourceTableColumnStatus.Order = 8;
                     layout.AddSource(sourceTableColumnStatus);
 
                     selectPart.Layout = layout;
                     var columns = new string[]
                     {
-                        Tables.CooperativeContracts.Columns.HostGuid,
-                        Tables.CooperativeContracts.Columns.ContractGUID,
-                        Tables.CooperativeContracts.Columns.DatabaseName,
-                        Tables.CooperativeContracts.Columns.DatabaseId,
-                        Tables.CooperativeContracts.Columns.Description,
-                        Tables.CooperativeContracts.Columns.Version,
-                        Tables.CooperativeContracts.Columns.GeneratedDate,
-                        Tables.CooperativeContracts.Columns.Status
+                        CooperativeContracts.Columns.HostGuid,
+                        CooperativeContracts.Columns.ContractGUID,
+                        CooperativeContracts.Columns.DatabaseName,
+                        CooperativeContracts.Columns.DatabaseId,
+                        CooperativeContracts.Columns.Description,
+                        CooperativeContracts.Columns.Version,
+                        CooperativeContracts.Columns.GeneratedDate,
+                        CooperativeContracts.Columns.Status
                     };
 
                     // filter by accepted contracts
                     var acceptedStatus = ContractStatus.Accepted;
-                    var value = RowValueMaker.Create(table, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(acceptedStatus).ToString(), false);
+                    var value = RowValueMaker.Create(table, CooperativeContracts.Columns.Status, Convert.ToInt32(acceptedStatus).ToString(), false);
                     var trv = new TableRowValue(value, table.Address.TableId, table.Address.DatabaseId, table.Address.SchemaId);
                     TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
 
@@ -402,11 +402,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                 if (hostGuid != Guid.Empty)
                 {
                     // need to lookup contracts with the host guid
-                    var coopContracts = systemDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+                    var coopContracts = systemDb.GetTable(CooperativeContracts.TABLE_NAME);
 
                     // make the search items, WHERE HostGuid == <hostGuid> AND ContractStatus == Pending
-                    var hostGuidValue = RowValueMaker.Create(coopContracts, Tables.CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
-                    var pendingContract = RowValueMaker.Create(coopContracts, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Pending).ToString());
+                    var hostGuidValue = RowValueMaker.Create(coopContracts, CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
+                    var pendingContract = RowValueMaker.Create(coopContracts, CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Pending).ToString());
 
                     var searchValues = new RowValue[2];
                     searchValues[0] = hostGuidValue;
@@ -430,8 +430,8 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     {
                         // get the host guid we're going to update to accepted
                         // this is the host that we will be filtering on
-                        var rowValueHostGuid = searchResults.First().Values.Where(v => string.Equals(v.Column.Name, Tables.CooperativeContracts.Columns.HostGuid)).FirstOrDefault();
-                        var rowValueContractGuid = searchResults.First().Values.Where(v => string.Equals(v.Column.Name, Tables.CooperativeContracts.Columns.ContractGUID)).FirstOrDefault();
+                        var rowValueHostGuid = searchResults.First().Values.Where(v => string.Equals(v.Column.Name, CooperativeContracts.Columns.HostGuid)).FirstOrDefault();
+                        var rowValueContractGuid = searchResults.First().Values.Where(v => string.Equals(v.Column.Name, CooperativeContracts.Columns.ContractGUID)).FirstOrDefault();
 
                         // need to generate an update statement to mark the contract as accepted
 
@@ -447,11 +447,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                             if (database is null)
                             {
-                                address = new TreeAddress { DatabaseId = systemDb.Id, TableId = Tables.CooperativeContracts.TABLE_ID, SchemaId = Guid.Parse(Constants.COOP_SCHEMA_GUID) };
+                                address = new TreeAddress { DatabaseId = systemDb.Id, TableId = CooperativeContracts.TABLE_ID, SchemaId = Guid.Parse(Constants.COOP_SCHEMA_GUID) };
                             }
                             else
                             {
-                                address = new TreeAddress { DatabaseId = database.Id, TableId = Tables.CooperativeContracts.TABLE_ID, SchemaId = Guid.Parse(Constants.COOP_SCHEMA_GUID) };
+                                address = new TreeAddress { DatabaseId = database.Id, TableId = CooperativeContracts.TABLE_ID, SchemaId = Guid.Parse(Constants.COOP_SCHEMA_GUID) };
                             }
 
 
@@ -461,7 +461,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                             // create value object that we're going to update the contract guid to
                             var column = new UpdateTableValue();
-                            var tableColumn = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Status);
+                            var tableColumn = CooperativeContracts.GetColumn(CooperativeContracts.Columns.Status);
 
                             column.Column = new StatementColumn(tableColumn.Id, tableColumn.Name);
                             column.Value = Convert.ToInt32(ContractStatus.Accepted).ToString();
@@ -475,9 +475,9 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             // columns that we need to read to identify what to update
                             string[] colNames = new string[3]
                             {
-                                Tables.CooperativeContracts.Columns.HostGuid,
-                                Tables.CooperativeContracts.Columns.ContractGUID,
-                                Tables.CooperativeContracts.Columns.Status
+                                CooperativeContracts.Columns.HostGuid,
+                                CooperativeContracts.Columns.ContractGUID,
+                                CooperativeContracts.Columns.Status
                             };
 
                             var readTableOp = new TableReadOperator(dbManager, address, colNames, _log);
@@ -486,11 +486,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             TableRowValue tableRowValueHostGuid = null;
                             if (database is null)
                             {
-                                tableRowValueHostGuid = new TableRowValue(rowValueHostGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, systemDb.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
+                                tableRowValueHostGuid = new TableRowValue(rowValueHostGuid as RowValue, CooperativeContracts.TABLE_ID, systemDb.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
                             }
                             else
                             {
-                                tableRowValueHostGuid = new TableRowValue(rowValueHostGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, database.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
+                                tableRowValueHostGuid = new TableRowValue(rowValueHostGuid as RowValue, CooperativeContracts.TABLE_ID, database.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
                             }
 
 
@@ -506,11 +506,11 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
 
                             if (database is null)
                             {
-                                tableRowValueContractGuid = new TableRowValue(rowValueContractGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, systemDb.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
+                                tableRowValueContractGuid = new TableRowValue(rowValueContractGuid as RowValue, CooperativeContracts.TABLE_ID, systemDb.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
                             }
                             else
                             {
-                                tableRowValueContractGuid = new TableRowValue(rowValueContractGuid as RowValue, Tables.CooperativeContracts.TABLE_ID, database.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
+                                tableRowValueContractGuid = new TableRowValue(rowValueContractGuid as RowValue, CooperativeContracts.TABLE_ID, database.Id, Guid.Parse(Constants.COOP_SCHEMA_GUID));
                             }
 
 
@@ -540,7 +540,7 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
             if (line.StartsWith(DrummerKeywords.REVIEW_PENDING_CONTRACTS))
             {
                 var sysDb = dbManager.GetSystemDatabase();
-                var table = sysDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+                var table = sysDb.GetTable(CooperativeContracts.TABLE_NAME);
 
                 // need a new set policy operator in the plan
                 if (!plan.HasPart(PlanPartType.Select))
@@ -557,68 +557,68 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                     // add the columns, starting with HostGuid
                     ResultsetSourceTable sourceTableColumnHostGuid = new ResultsetSourceTable();
                     sourceTableColumnHostGuid.Table = table.Address;
-                    sourceTableColumnHostGuid.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.HostGuid).Id;
+                    sourceTableColumnHostGuid.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.HostGuid).Id;
                     sourceTableColumnHostGuid.Order = 1;
                     layout.AddSource(sourceTableColumnHostGuid);
 
                     ResultsetSourceTable sourceTableColumnContractGuid = new ResultsetSourceTable();
                     sourceTableColumnContractGuid.Table = table.Address;
-                    sourceTableColumnContractGuid.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.ContractGUID).Id;
+                    sourceTableColumnContractGuid.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.ContractGUID).Id;
                     sourceTableColumnContractGuid.Order = 2;
                     layout.AddSource(sourceTableColumnContractGuid);
 
                     ResultsetSourceTable sourceTableColumnDatabaseName = new ResultsetSourceTable();
                     sourceTableColumnDatabaseName.Table = table.Address;
-                    sourceTableColumnDatabaseName.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.DatabaseName).Id;
+                    sourceTableColumnDatabaseName.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.DatabaseName).Id;
                     sourceTableColumnDatabaseName.Order = 3;
                     layout.AddSource(sourceTableColumnDatabaseName);
 
                     ResultsetSourceTable sourceTableColumnDatabaseId = new ResultsetSourceTable();
                     sourceTableColumnDatabaseId.Table = table.Address;
-                    sourceTableColumnDatabaseId.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.DatabaseId).Id;
+                    sourceTableColumnDatabaseId.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.DatabaseId).Id;
                     sourceTableColumnDatabaseId.Order = 4;
                     layout.AddSource(sourceTableColumnDatabaseId);
 
                     ResultsetSourceTable sourceTableColumnDescription = new ResultsetSourceTable();
                     sourceTableColumnDescription.Table = table.Address;
-                    sourceTableColumnDescription.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Description).Id;
+                    sourceTableColumnDescription.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.Description).Id;
                     sourceTableColumnDescription.Order = 5;
                     layout.AddSource(sourceTableColumnDescription);
 
                     ResultsetSourceTable sourceTableColumnVersion = new ResultsetSourceTable();
                     sourceTableColumnVersion.Table = table.Address;
-                    sourceTableColumnVersion.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Version).Id;
+                    sourceTableColumnVersion.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.Version).Id;
                     sourceTableColumnVersion.Order = 6;
                     layout.AddSource(sourceTableColumnVersion);
 
                     ResultsetSourceTable sourceTableColumnGeneratedDate = new ResultsetSourceTable();
                     sourceTableColumnGeneratedDate.Table = table.Address;
-                    sourceTableColumnGeneratedDate.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.GeneratedDate).Id;
+                    sourceTableColumnGeneratedDate.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.GeneratedDate).Id;
                     sourceTableColumnGeneratedDate.Order = 7;
                     layout.AddSource(sourceTableColumnGeneratedDate);
 
                     ResultsetSourceTable sourceTableColumnStatus = new ResultsetSourceTable();
                     sourceTableColumnStatus.Table = table.Address;
-                    sourceTableColumnStatus.ColumnId = Tables.CooperativeContracts.GetColumn(Tables.CooperativeContracts.Columns.Status).Id;
+                    sourceTableColumnStatus.ColumnId = CooperativeContracts.GetColumn(CooperativeContracts.Columns.Status).Id;
                     sourceTableColumnStatus.Order = 8;
                     layout.AddSource(sourceTableColumnStatus);
 
                     selectPart.Layout = layout;
                     var columns = new string[]
                     {
-                        Tables.CooperativeContracts.Columns.HostGuid,
-                        Tables.CooperativeContracts.Columns.ContractGUID,
-                        Tables.CooperativeContracts.Columns.DatabaseName,
-                        Tables.CooperativeContracts.Columns.DatabaseId,
-                        Tables.CooperativeContracts.Columns.Description,
-                        Tables.CooperativeContracts.Columns.Version,
-                        Tables.CooperativeContracts.Columns.GeneratedDate,
-                        Tables.CooperativeContracts.Columns.Status
+                        CooperativeContracts.Columns.HostGuid,
+                        CooperativeContracts.Columns.ContractGUID,
+                        CooperativeContracts.Columns.DatabaseName,
+                        CooperativeContracts.Columns.DatabaseId,
+                        CooperativeContracts.Columns.Description,
+                        CooperativeContracts.Columns.Version,
+                        CooperativeContracts.Columns.GeneratedDate,
+                        CooperativeContracts.Columns.Status
                     };
 
                     // filter by pending contracts
                     var acceptedStatus = ContractStatus.Pending;
-                    var value = RowValueMaker.Create(table, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(acceptedStatus).ToString(), false);
+                    var value = RowValueMaker.Create(table, CooperativeContracts.Columns.Status, Convert.ToInt32(acceptedStatus).ToString(), false);
                     var trv = new TableRowValue(value, table.Address.TableId, table.Address.DatabaseId, table.Address.SchemaId);
                     TableReadFilter filter = new TableReadFilter(trv, ValueComparisonOperator.Equals, 1);
 
@@ -769,10 +769,10 @@ namespace Drummersoft.DrummerDB.Core.QueryTransaction
                             break;
                         }
 
-                        var contractsTable = sysDb.GetTable(Tables.CooperativeContracts.TABLE_NAME);
+                        var contractsTable = sysDb.GetTable(CooperativeContracts.TABLE_NAME);
 
-                        var searchHostGuid = RowValueMaker.Create(contractsTable, Tables.CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
-                        var acceptedContract = RowValueMaker.Create(contractsTable, Tables.CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Accepted).ToString());
+                        var searchHostGuid = RowValueMaker.Create(contractsTable, CooperativeContracts.Columns.HostGuid, hostGuid.ToString());
+                        var acceptedContract = RowValueMaker.Create(contractsTable, CooperativeContracts.Columns.Status, Convert.ToInt32(ContractStatus.Accepted).ToString());
 
                         var searchItems = new IRowValue[2];
                         searchItems[0] = searchHostGuid;

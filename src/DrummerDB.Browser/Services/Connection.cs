@@ -11,7 +11,7 @@ namespace Drummersoft.DrummerDB.Browser.Services
         private DrummerSQLClient _sqlClient;
         private Guid _userSession;
 
-        public const string DATABASE_QUERY = "SELECT * FROM sys.Databases";
+        public const string DATABASE_QUERY = "SELECT DatabaseType, DatabaseName FROM sys.Databases";
         public const string SYSTEM_DATABASE_NAME = "drumSystem";
         public string IPAddress { get; set; }
         public int SQLPort { get; set; }
@@ -25,6 +25,8 @@ namespace Drummersoft.DrummerDB.Browser.Services
         public string CurrentDatabaseName { get; set; }
         public List<string> CurrentDatabaseNames { get; set; }
         public List<string> CurrrentTableNames { get; set; }
+        public List<DbInfo> DatabaseInformation { get; set; }
+        public DbInfo CurrentDatabaseInformation { get; set; }
 
         public Connection() { }
 
@@ -42,6 +44,8 @@ namespace Drummersoft.DrummerDB.Browser.Services
             CurrentDatabaseNames = new List<string>();
             CurrentDatabaseName = string.Empty;
             CurrrentTableNames = new List<string>();
+
+            DatabaseInformation = new List<DbInfo>();
         }
 
         public void Init()
@@ -55,6 +59,7 @@ namespace Drummersoft.DrummerDB.Browser.Services
             CurrentDatabaseNames = new List<string>();
             CurrentDatabaseName = string.Empty;
             CurrrentTableNames = new List<string>();
+            DatabaseInformation = new List<DbInfo>();
 
             CurrentDatabaseNames.Add("-- SELECT ONE ---");
         }

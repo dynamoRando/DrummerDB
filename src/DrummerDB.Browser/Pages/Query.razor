@@ -1,6 +1,9 @@
 ﻿@page "/query"
 @inject Services.Connection connection
 
+@using System.Linq
+@using System.Collections
+@using System.Collections.Generic
 @using Drummersoft.DrummerDB.Browser.Format
 @using Drummersoft.DrummerDB.Common
 @using Services
@@ -87,44 +90,56 @@
         {
             connection.CurrentDatabaseName = db;
             selectedDb = db;
+            connection.CurrentDatabaseInformation = connection.DatabaseInformation.Where(d => string.Equals(d.Name, db, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
         }
     }
 
     private void LoadDatabases()
     {
-        var result = connection.SQLClient.ExecuteSQL(Connection.DATABASE_QUERY, UserName, Password, connection.UserSession);
-
-        if (result is not null)
+        try
         {
-            var queryResult = result.Results.FirstOrDefault();
+            var result = connection.SQLClient.ExecuteSQL(Connection.DATABASE_QUERY, UserName, Password, connection.UserSession);
 
-            if (result.AuthenticationResult.IsAuthenticated)
+            if (result is not null)
             {
-                if (queryResult is not null)
+                var queryResult = result.Results.FirstOrDefault();
+
+                if (result.AuthenticationResult.IsAuthenticated)
                 {
-                    if (!queryResult.IsError)
+                    if (queryResult is not null)
                     {
-
-                        var dataResult = result.Results.FirstOrDefault();
-                        if (dataResult is not null)
+                        if (!queryResult.IsError)
                         {
-                            connection.CurrentDatabaseNames.Clear();
-                            connection.CurrentDatabaseNames.Add("-- SELECT ONE ---");
-                            connection.CurrentDatabaseNames.Add("drumSystem");
 
-                            foreach (var row in dataResult.Rows)
+                            var dataResult = result.Results.FirstOrDefault();
+                            if (dataResult is not null)
                             {
-                                foreach (var value in row.Values)
+                                connection.CurrentDatabaseNames.Clear();
+                                connection.DatabaseInformation.Clear();
+
+                                connection.CurrentDatabaseNames.Add("-- SELECT ONE ---");
+                                connection.CurrentDatabaseNames.Add("drumSystem");
+
+                                foreach (var row in dataResult.Rows)
                                 {
-                                    string databaseName = DbBinaryConvert.BinaryToString(value.Value.ToByteArray());
+                                    string databaseName = DbBinaryConvert.BinaryToString(row.Values[1].Value.ToByteArray());
                                     connection.CurrentDatabaseNames.Add(databaseName);
+
+                                    uint dbType = DbBinaryConvert.BinaryToUInt(row.Values[0].Value.ToByteArray());
+                                    var dbInfo = new DbInfo { Name = databaseName, Type = dbType };
+                                    connection.DatabaseInformation.Add(dbInfo);
                                 }
                             }
-                        }
 
+                        }
                     }
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            QueryMessages += $"ERROR: {ex.ToString()}";
+
         }
     }
 
@@ -138,7 +153,7 @@
             // must change function to async void for this to work
             //var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, UserName, Password, connection.UserSession);
 
-            var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, selectedDb, UserName, Password, connection.UserSession);
+            var result = await connection.SQLClient.ExecuteSQLAsync(QueryText, selectedDb, UserName, Password, connection.UserSession, (DatabaseType)connection.CurrentDatabaseInformation.Type);
             var queryResult = result.Results.FirstOrDefault();
 
             if (result is not null)

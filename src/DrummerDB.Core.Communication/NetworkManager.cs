@@ -109,7 +109,7 @@ namespace Drummersoft.DrummerDB.Core.Communication
 
             _logService.Info($"SQLService endpoint started at: {clientUrl}");
 
-            _sqlServiceServer.RunAsync(null, urls, _sqlServiceHandler, _sqlServicePort);
+            _sqlServiceServer.RunAsync(null, urls, _sqlServiceHandler, _sqlServicePort, _logService);
         }
 
         public void StartServerForInfoService(bool useHttps, IAuthenticationManager authenticationManager, IDbManager dbManager, int portNumber)
